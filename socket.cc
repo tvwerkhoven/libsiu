@@ -30,8 +30,6 @@
 #include <fcntl.h>
 #include <sys/poll.h>
 #include <poll.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
 
 #include "socket.h"
 #include <string>
@@ -92,13 +90,7 @@ bool Socket::connect(const string &host, const string &port) {
 			continue;
 		
 		int opt = 1;
-		setsockopt(tmpfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof opt);
-		setsockopt(tmpfd, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof opt);
-		setsockopt(tmpfd, SOL_TCP, TCP_KEEPIDLE, &opt, sizeof opt);
-		opt = 2;
-		setsockopt(tmpfd, SOL_TCP, TCP_KEEPCNT, &opt, sizeof opt);
-		opt = 5;
-		setsockopt(tmpfd, SOL_TCP, TCP_KEEPINTVL, &opt, sizeof opt);
+		setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof opt);
 
 		err = ::connect(tmpfd, aip->ai_addr, aip->ai_addrlen);
 		if(err) {
@@ -141,12 +133,6 @@ void Socket::listen(const string &port) {
 		
 		int opt = 1;
 		setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof opt);
-		setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof opt);
-		setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &opt, sizeof opt);
-		opt = 2;
-		setsockopt(fd, SOL_TCP, TCP_KEEPCNT, &opt, sizeof opt);
-		opt = 5;
-		setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, &opt, sizeof opt);
 
 		err = ::bind(fd, aip->ai_addr, aip->ai_addrlen) || ::listen(fd, 1);
 		if(err) {
@@ -344,6 +330,17 @@ bool Socket::write(const void *buf, size_t len) {
 bool Socket::write(const std::string str) {
 	return write(str.c_str(), str.size());
 }
+
+bool Socket::readavailable() {
+	struct pollfd pfd = {fd, POLLIN};
+	return poll(&pfd, 1, 0);
+}
+
+bool Socket::writeavailable() {
+	struct pollfd pfd = {fd, POLLOUT};
+	return poll(&pfd, 1, 0);
+}
+
 
 bool Socket::vprintf(const char *format, va_list va) {
 	return write(vformat(format, va));

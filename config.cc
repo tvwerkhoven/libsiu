@@ -20,7 +20,7 @@
 #include <fstream>
 #include <string>
 
-#include "config.h"
+#include "confparse.h"
 
 using namespace std;
 

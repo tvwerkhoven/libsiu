@@ -3,8 +3,6 @@ AM_CPPFLAGS = $(SIGCPP_CFLAGS)
 
 noinst_LIBRARIES = libconfig.a libmessages.a libpidfile.a libserial.a libsocket.a libprotocol.a
 
-AM_CXXFLAGS = -pthread
-
 libconfig_a_SOURCES = config.cc
 libmessages_a_SOURCES = messages.cc
 libpidfile_a_SOURCES = pidfile.cc

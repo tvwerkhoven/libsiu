@@ -53,6 +53,8 @@ class Socket {
 	bool printf(const char *format, ...);
 	std::string readline();
 	bool readline(std::string &line);
+	bool readavailable();
+	bool writeavailable();
 	Socket &operator<<(const std::string line);
 	Socket &operator<<(const char *line);
 	Socket operator>>(std::string &line);

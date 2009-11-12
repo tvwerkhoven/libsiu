@@ -20,7 +20,7 @@
  */
 /*! 
  @file io.cc 
- @author Michiel van Noort, Tim van Werkhoven
+ @author Michiel van Noort
  @brief input/output routines
 
 */
@@ -78,7 +78,17 @@ int Io::msg(int type,const char *formatstring,...)
       vsprintf(str,newformatstring,ap);
       int size=strlen(str)+1+sizeof(int);
       unsigned char *buf=new unsigned char [size];
+//      offs+=pack(buf+offs,type,swap_endian);
+//      offs+=pack(buf+offs,str);
       delete[] str;
+//      if(ssock){
+//        ssock->send_cmd(iocmd);
+//        ssock->send(buf,size);
+//      }else{
+//        ::send(sock,&iocmd,1,0);
+//        ::send(sock,&size,sizeof(size),0);
+//        ::send(sock,buf,size,0);
+//      }
       delete[] buf;
     }
     delete[] newformatstring;
