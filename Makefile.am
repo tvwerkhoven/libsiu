@@ -1,5 +1,5 @@
 AM_CXXFLAGS = -pthread
-AM_CPPFLAGS = $(SIGCPP_CFLAGS)
+AM_CPPFLAGS = $(SIGC_CFLAGS)
 
 noinst_LIBRARIES = libconfig.a libmessages.a libpidfile.a libserial.a libsocket.a libprotocol.a
 
