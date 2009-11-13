@@ -22,7 +22,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <unistd.h>
-#include <sys/io.h>
+//#include <sys/io.h>
 #include <termios.h>
 #include <string.h>
 #include <sys/types.h>
@@ -56,7 +56,12 @@ namespace serial {
 	}
 
 	bool port::vprintf(const char *format, va_list va) {
-		return vdprintf(fd, format, va) >= 0;
+	  // Does not work on Darwin, not POSIX compliant
+		//return vdprintf(fd, format, va) >= 0;
+    char *buf;
+    int len;
+    len = vasprintf(&buf, format, va);
+    return write(buf, len);
 	}
 
 	bool port::printf(const char *format, ...) {
