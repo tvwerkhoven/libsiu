@@ -55,11 +55,7 @@ namespace serial {
 	}
 
 	bool port::vprintf(const char *format, va_list va) {
-		// vdprintf does not work on Darwin
-		char *buf;
-		int len;
-		len = vasprintf(&buf, format, va);
-		return write(buf, len);
+		return write(vformat(format, va));
 	}
 
 	bool port::printf(const char *format, ...) {
