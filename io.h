@@ -17,8 +17,6 @@
 #define IO_NOID         0x00000100      //!< Do not add loglevel string
 #define IO_FATAL        0x00000200      //!< Fatal, quit immediately
 
-#define max(x,y) (x) > (y) ? (x) : (y)
-
 class Io{
 	FILE *f;
 	unsigned char iocmd, swap_endian;

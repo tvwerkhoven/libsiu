@@ -30,6 +30,7 @@
 #include <stdarg.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <algorithm>
 
 #include "io.h"
 
@@ -50,7 +51,7 @@ Io::~Io(void) {
 }
 
 void Io::reconf(int level) {
-	verb = max(level, 0);
+	verb = std::max(level, 0);
 	level_mask = ~(0xFFFFFFFF << verb);
 }
 
