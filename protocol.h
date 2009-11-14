@@ -12,10 +12,10 @@
 #include "pthread++.h"
 
 namespace Protocol {
-        class exception: public std::runtime_error {
-                public:
-                exception(const std::string reason): runtime_error(reason) {}
-        };
+	class exception: public std::runtime_error {
+		public:
+		exception(const std::string reason): runtime_error(reason) {}
+	};
 
 	class Client {
 		Socket socket;

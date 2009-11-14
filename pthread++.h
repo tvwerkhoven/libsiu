@@ -40,9 +40,6 @@
 #define PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP PTHREAD_MUTEX_ERRORCHECK
 #endif
 
-
-
-
 #ifdef sigmask
 #undef sigmask
 #endif
@@ -102,8 +99,6 @@ namespace pthread {
 
 		int getschedparam(int *policy, struct sched_param *param) { return pthread_getschedparam(pthread, policy, param); }
 		int setschedparam(int policy, const struct sched_param *param) { return pthread_setschedparam(pthread, policy, param); }
-    // int setschedprio(int prio) { return pthread_setschedprio(pthread, prio); }
-    // int getcpuclockid(clockid_t *clock_id) { return pthread_getcpuclockid(pthread, clock_id); }
 	};
 
 	static inline int setcancelstate(int state, int *oldstate = NULL) { return pthread_setcancelstate(state, oldstate); }
@@ -113,11 +108,8 @@ namespace pthread {
 	static inline int sigmask(int how, const sigset_t *newmask = NULL, sigset_t *oldmask = NULL) { sigset_t all; if(!newmask) {sigfillset(&all); newmask = &all;} return pthread_sigmask(how, newmask, oldmask); }
 	static inline int sigwait(const sigset_t *set, int *sig) { return ::sigwait(set, sig); }
 	static inline void exit(void *retval = NULL) { pthread_exit(retval); }
-//	static inline void yield() { pthread_yield(); }
 	static inline void yield() { sched_yield(); }
 	static inline int atfork(void (*prepare)(void), void (*parent)(void), void (*child)(void)) { return pthread_atfork(prepare, parent, child); }	
-  // static inline int getaffinity(cpu_set_t *mask) { return sched_getaffinity(0, sizeof *mask, mask); }
-  // static inline int setaffinity(cpu_set_t *mask) { return sched_setaffinity(0, sizeof *mask, mask); }
 
 	class mutexattr {
 		friend class mutex;
@@ -132,8 +124,7 @@ namespace pthread {
 	};
 
 	static const pthread_mutex_t MUTEX_INITIALIZER = PTHREAD_MUTEX_INITIALIZER;
-  static const pthread_mutex_t RECURSIVE_MUTEX_INITIALIZER = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-  // static const pthread_mutex_t ERRORCHECK_MUTEX_INITIALIZER = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
+	static const pthread_mutex_t RECURSIVE_MUTEX_INITIALIZER = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
 	class mutex {
 		friend class cond;
@@ -147,7 +138,6 @@ namespace pthread {
 
 		int lock() { return pthread_mutex_lock(&pthread_mutex); }
 		int trylock() { return pthread_mutex_trylock(&pthread_mutex); }
-    // int timedlock(const struct timespec *abstime) { return pthread_mutex_timedlock(&pthread_mutex, abstime); }
 		int unlock() { return pthread_mutex_unlock(&pthread_mutex); }
 	};
 
@@ -155,11 +145,6 @@ namespace pthread {
 		public:
 		recursivemutex(): mutex(RECURSIVE_MUTEX_INITIALIZER) {}
 	};
-
-  // class errorcheckmutex: public mutex {
-  //  public:
-  //  errorcheckmutex(): mutex(ERRORCHECK_MUTEX_INITIALIZER) {}
-  // };
 
 	class mutexholder {
 		mutex *m;
@@ -196,18 +181,7 @@ namespace pthread {
 		}
 	};
 
-  // class once {
-  //  pthread_once_t once_control;
-  // 
-  //  public:
-  //  once(void (*init_routine)(void)): once_control(PTHREAD_ONCE_INIT) { pthread_once(&once_control, init_routine); }
-  //  once(): once_control(PTHREAD_ONCE_INIT) {}
-  // 
-  //  void run(void (*init_routine)(void)) { pthread_once(&once_control, init_routine); }
-  // };
-
 	static const pthread_rwlock_t RWLOCK_INITIALIZER = PTHREAD_RWLOCK_INITIALIZER;
-  // static const pthread_rwlock_t RWLOCK_WRITER_NONRECURSIVE_INITIALIZER = PTHREAD_RWLOCK_WRITER_NONRECURSIVE_INITIALIZER_NP;
 
 	class rwlock {
 		pthread_rwlock_t pthread_rwlock;
@@ -219,10 +193,7 @@ namespace pthread {
 
 		int rdlock() { return pthread_rwlock_rdlock(&pthread_rwlock); }
 		int tryrdlock() { return pthread_rwlock_tryrdlock(&pthread_rwlock); }
-    // int timedrdlock(const struct timespec *abstime) { return pthread_rwlock_timedrdlock(&pthread_rwlock, abstime); }
 		int wrlock() { return pthread_rwlock_wrlock(&pthread_rwlock); }
-    // int trywrlock() { return pthread_rwlock_trywrlock(&pthread_rwlock); }
-    // int timedwrlock(const struct timespec *abstime) { return pthread_rwlock_timedwrlock(&pthread_rwlock, abstime); }
 		int unlock() { return pthread_rwlock_unlock(&pthread_rwlock); }
 	};
 
@@ -239,36 +210,6 @@ namespace pthread {
 		wrlockholder(rwlock *l): l(l) { l->wrlock(); }
 		~wrlockholder() { l->unlock(); }
 	};
-
-  // class spinlock {
-  //  pthread_spinlock_t pthread_spinlock;
-  // 
-  //  public:
-  //  spinlock(bool shared = false) { pthread_spin_init(&pthread_spinlock, shared); }
-  //  ~spinlock() { pthread_spin_destroy(&pthread_spinlock); }
-  // 
-  //  int lock() { return pthread_spin_lock(&pthread_spinlock); }
-  //  int trylock() { return pthread_spin_trylock(&pthread_spinlock); }
-  //  int unlock() { return pthread_spin_unlock(&pthread_spinlock); }
-  // };
-
-  // class spinlockholder {
-  //  spinlock *l;
-  //  public:
-  //  spinlockholder(spinlock *l): l(l) { l->lock(); }
-  //  ~spinlockholder() { l->unlock(); }
-  // };
-
-  // class barrier {
-  //  pthread_barrier_t pthread_barrier;
-  // 
-  //  public:
-  //  barrier(const pthread_barrierattr_t *barrierattr, unsigned int count) { pthread_barrier_init(&pthread_barrier, barrierattr, count); }
-  //  barrier(unsigned int count) { pthread_barrier_init(&pthread_barrier, NULL, count); }
-  //  ~barrier() { pthread_barrier_destroy(&pthread_barrier); }
-  // 
-  //  int wait() { return pthread_barrier_wait(&pthread_barrier); }
-  // };
 
 	class key {
 		pthread_key_t pthread_key;

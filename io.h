@@ -20,16 +20,18 @@
 #define max(x,y) (x) > (y) ? (x) : (y)
 
 class Io{
-  FILE *f;
-  unsigned char iocmd,swap_endian;
-  int verb,level_mask;
+	FILE *f;
+	unsigned char iocmd, swap_endian;
+	int verb, level_mask;
+
 public:
-  Io(void);
-  Io::Io(int l);
-  ~Io(void);
-  void reconf(int);
-  int msg(int,const char*,...);
-  int vlevel(void){ return verb; }
+	Io();
+	Io(int l);
+	~Io();
+
+	void reconf(int);
+	int msg(int, const char*, ...);
+	int vlevel() {return verb;}
 };
 
 #endif
