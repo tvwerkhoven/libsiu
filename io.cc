@@ -64,23 +64,24 @@ int Io::msg(int type, const char *formatstring, ...) {
 	if(level) {
 		va_list ap;
 		va_start(ap, formatstring);
-		char *newformatstring;
+		char *newformatstring = "";
 
 		if(!(type & IO_NOID)) {
 			newformatstring = new char[strlen(formatstring) + strlen(message[level]) + 5];
 			sprintf(newformatstring, "[%s] %s\n", message[level], formatstring);
 		} else
 			newformatstring = strcpy(new char[strlen(formatstring) + 1], formatstring);
-
+		char *msg;
+		vasprintf(&msg, newformatstring, ap);
 		if (f) {
-			vfprintf(f, newformatstring, ap);
+			fprintf(f, msg);
 			fflush(f);
 		}
 		if (flog) {
-			vfprintf(flog, newformatstring, ap);
+			fprintf(flog, msg);
 			fflush(flog);
 		}
-
+		free(msg);
 		delete[] newformatstring;
 		va_end(ap);
 
