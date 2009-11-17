@@ -18,18 +18,22 @@
 #define IO_FATAL        0x00000200      //!< Fatal, quit immediately
 
 class Io{
-	FILE *f;
-	unsigned char iocmd, swap_endian;
 	int verb, level_mask;
+	FILE *f;
+	FILE *flog;
+	std::string logfile;
 
 public:
 	Io();
 	Io(int l);
 	~Io();
 
-	void reconf(int);
 	int msg(int, const char*, ...);
-	int vlevel() {return verb;}
+	
+	int getVerb() {return verb;}
+
+	int setLogfile(std::string);
+	void setVerb(int l) { level_mask = ~(0xFFFFFFFF << std::max(l, 0)); }
 };
 
 #endif

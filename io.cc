@@ -28,9 +28,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <sys/socket.h>
 #include <string.h>
 #include <algorithm>
+#include <fstream>
 
 #include "io.h"
 
@@ -41,18 +41,20 @@ Io::Io() {
 Io::Io(int l) {
 	level_mask = ~(0xFFFFFFFF << l);
 	f = stderr;
-	swap_endian = 0;
+	flog = NULL;
 }
 
 
 Io::~Io(void) {
 	if(f && f != stdout && f != stderr)
 		fclose(f);
+	if(flog && flog != stdout && flog != stderr)
+		fclose(flog);
 }
 
-void Io::reconf(int level) {
-	verb = std::max(level, 0);
-	level_mask = ~(0xFFFFFFFF << verb);
+int Io::setLogfile(std::string file) {
+	logfile = file;
+	flog = fopen(logfile.c_str(), "a");
 }
 
 int Io::msg(int type, const char *formatstring, ...) {
@@ -70,26 +72,23 @@ int Io::msg(int type, const char *formatstring, ...) {
 		} else
 			newformatstring = strcpy(new char[strlen(formatstring) + 1], formatstring);
 
-		if(f) {
+		if (f) {
 			vfprintf(f, newformatstring, ap);
 			fflush(f);
-		} else { // network store...
-			char *str = new char[4096];		// fixed length: not so nice...
-			vsprintf(str, newformatstring, ap);
-			int size = strlen(str) + 1 + sizeof(int);
-			unsigned char *buf = new unsigned char[size];
-			delete[] str;
-			delete[] buf;
+		}
+		if (flog) {
+			vfprintf(flog, newformatstring, ap);
+			fflush(flog);
 		}
 
 		delete[] newformatstring;
 		va_end(ap);
 
-		if(type & IO_FATAL)
-			exit(1);
-		if(type & IO_ERR)
-			return -1;
 	}
+	if(type & IO_FATAL)
+		exit(-1);
+	if(type & IO_ERR)
+		return -1;
 
 	return 0;
 }
