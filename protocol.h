@@ -60,7 +60,6 @@ namespace Protocol {
 
 			Port *port;
 			Socket *socket;
-			Server *server;
 			std::set<std::string> tags;
 
 			bool running;
@@ -69,6 +68,7 @@ namespace Protocol {
 			void handler();
 
 			public:
+			Server *server;
 			const void *data;
 
 			Connection(Port *port, Socket *socket, const void *data = 0);
