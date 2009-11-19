@@ -39,15 +39,12 @@ Io::Io() {
 }
 
 Io::Io(int l) {
-	level_mask = ~(0xFFFFFFFF << l);
-	f = stderr;
+	setVerb(l);
 	flog = NULL;
 }
 
 
 Io::~Io(void) {
-	if(f && f != stdout && f != stderr)
-		fclose(f);
 	if(flog && flog != stdout && flog != stderr)
 		fclose(flog);
 }
@@ -57,39 +54,39 @@ int Io::setLogfile(std::string file) {
 	flog = fopen(logfile.c_str(), "a");
 }
 
-int Io::msg(int type, const char *formatstring, ...) {
-	const char *message[] = {"",  "error", "warn", "info", "xinfo", "debug1", "debug2", "", ""};
-	int level = type & level_mask;
+int Io::msg(int type, const char *fmtstr, ...) {
+	int level = type & IO_LEVEL_MASK;
+	
+	static const char *message[] = {"",  "error", "warn", "info", "xinfo", "debug1", "debug2"};
+	static FILE *fdlevel[] = {NULL,  stderr, stderr, stdout, stdout, stdout, stdout};
 
-	if(level) {
+	if (level <= verb) {
 		va_list ap;
-		va_start(ap, formatstring);
-		char *newformatstring = "";
+		va_start(ap, fmtstr);
+		char *newfmt = "";
 
-		if(!(type & IO_NOID)) {
-			newformatstring = new char[strlen(formatstring) + strlen(message[level]) + 5];
-			sprintf(newformatstring, "[%s] %s\n", message[level], formatstring);
-		} else
-			newformatstring = strcpy(new char[strlen(formatstring) + 1], formatstring);
-		char *msg;
-		vasprintf(&msg, newformatstring, ap);
-		if (f) {
-			fprintf(f, msg);
-			fflush(f);
+		if (type & IO_NOID) {
+			newfmt = strcpy(new char[strlen(fmtstr) + 1], fmtstr);
 		}
+		else {
+			newfmt = new char[strlen(fmtstr) + strlen(message[level]) + 5];
+			sprintf(newfmt, "[%s] %s\n", message[level], fmtstr);
+		}
+		char *msg;
+		vasprintf(&msg, newfmt, ap);
+		fprintf(fdlevel[level], msg);
+		fflush(fdlevel[level]);
 		if (flog) {
 			fprintf(flog, msg);
 			fflush(flog);
 		}
 		free(msg);
-		delete[] newformatstring;
+		delete[] newfmt;
 		va_end(ap);
-
 	}
-	if(type & IO_FATAL)
-		exit(-1);
-	if(type & IO_ERR)
-		return -1;
+	
+	if (type & IO_FATAL) exit(-1);
+	if (type & IO_ERR) return -1;
 
 	return 0;
 }
