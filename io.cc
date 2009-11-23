@@ -41,6 +41,8 @@ Io::Io() {
 Io::Io(int l) {
 	setVerb(l);
 	flog = NULL;
+	setvbuf(stderr, NULL, _IONBF, 0);
+	setvbuf(stdout, NULL, _IONBF, 0);
 }
 
 
