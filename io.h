@@ -22,8 +22,8 @@
 
 class Io {
 	int verb, level_mask;
-	FILE *f;
-	FILE *flog;
+	FILE *termfd;
+	FILE *logfd;
 	std::string logfile;
 	
 public:

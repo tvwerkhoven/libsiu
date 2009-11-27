@@ -40,27 +40,26 @@ Io::Io() {
 
 Io::Io(int l) {
 	setVerb(l);
-	flog = NULL;
-	setvbuf(stderr, NULL, _IONBF, 0);
-	setvbuf(stdout, NULL, _IONBF, 0);
+	logfd = NULL;
+	termfd = stdout;
 }
 
 
 Io::~Io(void) {
-	if(flog && flog != stdout && flog != stderr)
-		fclose(flog);
+	if (logfd && logfd != stdout && logfd != stderr)
+		fclose(logfd);
 }
 
 int Io::setLogfile(std::string file) {
 	logfile = file;
-	flog = fopen(logfile.c_str(), "a");
+	logfd = fopen(logfile.c_str(), "a");
+	msg(IO_DEB1, "Using logfile %s.", logfile.c_str());
 }
 
 int Io::msg(int type, const char *fmtstr, ...) {
 	int level = type & IO_LEVEL_MASK;
 	
-	static const char *message[] = {"",  "error", "warn", "info", "xinfo", "debug1", "debug2"};
-	static FILE *fdlevel[] = {NULL,  stderr, stderr, stdout, stdout, stdout, stdout};
+	static const char *prefix[] = {"",  "err ", "warn", "info", "xnfo", "dbg1", "dbg2"};
 
 	if (level <= verb) {
 		va_list ap;
@@ -71,17 +70,20 @@ int Io::msg(int type, const char *fmtstr, ...) {
 			newfmt = strcpy(new char[strlen(fmtstr) + 1], fmtstr);
 		}
 		else {
-			newfmt = new char[strlen(fmtstr) + strlen(message[level]) + 5];
-			sprintf(newfmt, "[%s] %s\n", message[level], fmtstr);
+			newfmt = new char[strlen(fmtstr) + strlen(prefix[level]) + 5];
+			sprintf(newfmt, "[%s] %s\n", prefix[level], fmtstr);
 		}
 		char *msg;
 		vasprintf(&msg, newfmt, ap);
-		fprintf(fdlevel[level], msg);
-		fflush(fdlevel[level]);
-		if (flog) {
-			fprintf(flog, msg);
-			fflush(flog);
+		
+		fprintf(termfd, msg);
+		fflush(termfd);
+		
+		if (logfd) {
+			fprintf(logfd, msg);
+			fflush(logfd);
 		}
+		
 		free(msg);
 		delete[] newfmt;
 		va_end(ap);
