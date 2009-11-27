@@ -16,6 +16,15 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+/*!
+		@file config.h
+		@brief Configuration file parsing class
+		@author Guus Sliepen (guus@sliepen.eu.org)
+		
+		This class can be used to read and write configuration files formatted 
+		according to 
+		
+*/
 
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
@@ -31,9 +40,9 @@
 
 class config {
 	std::map<std::string, std::string> variables;
-	std::string filename;
 
 	public:
+	std::string filename;
 	bool autosave;
 
 	config(const std::string &filename): filename(filename), autosave(false) { parse(); }
