@@ -34,16 +34,11 @@
 
 #include "io.h"
 
-Io::Io() {
-	Io(2);
-}
-
-Io::Io(int l) {
+void Io::init(int l) {
 	setVerb(l);
 	logfd = NULL;
 	termfd = stdout;
 }
-
 
 Io::~Io(void) {
 	if (logfd && logfd != stdout && logfd != stderr)

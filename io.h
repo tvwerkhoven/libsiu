@@ -27,9 +27,11 @@ class Io {
 	std::string logfile;
 	
 public:
-	Io();
-	Io(int l);
+	Io() { init(IO_MAXLEVEL); }
+	Io(int l) { init(l); }
 	~Io();
+	
+	void init(int);
 
 	int msg(int, const char*, ...);
 	
