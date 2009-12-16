@@ -21,11 +21,13 @@
 #define IO_LEVEL_MASK   0x000000FF
 #define IO_MAXLEVEL     0x00000006
 
+using namespace std;
+
 class Io {
 	int verb, level_mask;
 	FILE *termfd;
 	FILE *logfd;
-	std::string logfile;
+	string logfile;
 	
 public:
 	Io() { init(IO_MAXLEVEL); }
@@ -36,10 +38,11 @@ public:
 
 	int msg(int, const char*, ...);
 	
-	int setLogfile(std::string);
+	int setLogfile(string);
 	
 	int getVerb() { return verb; }
-	int setVerb(int l) { verb = std::max(1, std::min(l, IO_MAXLEVEL)); return verb; }
+	int setVerb(int l) { verb = max(1, min(l, IO_MAXLEVEL)); return verb; }
+	int setVerb(string l) { return setVerb((int) strtoll(l.c_str(), NULL, 0)); }
 	
 	int incVerb() { return setVerb(verb+1); }
 	int decVerb() { return setVerb(verb-1); }
