@@ -9,6 +9,7 @@
 #define IO_NOID         0x00000100      //!< Do not add loglevel string
 #define IO_FATAL        0x00000200      //!< Fatal, quit immediately
 #define IO_RETURN       0x00000400      //!< Give a non-zero return code
+#define IO_NOLF         0x00000800      //!< Do not add linefeed
 
 // Logging levels
 #define IO_ERR          0x00000001 | IO_RETURN

@@ -59,14 +59,18 @@ int Io::msg(int type, const char *fmtstr, ...) {
 	if (level <= verb) {
 		va_list ap;
 		va_start(ap, fmtstr);
-		char *newfmt = "";
+		char *newfmt;
 
 		if (type & IO_NOID) {
 			newfmt = strcpy(new char[strlen(fmtstr) + 1], fmtstr);
 		}
+		else if (type & IO_NOLF) {
+			newfmt = new char[strlen(fmtstr) + strlen(prefix[level]) + 4];
+			sprintf(newfmt, "[%s] %s", prefix[level], fmtstr);
+		}
 		else {
 			newfmt = new char[strlen(fmtstr) + strlen(prefix[level]) + 5];
-			sprintf(newfmt, "[%s] %s\n", prefix[level], fmtstr);
+			sprintf(newfmt, "[%s] %s\n", prefix[level], fmtstr);			
 		}
 		char *msg;
 		vasprintf(&msg, newfmt, ap);
