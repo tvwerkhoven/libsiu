@@ -57,21 +57,44 @@ namespace Protocol {
 		}
 	}
 
-	Client::Client(const std::string &host, const std::string &port, const std::string &name): host(host), port(port), name(name) {
-		if(!name.empty())
-			prefix = name + ' ';
+	Client::Client() {
+		setup_flag = false;
 		running = false;
+	};
+
+	Client::Client(const std::string &h, const std::string &p, const std::string &n) {
+		setup_flag = false;
+		running = false;
+		setup(h, p, n);
 	};
 
 	Client::~Client() {
 		if(running) {
+			close();
 			thread.cancel();
 			thread.join();
 		}
 	}
+	
+	void Client::setup(const std::string &h, const std::string &p, const std::string &n) {
+		host = h;
+		port = p;
+		name = n;
+		
+		if(!name.empty())
+			prefix = name + ' ';
+		
+		setup_flag = true;
+	}
+	
+	void Client::connect(const std::string &h, const std::string &p, const std::string &n) {
+		setup(h, p, n);
+		
+		connect();
+	}
 
 	void Client::connect() {
-		if(running)
+		if (running || !setup_flag)
 			return;
 
 		running = true;
@@ -83,6 +106,7 @@ namespace Protocol {
 		if(!running)
 			return;
 
+		running = false;
 		socket.close();
 	}
 
@@ -189,6 +213,7 @@ namespace Protocol {
 					sleep(1);
 					continue;
 				}
+				printf("got new connection\n");
 				new Connection(this, incoming);
 			}
 
@@ -209,6 +234,7 @@ namespace Protocol {
 	}
 
 	Server::Connection::~Connection() {
+		printf("lost connection\n");
 		if(running) {
 			thread.cancel();
 			thread.join();

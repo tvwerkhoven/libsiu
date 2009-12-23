@@ -17,30 +17,41 @@ namespace Protocol {
 		exception(const std::string reason): runtime_error(reason) {}
 	};
 
+	/*!
+	 @author Guus Sliepen
+	 @brief Client class abstracting sockets.
+	*/
 	class Client {
 		Socket socket;
-		bool running;
-
+		bool running; //!< Is the handler running or not
+		bool setup_flag; //!< Are the connection settings setup (host, port, name) or not
+		
 		pthread::attr attr;
 		pthread::thread thread;
+		
 		void handler();
+		void setup(const std::string &h, const std::string &p, const std::string &n);
 
 		protected:
 		std::string prefix;
 
 		public:
-		const std::string host;
-		const std::string port;
-		const std::string name;
+		std::string host; //!< Hostname of target machine
+		std::string port; //!< Port on target machine
+		std::string name;
 
-		sigc::slot<void, std::string> slot_message;
-		sigc::slot<void, bool> slot_connected;
+		sigc::slot<void, std::string> slot_message; //!< Slot for data handler function
+		sigc::slot<void, bool> slot_connected; //!< Slot for on (dis)connection handler function
 
+		Client();
 		Client(const std::string &host, const std::string &port, const std::string &name = "");
 		~Client();
 
 		void connect();
+		void connect(const std::string &h, const std::string &p, const std::string &n);
 		void close();
+		void disconnect() { close(); }
+
 		bool is_connected();
 
 		void write(const std::string &msg);
