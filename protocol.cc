@@ -213,7 +213,6 @@ namespace Protocol {
 					sleep(1);
 					continue;
 				}
-				printf("got new connection\n");
 				new Connection(this, incoming);
 			}
 
@@ -234,7 +233,6 @@ namespace Protocol {
 	}
 
 	Server::Connection::~Connection() {
-		printf("lost connection\n");
 		if(running) {
 			thread.cancel();
 			thread.join();
