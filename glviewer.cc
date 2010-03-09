@@ -10,10 +10,6 @@
 #include <iostream>
 #include <cstdlib>
 
-#include <gtkmm.h>
-#include <gtkglmm.h>
-#include <gdkmm/pixbuf.h>
-
 #ifdef HAVE_GL_GL_H
 #include "GL/gl.h"
 #elif HAVE_OPENGL_GL_H
@@ -25,8 +21,6 @@
 #elif HAVE_OPENGL_GLU_H 
 #include "OpenGL/glu.h"
 #endif
-
-#include <GL/glext.h>
 
 #include "glviewer.h"
 

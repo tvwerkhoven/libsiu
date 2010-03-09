@@ -21,6 +21,14 @@
 #ifndef HAVE_GLVIEWER_H
 #define HAVE_GLVIEWER_H
 
+#include <stdint.h>
+
+#include <gtkmm.h>
+#include <gtkglmm.h>
+#include <gdkmm/pixbuf.h>
+
+#include <GL/glext.h>
+
 // Default scaling steps and range
 static double SCALESTEP = 1.0/3.0;
 static double SCALEMIN = -3.0;
