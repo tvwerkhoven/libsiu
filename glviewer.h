@@ -21,6 +21,11 @@
 #ifndef HAVE_GLVIEWER_H
 #define HAVE_GLVIEWER_H
 
+// Default scaling steps and range
+static double SCALESTEP = 1.0/3.0;
+static double SCALEMIN = -3.0;
+static double SCALEMAX = 3.0;
+
 /*! 
  @brief OpenGL scrolled area
  
@@ -32,6 +37,8 @@ class OpenGLImageViewer: public Gtk::EventBox {
 	Gtk::GL::DrawingArea gtkimage;					//!< GTK drawingarea
 	
 	double scale;														//!< Tracks image scaling (zooming)
+	double scalemin;												//!< Scale range min
+	double scalemax;												//!< Scale range max
 	
 	float sx, sy;														//!< Current image displacement
 	float sxstart, systart;									//!< Tracks mouse dragging 
@@ -48,8 +55,8 @@ class OpenGLImageViewer: public Gtk::EventBox {
 	bool on_image_motion_event(GdkEventMotion *event);
 	
 	// Zoom step functions
-	void on_zoomin_activate() { scalestep(-1.0/3.0); }
-	void on_zoomout_activate() { scalestep(1.0/3.0); }
+	void on_zoomin_activate() { scalestep(-SCALESTEP); }
+	void on_zoomout_activate() { scalestep(SCALESTEP); }
 	
 	void do_update();
 	void on_update();
@@ -72,6 +79,9 @@ public:
 	void scalestep(double);
 	void setscale(double s) { scale = s; }
 	double getscale() { return scale; }
+	
+	void setscalerange(double min, double max) { scalemin = min; scalemax = max; }
+	void setscalerange(double minmax) { scalemax = scalemin = minmax; }
 	
 	void linkData(void *data, int depth, int w, int h);
 };

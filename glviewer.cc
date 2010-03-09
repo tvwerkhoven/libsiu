@@ -38,8 +38,7 @@ static double clamp(double val, double min, double max) {
 }
 
 OpenGLImageViewer::OpenGLImageViewer():
-scale(0) {
-	fprintf(stderr, "OpenGLImageViewer::OpenGLImageViewer()\n");
+scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX) {
 	glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGBA | Gdk::GL::MODE_DOUBLE);
 	if(!glconfig) {
 		fprintf(stderr, "Not double-buffered!\n");
@@ -54,7 +53,7 @@ scale(0) {
 	// Init with empty image
 	gl_img.d = gl_img.w = gl_img.h = 0;
 	gl_img.data = NULL;
-	
+		
 	// Callbacks
 	gtkimage.signal_configure_event().connect_notify(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_configure_event));
 	gtkimage.signal_expose_event().connect_notify(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_expose_event));
@@ -83,7 +82,6 @@ void OpenGLImageViewer::linkData(void *data, int depth, int w, int h) {
 }
 
 bool OpenGLImageViewer::on_image_scroll_event(GdkEventScroll *event) {
-	fprintf(stderr, "OpenGLImageViewer::on_image_scroll_event()\n");
 	if(event->direction == GDK_SCROLL_UP)
 		on_zoomin_activate();
 	else if(event->direction == GDK_SCROLL_DOWN)
@@ -94,7 +92,7 @@ bool OpenGLImageViewer::on_image_scroll_event(GdkEventScroll *event) {
 
 void OpenGLImageViewer::scalestep(double step) {
 	scale += step;
-	scale = clamp(scale, -3.0, 3.0);
+	scale = clamp(scale, scalemin, scalemax);
 	force_update();
 }
 
@@ -107,7 +105,6 @@ bool OpenGLImageViewer::on_image_motion_event(GdkEventMotion *event) {
 }
 
 bool OpenGLImageViewer::on_image_button_event(GdkEventButton *event) {
-	fprintf(stderr, "OpenGLImageViewer::on_image_button_event()\n");
 	if (event->type == GDK_2BUTTON_PRESS) {
 		// Double-click: reset translation
 		sx = sy = 0;
@@ -129,8 +126,6 @@ bool OpenGLImageViewer::on_image_button_event(GdkEventButton *event) {
 }
 
 void OpenGLImageViewer::on_image_realize() {
-	fprintf(stderr, "OpenGLImageViewer::on_image_realize()\n");
-	
 	glwindow = gtkimage.get_gl_window();
 	if (!glwindow || !glwindow->gl_begin(gtkimage.get_gl_context()))
 		return;
@@ -160,7 +155,6 @@ void OpenGLImageViewer::on_image_expose_event(GdkEventExpose *event) {
 }
 
 void OpenGLImageViewer::on_update() {
-	fprintf(stderr, "OpenGLImageViewer::on_update()\n");
 	const int depth = gl_img.d;
 	
 	if(!glwindow || !glwindow->gl_begin(gtkimage.get_gl_context()))
@@ -179,7 +173,6 @@ void OpenGLImageViewer::force_update() {
 }
 
 void OpenGLImageViewer::do_update() {
-	fprintf(stderr, "OpenGLImageViewer::do_update()\n");
 	if(!glwindow || !glwindow->gl_begin(gtkimage.get_gl_context()))
 		return;
 	
@@ -212,13 +205,13 @@ void OpenGLImageViewer::do_update() {
 	
 	// Render image
 	
+	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	glPushMatrix();
 	glTranslatef(sx, sy, 0);
 	
 	glEnable(GL_TEXTURE_2D);
-	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (s == 1 || s >= 2) ? GL_NEAREST : GL_LINEAR);
 	glBegin(GL_POLYGON);
