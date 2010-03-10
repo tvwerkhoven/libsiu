@@ -84,8 +84,8 @@ public:
 	OpenGLImageViewer();
 	~OpenGLImageViewer();
 	
-	void scalestep(double);
-	void setscale(double s) { scale = s; }
+	void setscale(double);
+	void scalestep(double step) { setscale(scale + step); }
 	double getscale() { return scale; }
 	
 	void setscalerange(double min, double max) { scalemin = min; scalemax = max; }

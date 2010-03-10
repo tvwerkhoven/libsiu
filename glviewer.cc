@@ -84,9 +84,8 @@ bool OpenGLImageViewer::on_image_scroll_event(GdkEventScroll *event) {
 	return true;
 }
 
-void OpenGLImageViewer::scalestep(double step) {
-	scale += step;
-	scale = clamp(scale, scalemin, scalemax);
+void OpenGLImageViewer::setscale(double s) {
+	scale = clamp(s, scalemin, scalemax);
 	force_update();
 }
 
