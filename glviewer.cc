@@ -33,7 +33,7 @@ static double clamp(double val, double min, double max) {
 
 OpenGLImageViewer::OpenGLImageViewer():
 scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX),
-flipv(false), fliph(false), crosshair(false) {
+flipv(false), fliph(false), crosshair(false), pager(false) {
 	glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGBA | Gdk::GL::MODE_DOUBLE);
 	if(!glconfig) {
 		fprintf(stderr, "Not double-buffered!\n");
@@ -48,6 +48,9 @@ flipv(false), fliph(false), crosshair(false) {
 	// Init with empty image
 	gl_img.d = gl_img.w = gl_img.h = 0;
 	gl_img.data = NULL;
+	
+	setshift(0.0);
+	setscale(0.0);
 		
 	// Callbacks
 	gtkimage.signal_configure_event().connect_notify(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_configure_event));
@@ -241,6 +244,39 @@ void OpenGLImageViewer::do_update() {
 		glVertex2f(0, -1);
 		glVertex2f(0, +1);
 		glEnd();
+		glPopMatrix();
+	}
+	
+	// Render pager, 10% size of original window, 5% from the lower-right corner
+	if (pager) {
+		glPushMatrix();
+		// Reset coordinate system
+		glLoadIdentity();
+		// Translate to lower-right corner, scale down
+		glTranslatef(0.8, -0.8, 0);
+		glScalef(0.1, 0.1, 1);
+		
+		// Draw pager bounding box
+		glDisable(GL_LINE_SMOOTH);
+		glBegin(GL_LINE_LOOP);
+		glColor3f(1.0f, 1.0f, 1.0f);
+		glVertex2f(-1, -1);
+		glVertex2f(-1, +1);
+		glVertex2f(+1, +1);
+		glVertex2f(+1, -1);
+		glEnd();
+		
+		// Draw image contour
+		glScalef((float)cw / ww, (float)ch / wh, 1);
+		glTranslatef(sx, sy, 0);
+		glBegin(GL_POLYGON);
+		glColor3f(0.0f, 0.0f, 0.0f);
+		glVertex2f(-1, -1);
+		glVertex2f(+1, -1);
+		glVertex2f(+1, +1);
+		glVertex2f(-1, +1);
+		glEnd();
+		
 		glPopMatrix();
 	}
 	

@@ -80,7 +80,6 @@ public:
 	
 	gl_img_t gl_img;
 	
-	
 	OpenGLImageViewer();
 	~OpenGLImageViewer();
 	
@@ -99,6 +98,7 @@ public:
 	bool crosshair;													//!< Crosshair toggle
 	bool fliph;															//!< Horizontal flip toggle
 	bool flipv;															//!< Vertical flip toggle
+	bool pager;															//!< Pager toggle
 	
 	void linkData(void *data, int depth, int w, int h);
 };
