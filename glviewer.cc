@@ -150,10 +150,12 @@ void OpenGLImageViewer::on_image_realize() {
 
 
 void OpenGLImageViewer::on_image_configure_event(GdkEventConfigure *event) {
+	on_update();
 	do_update();
 }
 
 void OpenGLImageViewer::on_image_expose_event(GdkEventExpose *event) {
+	on_update();
 	do_update();
 }
 
