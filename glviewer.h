@@ -51,7 +51,7 @@ class OpenGLImageViewer: public Gtk::EventBox {
 	float sx, sy;														//!< Current image displacement
 	float sxstart, systart;									//!< Tracks mouse dragging 
 	gdouble xstart, ystart;									//!< Tracks mouse dragging
-	
+		
 	// OpenGL drawing-related events
 	void on_image_configure_event(GdkEventConfigure *event);
 	void on_image_expose_event(GdkEventExpose *event);
@@ -66,7 +66,6 @@ class OpenGLImageViewer: public Gtk::EventBox {
 	void on_zoomin_activate() { scalestep(-SCALESTEP); }
 	void on_zoomout_activate() { scalestep(SCALESTEP); }
 	
-	void do_update();
 	void on_update();
 	void force_update();
 	
@@ -81,15 +80,25 @@ public:
 	
 	gl_img_t gl_img;
 	
+	
 	OpenGLImageViewer();
 	~OpenGLImageViewer();
 	
+	void do_update();
+
 	void setscale(double);
 	void scalestep(double step) { setscale(scale + step); }
 	double getscale() { return scale; }
 	
 	void setscalerange(double min, double max) { scalemin = min; scalemax = max; }
 	void setscalerange(double minmax) { scalemax = scalemin = minmax; }
+	
+	void setshift(float, float);
+	void setshift(float s) { setshift(s, s); }
+	
+	bool crosshair;													//!< Crosshair toggle
+	bool fliph;															//!< Horizontal flip toggle
+	bool flipv;															//!< Vertical flip toggle
 	
 	void linkData(void *data, int depth, int w, int h);
 };

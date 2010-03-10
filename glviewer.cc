@@ -32,7 +32,8 @@ static double clamp(double val, double min, double max) {
 }
 
 OpenGLImageViewer::OpenGLImageViewer():
-scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX) {
+scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX),
+flipv(false), fliph(false), crosshair(false) {
 	glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGBA | Gdk::GL::MODE_DOUBLE);
 	if(!glconfig) {
 		fprintf(stderr, "Not double-buffered!\n");
@@ -87,6 +88,12 @@ bool OpenGLImageViewer::on_image_scroll_event(GdkEventScroll *event) {
 void OpenGLImageViewer::setscale(double s) {
 	scale = clamp(s, scalemin, scalemax);
 	force_update();
+}
+
+void OpenGLImageViewer::setshift(float x, float y) {
+	sx = clamp(x, -1, 1);
+	sy = clamp(y, -1, 1);
+	do_update();
 }
 
 bool OpenGLImageViewer::on_image_motion_event(GdkEventMotion *event) {
@@ -204,6 +211,11 @@ void OpenGLImageViewer::do_update() {
 	glPushMatrix();
 	glTranslatef(sx, sy, 0);
 	
+	if (fliph)
+		glScalef(-1, 1, 1);
+	if (flipv)
+		glScalef(1, -1, 1);
+	
 	glEnable(GL_TEXTURE_2D);
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (s == 1 || s >= 2) ? GL_NEAREST : GL_LINEAR);
@@ -216,6 +228,21 @@ void OpenGLImageViewer::do_update() {
 	glPopMatrix();
 	
 	glDisable(GL_TEXTURE_2D);
+	
+	// Render crosshair
+	if (crosshair) {
+		glPushMatrix();
+		glTranslatef(sx, sy, 0);
+		glDisable(GL_LINE_SMOOTH);
+		glBegin(GL_LINES);
+		glColor3f(0, 1, 0);
+		glVertex2f(-1, 0);
+		glVertex2f(+1, 0);
+		glVertex2f(0, -1);
+		glVertex2f(0, +1);
+		glEnd();
+		glPopMatrix();
+	}
 	
 	// Swap buffers.
 	if (glwindow->is_double_buffered())
