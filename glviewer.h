@@ -1,7 +1,7 @@
 /*
  glviewer.h -- OpenGL viewing area implementation
  Copyright (C) 2010  Guus Sliepen <guus@sliepen.eu.org> &
-    Tim van Werkhoven <t.i.m.vanwerkhoven@xs4all.nl>
+ Tim van Werkhoven <t.i.m.vanwerkhoven@xs4all.nl>
  
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
