@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CXXFLAGS = -pthread
+AM_CXXFLAGS = -pthread -g -Wall
 AM_CPPFLAGS = $(SIGC_CFLAGS)
 
 noinst_LIBRARIES = libconfig.a libmessages.a libpidfile.a libserial.a libsocket.a libprotocol.a libio.a 
