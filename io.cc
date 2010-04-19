@@ -48,6 +48,8 @@ int Io::setLogfile(std::string file) {
 	logfile = file;
 	logfd = fopen(logfile.c_str(), "a");
 	msg(IO_DEB1, "Using logfile %s.", logfile.c_str());
+	if (!logfd) return -1;
+	return 0;
 }
 
 int Io::msg(int type, const char *fmtstr, ...) {

@@ -50,8 +50,8 @@ class Io {
 	string logfile;
 	
 public:
-	Io() { init(IO_MAXLEVEL); }
-	Io(int l) { init(l); }
+	Io() { Io::init(IO_MAXLEVEL); }
+	Io(int l) { Io::init(l); }
 	~Io();
 	
 	void init(int);

@@ -120,7 +120,7 @@ namespace serial {
 		return *this;
 	}
 
-	port::port(const string device, speed_t speed, int parity, char delimiter): device(device), speed(speed), parity(parity), delimiter(delimiter) {
+	port::port(const string device, speed_t speed, int parity, char delimiter): delimiter(delimiter), device(device), speed(speed), parity(parity) {
 		if(device.empty())
 			throw exception("No device name!");
 
