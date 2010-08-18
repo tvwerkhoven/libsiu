@@ -7,6 +7,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_FILES([
 Makefile
 ])
+AC_CONFIG_HEADERS(autoconfig.h)
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
@@ -38,7 +39,42 @@ PKG_CHECK_MODULES(SIGC, [sigc++-2.0 >= 2.0], [],
 AC_SUBST(SIGC_CFLAGS)
 AC_SUBST(SIGC_LIBS)
 
-# ui libraries need OpenGL
+# ImgData wants FITS, ICS and GSL please
+
+PKG_CHECK_MODULES(GSL, [gsl], 
+	[have_gsl=true; imgdata_types+="gsl "; AC_DEFINE([HAVE_GSL], [], [ImgData supports GSL data.])],
+	[have_gsl=false])
+AM_CONDITIONAL([HAVE_GSL], [test "$have_gsl" = true])
+
+
+AC_SEARCH_LIBS([ffopen], [cfitsio], 
+	[have_fitsio=true; imgdata_types+="fits "; AC_DEFINE([HAVE_FITSIO], [], [ImgData supports FITS data.])],
+	[have_fitsio=false])
+AM_CONDITIONAL([HAVE_FITSIO], [test "$have_fitsio" = true])
+
+AC_SEARCH_LIBS([deflate], [z],
+		[have_z=true],
+		[have_z=false])
+
+AC_SEARCH_LIBS([IcsOpen], [ics],
+		[have_ics=true],
+		[have_ics=false])
+
+if test "$have_z" = true -a "$have_ics" = true; then
+	have_ics=true
+	imgdata_types+="ics "
+	AC_DEFINE([HAVE_ICS], [], [ImgData supports ICS data.])
+else
+	have_ics=false
+fi
+AM_CONDITIONAL([HAVE_ICS], [test "$have_ics" = true])
+
+IMGDATA_CFLAGS="$GSL_CFLAGS"
+IMGDATA_LIBS="$GSL_LIBS"
+AC_SUBST(IMGDATA_CFLAGS)
+AC_SUBST(IMGDATA_LIBS)
+
+# UI libraries need OpenGL
 if test "$withui" = true; then
 	AC_MSG_NOTICE([*** UI libraries enabled, checking for OpenGL.]);
 	AX_CHECK_GL
@@ -73,5 +109,7 @@ if test "$withui" = true; then
 fi
 
 AM_CONDITIONAL([HAVE_OPENGL], [test "$opengl" = true])
+
+AC_MSG_NOTICE([*** ImgData will support: $imgdata_types.]);
 
 AC_OUTPUT
