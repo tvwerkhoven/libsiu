@@ -95,10 +95,10 @@ public:
 	void setshift(float, float);
 	void setshift(float s) { setshift(s, s); }
 	
-	bool crosshair;													//!< Crosshair toggle
-	bool fliph;															//!< Horizontal flip toggle
-	bool flipv;															//!< Vertical flip toggle
-	bool pager;															//!< Pager toggle
+	bool flipv;							//!< Vertical flip toggle
+	bool fliph;							//!< Horizontal flip toggle
+	bool crosshair;						//!< Crosshair toggle
+	bool pager;							//!< Pager toggle
 	
 	void linkData(void *data, int depth, int w, int h);
 };

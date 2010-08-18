@@ -35,6 +35,9 @@
 
 #include "glviewer.h"
 
+// TODO: review coordinate systems in use and document
+// TODO: update image shift clamping
+
 using namespace std;
 using namespace Gtk;
 
@@ -146,8 +149,6 @@ void OpenGLImageViewer::on_image_realize() {
 	
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_LINE_SMOOTH);
-	
-	const int depth = gl_img.d;
 	
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
