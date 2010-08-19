@@ -44,13 +44,10 @@ AC_SUBST(SIGC_LIBS)
 PKG_CHECK_MODULES(GSL, [gsl], 
 	[have_gsl=true; imgdata_types+="gsl "; AC_DEFINE([HAVE_GSL], [], [ImgData supports GSL data.])],
 	[have_gsl=false])
-AM_CONDITIONAL([HAVE_GSL], [test "$have_gsl" = true])
-
 
 AC_SEARCH_LIBS([ffopen], [cfitsio], 
-	[have_fitsio=true; imgdata_types+="fits "; AC_DEFINE([HAVE_FITSIO], [], [ImgData supports FITS data.])],
+	[have_fitsio=true; imgdata_types+="fits "; AC_DEFINE([HAVE_FITS], [], [ImgData supports FITS data.])],
 	[have_fitsio=false])
-AM_CONDITIONAL([HAVE_FITSIO], [test "$have_fitsio" = true])
 
 AC_SEARCH_LIBS([deflate], [z],
 		[have_z=true],
@@ -67,7 +64,6 @@ if test "$have_z" = true -a "$have_ics" = true; then
 else
 	have_ics=false
 fi
-AM_CONDITIONAL([HAVE_ICS], [test "$have_ics" = true])
 
 IMGDATA_CFLAGS="$GSL_CFLAGS"
 IMGDATA_LIBS="$GSL_LIBS"
