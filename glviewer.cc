@@ -75,12 +75,27 @@ flipv(false), fliph(false), crosshair(false), pager(false) {
 	signal_scroll_event().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_scroll_event));
 	signal_button_press_event().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_button_event));
 	signal_motion_notify_event().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_motion_event));
-	add_events(Gdk::POINTER_MOTION_HINT_MASK);
+	signal_motion_notify_event().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_motion_event2));
+	//add_events(Gdk::POINTER_MOTION_HINT_MASK);
+	signal_drag_drop().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_drag_drop));
+	//on_drag_drop().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_drag_drop_event));
+	add_events(Gdk::POINTER_MOTION_MASK | Gdk::BUTTON_MOTION_MASK | Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK);
 	
 	add(gtkimage);
 }
 
 OpenGLImageViewer::~OpenGLImageViewer() {
+}
+
+// Override eventbox function
+bool OpenGLImageViewer::on_drag_drop(const Glib::RefPtr< Gdk::DragContext >& context, int x, int y, guint time) {
+	fprintf(stderr, "OpenGLImageViewer::on_drag_drop()\n");
+	return true;
+}
+// Override eventbox function
+bool OpenGLImageViewer::on_drag_motion(const Glib::RefPtr< Gdk::DragContext >& context, int x, int y, guint time) {
+	fprintf(stderr, "OpenGLImageViewer::on_drag_motion()\n");
+	return true;
 }
 
 void OpenGLImageViewer::linkData(void *data, int depth, int w, int h) {
@@ -113,15 +128,27 @@ void OpenGLImageViewer::setshift(float x, float y) {
 	do_update();
 }
 
+bool OpenGLImageViewer::on_image_motion_event2(GdkEventMotion *event) {
+	//fprintf(stderr, "OpenGLImageViewer::on_image_motion_event2()\n");
+	return false;
+}
+
 bool OpenGLImageViewer::on_image_motion_event(GdkEventMotion *event) {
-	double s = pow(2.0, scale);
-	sx = clamp(sxstart + 2 * (event->x - xstart) / s / gl_img.w, -1, 1);
-	sy = clamp(systart - 2 * (event->y - ystart) / s / gl_img.h, -1, 1);
-	do_update();
-	return true;
+	fprintf(stderr, "OpenGLImageViewer::on_image_motion_event(type=%d)\n", event->type);
+	if (event->type == GDK_BUTTON_RELEASE) {
+		double s = pow(2.0, scale);
+		//sx = clamp(sxstart + 2 * (event->x - xstart) / s / gl_img.w, -1, 1);
+		//sy = clamp(systart - 2 * (event->y - ystart) / s / gl_img.h, -1, 1);
+		sx = sxstart + 2 * (event->x - xstart) / s / gl_img.w;
+		sy = systart - 2 * (event->y - ystart) / s / gl_img.h;
+		do_update();
+		return true;
+	}
+	return false;
 }
 
 bool OpenGLImageViewer::on_image_button_event(GdkEventButton *event) {
+	fprintf(stderr, "OpenGLImageViewer::on_image_button_event(type=%d)\n", event->type);
 	if (event->type == GDK_2BUTTON_PRESS) {
 		// Double-click: reset translation
 		sx = sy = 0;
@@ -176,9 +203,8 @@ void OpenGLImageViewer::on_update() {
 	
 	if(!glwindow || !glwindow->gl_begin(gtkimage.get_gl_context()))
 		return;
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, depth <= 8 ? GL_LUMINANCE8 : GL_LUMINANCE16, gl_img.w, gl_img.h, 0, GL_LUMINANCE, depth <= 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT, (GLubyte *) gl_img.data);
-	}
+	
+	glTexImage2D(GL_TEXTURE_2D, 0, depth <= 8 ? GL_LUMINANCE8 : GL_LUMINANCE16, gl_img.w, gl_img.h, 0, GL_LUMINANCE, depth <= 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT, (GLubyte *) gl_img.data);
 	
 	glwindow->gl_end();
 	
@@ -193,35 +219,30 @@ void OpenGLImageViewer::do_update() {
 	if(!glwindow || !glwindow->gl_begin(gtkimage.get_gl_context()))
 		return;
 	
-	// Set up viewport
-	
+	// Set up GL viewport exactly the size of the GTK area
 	int ww = gtkimage.get_width();
 	int wh = gtkimage.get_height();
 	
 	glViewport(0, 0, ww, wh);
 	
 	// Image scaling and centering
+	float s = pow(2.0, scale);
+	int cw = gl_img.w * s;
+	int ch = gl_img.h * s;
 	
-	int cw = gl_img.w;
-	int ch = gl_img.h;
-	float s;
 	// TODO: implement window-fitting
 	//	if(fit.get_active()) {
 	//		s = min((float)ww / cw, (float)wh / ch);
 	//		scale = log(s)/log(2.0);
 	//		sx = sy = 0;
 	//	} else {
-	s = pow(2.0, scale);
-	//	}
-	cw *= s;
-	ch *= s;
-	
+	//	}	
 	
 	glLoadIdentity();
 	glScalef((float)cw / ww, (float)ch / wh, 1);
+	//glScalef((float)1, (float)1, 1);
 	
 	// Render image
-	
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	

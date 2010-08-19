@@ -31,26 +31,31 @@
 
 // Default scaling steps and range
 static double SCALESTEP = 1.0/3.0;
-static double SCALEMIN = -3.0;
-static double SCALEMAX = 3.0;
+static double SCALEMIN = -5.0;
+static double SCALEMAX = 5.0;
 
 /*! 
  @brief OpenGL scrolled area
  
  An OpenGL viewing area with scrolling and zooming implemented.
+ 
+ Coordinates involved:
+ gtkimage is the drawing area in the GTK application, with size get_width() 
+ and get_height(). We set up a gl viewport with that size, origin (0,0) is 
+ the lower-right.
  */
 class OpenGLImageViewer: public Gtk::EventBox {
 	Glib::RefPtr<Gdk::GL::Config> glconfig;	//!< OpenGL configuration
 	Glib::RefPtr<Gdk::GL::Window> glwindow;	//!< OpenGL window
-	Gtk::GL::DrawingArea gtkimage;					//!< GTK drawingarea
+	Gtk::GL::DrawingArea gtkimage;			//!< GTK drawingarea
 	
-	double scale;														//!< Tracks image scaling (zooming)
-	double scalemin;												//!< Scale range min
-	double scalemax;												//!< Scale range max
+	double scale;					//!< Tracks image scaling (zooming)
+	double scalemin;				//!< Scale range min
+	double scalemax;				//!< Scale range max
 	
-	float sx, sy;														//!< Current image displacement
-	float sxstart, systart;									//!< Tracks mouse dragging 
-	gdouble xstart, ystart;									//!< Tracks mouse dragging
+	float sx, sy;					//!< Current image displacement
+	float sxstart, systart;			//!< Tracks mouse dragging 
+	gdouble xstart, ystart;			//!< Tracks mouse dragging
 		
 	// OpenGL drawing-related events
 	void on_image_configure_event(GdkEventConfigure *event);
@@ -61,6 +66,9 @@ class OpenGLImageViewer: public Gtk::EventBox {
 	bool on_image_scroll_event(GdkEventScroll *event);
 	bool on_image_button_event(GdkEventButton *event);
 	bool on_image_motion_event(GdkEventMotion *event);
+	bool on_image_motion_event2(GdkEventMotion *event);
+	virtual bool on_drag_drop(const Glib::RefPtr< Gdk::DragContext >& context, int x, int y, guint time);
+	virtual bool on_drag_motion(const Glib::RefPtr< Gdk::DragContext >& context, int x, int y, guint time);
 	
 	// Zoom step functions
 	void on_zoomin_activate() { scalestep(-SCALESTEP); }
@@ -95,10 +103,10 @@ public:
 	void setshift(float, float);
 	void setshift(float s) { setshift(s, s); }
 	
-	bool flipv;							//!< Vertical flip toggle
-	bool fliph;							//!< Horizontal flip toggle
-	bool crosshair;						//!< Crosshair toggle
-	bool pager;							//!< Pager toggle
+	bool flipv;			//!< Vertical flip toggle
+	bool fliph;			//!< Horizontal flip toggle
+	bool crosshair;		//!< Crosshair toggle
+	bool pager;			//!< Pager toggle
 	
 	void linkData(void *data, int depth, int w, int h);
 };
