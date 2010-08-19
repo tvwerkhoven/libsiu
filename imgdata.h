@@ -112,7 +112,7 @@ public:
 	~ImgData(void);
 	
 	// Generic data IO routines
-	int loadData(const std::string, const imgtype_t);
+	int loadData(const std::string, imgtype_t);
 	int writeData(const std::string, const imgtype_t);
 	
 	// Create from data
@@ -130,6 +130,7 @@ public:
 	void printMeta();
 	
 	// Public handlers
+	error_t getErr() { return err; }
 	dtype_t getDtype() { return data.dt; }
 	int getBitpix() { return data.bpp; }
 	int getBPP() { return data.bpp; }

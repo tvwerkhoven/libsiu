@@ -8,6 +8,8 @@
 #include "io.h"
 #include "imgdata.h"
 
+// TODO: handle errors better, set data to NULL on failure
+
 ImgData::~ImgData() {
 	if (data.data) 
 		free(data.data);
@@ -19,9 +21,6 @@ ImgData::ImgData(Io &io, const std::string f, imgtype_t t = ImgData::AUTO): io(i
 	err = ERR_NO_ERROR;
 	
 	// TODO set image params to zero/undef
-
-	if (t == ImgData::AUTO)
-		t = guessType(f);
 	
 	if (loadData(f, t))
 		err = ERR_LOAD_FILE;
@@ -55,7 +54,7 @@ ImgData::imgtype_t ImgData::guessType(const std::string file) {
 	else if (substr == "pgm") return ImgData::PGM;
 	
 	err = ERR_FILETYPE;
-	io.msg(IO_ERR | IO_FATAL, "Could not detect filetype from filename, aborting.");
+	io.msg(IO_ERR, "Could not detect filetype from filename.");
 	
 	return ImgData::IMG_UNDEF;
 }
@@ -193,7 +192,10 @@ int ImgData::setData(void *newdata, int nd, uint64_t dims[], dtype_t dt, int bpp
 	return 0;
 }
 
-int ImgData::loadData(const std::string f, const imgtype_t t) {
+int ImgData::loadData(const std::string f, imgtype_t t) {
+	if (t == ImgData::AUTO)
+		t = guessType(f);
+		
 	switch (t) {
 #ifdef HAVE_FITS
 		case ImgData::FITS:
@@ -217,7 +219,9 @@ int ImgData::loadData(const std::string f, const imgtype_t t) {
 			err = ERR_TYPE_UNKNOWN;
 			return io.msg(IO_ERR, "Unknown datatype, cannot load file.");
 			break;
-	}	
+	}
+	
+	return -1;
 }
 
 int ImgData::writeData(const std::string f, const imgtype_t t) {
@@ -255,19 +259,20 @@ int ImgData::loadFITS(const std::string file) {
 	// TODO how big should naxes be? What's the maximum according to the FITS standard?
 	long naxes[8];
 	int anynul = 0;
+	data.data = NULL;
 	
 	fits_open_file(&fptr, file.c_str(), READONLY, &stat);
 	if (stat) {
 		fits_get_errstatus(stat, fits_err);
 		err = ERR_OPEN_FILE;
-		return io.msg(IO_ERR, "FITS error: %s", fits_err);
+		return io.msg(IO_ERR, "fits_open_file error: %s", fits_err);
 	}
 	
 	fits_get_img_param(fptr, 8, &(data.bpp), &(data.ndims), naxes, &stat);
 	if (stat) {
 		fits_get_errstatus(stat, fits_err);
 		err = ERR_OPEN_FILE;
-		return io.msg(IO_ERR, "FITS error: %s", fits_err);
+		return io.msg(IO_ERR, "fits_get_img_param error: %s", fits_err);
 	}
 	
 	data.nel = 1;
@@ -328,7 +333,11 @@ int ImgData::loadFITS(const std::string file) {
 	if (stat) {
 		fits_get_errstatus(stat, fits_err);
 		err = ERR_LOAD_FILE;
-		return io.msg(IO_ERR, "FITS error: %s", fits_err);
+		if (data.data)
+			free(data.data);
+		
+		data.data = NULL;
+		return io.msg(IO_ERR, "fits_read_img error: %s", fits_err);
 	}	
 	
 	return 0;
@@ -347,6 +356,7 @@ int ImgData::loadICS(const std::string file) {
 	const char *errtxt;
 	Ics_DataType dt;
 	Ics_Error retval;
+	data.data = NULL;
 	
 	// Open ICS file
 	retval = IcsOpen(&ip, file.c_str(), "r");
