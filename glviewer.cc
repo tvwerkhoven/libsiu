@@ -74,12 +74,16 @@ flipv(false), fliph(false), crosshair(false), pager(false) {
 	// Set zoom & image drag controls
 	signal_scroll_event().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_scroll_event));
 	signal_button_press_event().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_button_event));
+	signal_button_release_event().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_button_event));
 	signal_motion_notify_event().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_motion_event));
-	signal_motion_notify_event().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_motion_event2));
-	//add_events(Gdk::POINTER_MOTION_HINT_MASK);
-	signal_drag_drop().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_drag_drop));
-	//on_drag_drop().connect(sigc::mem_fun(*this, &OpenGLImageViewer::on_drag_drop_event));
-	add_events(Gdk::POINTER_MOTION_MASK | Gdk::BUTTON_MOTION_MASK | Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK);
+	add_events(Gdk::POINTER_MOTION_MASK | 
+						 Gdk::POINTER_MOTION_HINT_MASK | 
+						 Gdk::BUTTON_MOTION_MASK |
+						 Gdk::BUTTON1_MOTION_MASK |
+						 Gdk::BUTTON2_MOTION_MASK |
+						 Gdk::BUTTON3_MOTION_MASK |
+						 Gdk::BUTTON_PRESS_MASK |
+						 Gdk::BUTTON_RELEASE_MASK);
 	
 	add(gtkimage);
 }
@@ -87,15 +91,69 @@ flipv(false), fliph(false), crosshair(false), pager(false) {
 OpenGLImageViewer::~OpenGLImageViewer() {
 }
 
-// Override eventbox function
-bool OpenGLImageViewer::on_drag_drop(const Glib::RefPtr< Gdk::DragContext >& context, int x, int y, guint time) {
-	fprintf(stderr, "OpenGLImageViewer::on_drag_drop()\n");
+bool OpenGLImageViewer::on_image_motion_event(GdkEventMotion *event) {
+	if (event->type == GDK_MOTION_NOTIFY && (event->state & GDK_BUTTON1_MASK)) {
+		// When the mouse is moved and the mouse key is pressed, drag the image
+		double s = pow(2.0, scale);	
+		sx = sxstart + 2 * (event->x - xstart) / s / gl_img.w;
+		sy = systart - 2 * (event->y - ystart) / s / gl_img.h;
+		do_update();
+		return true;
+	}
+	return false;
+}
+
+bool OpenGLImageViewer::on_image_button_event(GdkEventButton *event) {
+	if (event->type == GDK_2BUTTON_PRESS) {
+		// Double-click: reset translation
+		sx = sy = 0;
+		do_update();
+	}
+	else if (event->type == GDK_3BUTTON_PRESS) {
+		// Triple-click: reset translation & zoom
+		scale = 0;
+		do_update();		
+	}
+	else {
+		// Normal click: remember current translation, use in on_image_motion_event()
+		sxstart = sx;
+		systart = sy;
+		xstart = event->x;
+		ystart = event->y;
+	}
 	return true;
 }
-// Override eventbox function
-bool OpenGLImageViewer::on_drag_motion(const Glib::RefPtr< Gdk::DragContext >& context, int x, int y, guint time) {
-	fprintf(stderr, "OpenGLImageViewer::on_drag_motion()\n");
-	return true;
+
+int OpenGLImageViewer::map_coord(double inx, double iny, double *outx, double *outy, map_dir_t direction) {
+	// Translate coordinates from one frame to another
+	if (direction == GTKTOGL) {
+		double s = pow(2.0, scale);	
+		int xfac = (fliph) ? -1 : 1;
+		int yfac = (flipv) ? -1 : 1;
+		
+		*outx = xfac * 2 * (inx - gtkimage.get_width()/2) / s / gl_img.w;
+		*outy = yfac * -1 * 2 * (iny - gtkimage.get_height()/2) / s / gl_img.h;
+		*outx -= xfac * sx;
+		*outy -= yfac * sy;
+		return 0;
+	}
+	else if (direction == GTKTODATA) {
+		double tmpx, tmpy;
+		// First convert to OpenGL (-1 to 1)
+		map_coord(inx, iny, &tmpx, &tmpy, GTKTOGL);
+		if (fabs(tmpx) > 1.0 || fabs(tmpy) > 1.0)
+			return -1;
+		// Now multiply with data size
+		*outx = (tmpx+1)/2. * gl_img.w;
+		*outy = (tmpy+1)/2. * gl_img.h;
+		return 0;
+	}
+	else if (direction == GLTOGTK) {
+		// center is at (sx, sy) * s * (gl_img.w, gl_img.h) / 2
+		// 1,1 is at (sx, sy) * s * (gl_img.w, gl_img.h) / 2
+		return -1;
+	}
+	return -1;
 }
 
 void OpenGLImageViewer::linkData(void *data, int depth, int w, int h) {
@@ -126,47 +184,6 @@ void OpenGLImageViewer::setshift(float x, float y) {
 	sx = clamp(x, -1, 1);
 	sy = clamp(y, -1, 1);
 	do_update();
-}
-
-bool OpenGLImageViewer::on_image_motion_event2(GdkEventMotion *event) {
-	//fprintf(stderr, "OpenGLImageViewer::on_image_motion_event2()\n");
-	return false;
-}
-
-bool OpenGLImageViewer::on_image_motion_event(GdkEventMotion *event) {
-	fprintf(stderr, "OpenGLImageViewer::on_image_motion_event(type=%d)\n", event->type);
-	if (event->type == GDK_BUTTON_RELEASE) {
-		double s = pow(2.0, scale);
-		//sx = clamp(sxstart + 2 * (event->x - xstart) / s / gl_img.w, -1, 1);
-		//sy = clamp(systart - 2 * (event->y - ystart) / s / gl_img.h, -1, 1);
-		sx = sxstart + 2 * (event->x - xstart) / s / gl_img.w;
-		sy = systart - 2 * (event->y - ystart) / s / gl_img.h;
-		do_update();
-		return true;
-	}
-	return false;
-}
-
-bool OpenGLImageViewer::on_image_button_event(GdkEventButton *event) {
-	fprintf(stderr, "OpenGLImageViewer::on_image_button_event(type=%d)\n", event->type);
-	if (event->type == GDK_2BUTTON_PRESS) {
-		// Double-click: reset translation
-		sx = sy = 0;
-		do_update();
-	}
-	else if (event->type == GDK_3BUTTON_PRESS) {
-		// Triple-click: reset translation & zoom
-		scale = 0;
-		do_update();		
-	}
-	else {
-		// Normal click: remember current translation, use in on_image_motion_event()
-		sxstart = sx;
-		systart = sy;
-		xstart = event->x;
-		ystart = event->y;
-	}
-	return true;
 }
 
 void OpenGLImageViewer::on_image_realize() {
