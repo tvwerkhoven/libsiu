@@ -13,17 +13,18 @@ ImgData::~ImgData() {
 		free(data.data);
 }
 
-ImgData::ImgData(Io &io, const std::string f, imgtype_t t): io(io) {
-	io.msg(IO_XNFO, "ImgData::ImgData() new from file.");
+ImgData::ImgData(Io &io, const std::string f, imgtype_t t = ImgData::AUTO): io(io) {
+	io.msg(IO_DEB2, "ImgData::ImgData() new from file.");
+	
+	err = ERR_NO_ERROR;
+	
+	// TODO set image params to zero/undef
 
 	if (t == ImgData::AUTO)
 		t = guessType(f);
 	
-	// TODO how to handle problems here?
 	if (loadData(f, t))
 		err = ERR_LOAD_FILE;
-	
-	io.msg(IO_XNFO, "File loaded successfully.");
 }
 
 string ImgData::dtype_str(dtype_t dt) {
@@ -62,8 +63,9 @@ ImgData::imgtype_t ImgData::guessType(const std::string file) {
 void ImgData::calcStats() {
 	double sum=0, min=getPixel(0), max=getPixel(0), pix=0;
 	uint64_t minidx=0, maxidx=0;
+	uint64_t p;
 	
-	for (uint64_t p=0; p<data.nel; p++) {
+	for (p=0; p<data.nel; p++) {
 		pix = getPixel(p);
 		sum += pix; 
 		if (pix < min) {min = pix; minidx = p;}
@@ -78,18 +80,18 @@ void ImgData::calcStats() {
 }
 
 void ImgData::printMeta() {
-	io.msg(IO_INFO, "data: %p, ndims: %d, nel: %d, bpp: %d, size: %d", 
+	io.msg(IO_INFO, "ImgData:: data: %p, ndims: %d, nel: %lld, bpp: %d, size: %lld", 
 		   data.data, data.ndims, data.nel, data.bpp, data.size);
 	
 	// Dimensions
-	io.msg(IO_INFO | IO_NOLF, "dim[0] = %d", data.dims[0]);
+	io.msg(IO_INFO | IO_NOLF, "ImgData:: dim[0] = %d", data.dims[0]);
 	for (int d=1; d<data.ndims; d++)
 		io.msg(IO_INFO | IO_NOID, ", dim[%d] = %d", d, data.dims[d]);
 	io.msg(IO_INFO | IO_NOID, "\n");
 	
 	calcStats();
 	
-	io.msg(IO_INFO, "range: %g (@%lld) -- %g (@%lld), avg: %g, sum: %g", 
+	io.msg(IO_INFO, "ImgData:: range: %g (@%lld) -- %g (@%lld), avg: %g, sum: %g", 
 		   stats.min, stats.minidx, stats.max, stats.maxidx, stats.sum/data.nel, stats.sum);
 }
 
@@ -170,6 +172,27 @@ void ImgData::_swapAxes(const int* /* order */, T datacast) {
 	data.data = tmp;
 }
 
+int ImgData::setData(void *newdata, int nd, uint64_t dims[], dtype_t dt, int bpp) {
+	uint64_t nel=1;
+	
+	data.data = newdata;
+	data.ndims = nd;
+	for (int d=0; d<nd; d++) {
+		if (d >= IMGDATA_MAXDIM)
+			return io.msg(IO_ERR, "Error in setData(): number of dimensions too big!");
+		
+		nel *= dims[d];
+		data.dims[d] = dims[d];
+	}
+	data.dt = dt;
+	data.bpp = bpp;
+	
+	data.nel = nel;
+	data.size = nel * bpp;
+	
+	return 0;
+}
+
 int ImgData::loadData(const std::string f, const imgtype_t t) {
 	switch (t) {
 #ifdef HAVE_FITS
@@ -228,11 +251,10 @@ int ImgData::writeData(const std::string f, const imgtype_t t) {
 int ImgData::loadFITS(const std::string file) {
 	fitsfile *fptr;
 	char fits_err[30];
-	int stat = 0, naxis;
+	int stat = 0;
 	// TODO how big should naxes be? What's the maximum according to the FITS standard?
-	long naxes[8], nel = 0;
+	long naxes[8];
 	int anynul = 0;
-	int bpp=0;
 	
 	fits_open_file(&fptr, file.c_str(), READONLY, &stat);
 	if (stat) {
@@ -241,59 +263,56 @@ int ImgData::loadFITS(const std::string file) {
 		return io.msg(IO_ERR, "FITS error: %s", fits_err);
 	}
 	
-	fits_get_img_param(fptr, 8, &bpp, &naxis, naxes, &stat);
+	fits_get_img_param(fptr, 8, &(data.bpp), &(data.ndims), naxes, &stat);
 	if (stat) {
 		fits_get_errstatus(stat, fits_err);
 		err = ERR_OPEN_FILE;
 		return io.msg(IO_ERR, "FITS error: %s", fits_err);
 	}
 	
-	data.bpp = bpp;
-	data.ndims = naxis;
 	data.nel = 1;
-	for (int d=0; d<naxis; d++) {
+	for (int d=0; d<data.ndims; d++) {
 		data.dims[d] = naxes[d];
 		data.nel *= naxes[d];
 	}
-	data.size = data.nel * bpp/8;
-	
+	data.size = data.nel * data.bpp/8;
 	data.data = (void *) malloc(data.size);
 	
 	// BYTE_IMG (8), SHORT_IMG (16), LONG_IMG (32), LONGLONG_IMG (64), FLOAT_IMG (-32), and DOUBLE_IMG (-64)
 	// TBYTE, TSBYTE, TSHORT, TUSHORT, TINT, TUINT, TLONG, TLONGLONG, TULONG, TFLOAT, TDOUBLE
 	
-	switch (bpp) {
+	switch (data.bpp) {
 		case BYTE_IMG: {
 			uint8_t nulval = 0;
-			fits_read_img(fptr, TBYTE, 1, nel, &nulval, \
+			fits_read_img(fptr, TBYTE, 1, data.nel, &nulval, \
 						  (uint8_t *) (data.data), &anynul, &stat);
 			data.dt = UINT8;
 			break;
 		}
 		case SHORT_IMG: {
 			uint16_t nulval = 0;
-			fits_read_img(fptr, TUSHORT, 1, nel, &nulval, \
+			fits_read_img(fptr, TUSHORT, 1, data.nel, &nulval, \
 						  (uint16_t *) (data.data), &anynul, &stat);					
 			data.dt = UINT16;
 			break;
 		}
 		case LONG_IMG: {
 			uint32_t nulval = 0;
-			fits_read_img(fptr, TUINT, 1, nel, &nulval, \
+			fits_read_img(fptr, TUINT, 1, data.nel, &nulval, \
 						  (uint32_t *) (data.data), &anynul, &stat);					
 			data.dt = UINT32;
 			break;
 		}
 		case FLOAT_IMG: {
 			float nulval = 0;
-			fits_read_img(fptr, TFLOAT, 1, nel, &nulval, \
+			fits_read_img(fptr, TFLOAT, 1, data.nel, &nulval, \
 						  (float *) (data.data), &anynul, &stat);					
 			data.dt = FLOAT32;
 			break;
 		}
 		case DOUBLE_IMG: {
 			double nulval = 0;
-			fits_read_img(fptr, TDOUBLE, 1, nel, &nulval, \
+			fits_read_img(fptr, TDOUBLE, 1, data.nel, &nulval, \
 						  (double *) (data.data), &anynul, &stat);					
 			data.dt = FLOAT64;
 			break;
@@ -322,7 +341,7 @@ int ImgData::loadFITS(const std::string file) {
 
 #ifdef HAVE_ICS
 int ImgData::loadICS(const std::string file) {
-	io.msg(IO_INFO, "Loading data from '%s' as ICS.", file.c_str());
+	io.msg(IO_XNFO, "Loading data from '%s' as ICS.", file.c_str());
 	// Init ICS variables
 	::ICS *ip;
 	const char *errtxt;
@@ -433,7 +452,7 @@ int ImgData::loadGSL(const std::string file) {
 
 #ifdef HAVE_FITS
 int ImgData::writeFITS(const std::string file) {
-	io.msg(IO_INFO, "Saving data to '%s' as FITS.", file.c_str());
+	io.msg(IO_XNFO, "Saving data to '%s' as FITS.", file.c_str());
 	
 	// Init local FITS variables
 	fitsfile *fptr;

@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+#ifdef HAVE_CONFIG_H
 #include <autoconfig.h>
+#endif
 
 #include "io.h"
 
@@ -113,6 +115,9 @@ public:
 	int loadData(const std::string, const imgtype_t);
 	int writeData(const std::string, const imgtype_t);
 	
+	// Create from data
+	int setData(void *data, int nd, uint64_t dims[], dtype_t dt, int bpp);
+	
 	// Return a single pixel at (1-d) index idx
 	double getPixel(const int idx);
 	//template <typename T> T getPixel(const int idx);
@@ -130,7 +135,10 @@ public:
 	int getBPP() { return data.bpp; }
 	void *getData() { return data.data; }
 	imgtype_t getImgtype() { return finfo.itype; }
-	int getndims() { return data.ndims; }
+	int getNDims() { return data.ndims; }
+	int getDim(int d) { return data.dims[d]; }
+	int getSize() { return data.size; }
+	int getNEl() { return data.nel; }
 
 };
 
