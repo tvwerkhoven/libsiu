@@ -58,29 +58,29 @@ void config::write() {
 }
 
 int config::getchoice(const string &var, const map<string, int> &choices) {
-	require(var);
-	map<string, int>::const_iterator i = choices.find(variables[var]);
+	require(pvar(var));
+	map<string, int>::const_iterator i = choices.find(variables[pvar(var)]);
 	if(i == choices.end())
-		throw exception("Unknown choice for variable " + var);
+		throw exception("Unknown choice for variable " + pvar(var));
 	return i->second;
 }
 
 int config::getchoice(const string &var, const map<string, int> &choices, int def) {
-	if(variables[var].empty())
+	if(variables[pvar(var)].empty())
 		return def;
 
 	map<string, int>::const_iterator i = choices.find(variables[var]);
 	if(i == choices.end())
-		throw exception("Unknown choice for variable " + var);
+		throw exception("Unknown choice for variable " + pvar(var));
 	return i->second;
 }
 
 void config::setchoice(const string &var, const map<string, int> &choices, int value) {
 	for(map<string, int>::const_iterator i = choices.begin(); i != choices.end(); ++i) {
 		if(i->second == value) {
-			variables[var] = i->first;
+			variables[pvar(var)] = i->first;
 			return;
 		}
 	}
-	throw exception("Unknown choice for variable " + var);
+	throw exception("Unknown choice for variable " + pvar(var));
 }
