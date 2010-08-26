@@ -53,6 +53,7 @@ static inline int32_t str2int32(const std::string &line) { return atoi(line.c_st
 
 static inline double popdouble(std::string &line) { return str2double(popword(line)); }
 static inline int popint(std::string &line) { return str2int(popword(line)); }
+static inline size_t popsize(std::string &line) { return (size_t) str2int(popword(line)); }
 static inline int32_t popint32(std::string &line) { return str2int32(popword(line)); }
 
 static inline std::string vformat(const char *format, va_list va) {
