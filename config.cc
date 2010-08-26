@@ -58,7 +58,7 @@ void config::write() {
 }
 
 int config::getchoice(const string &var, const map<string, int> &choices) {
-	require(pvar(var));
+	require(var);
 	map<string, int>::const_iterator i = choices.find(variables[pvar(var)]);
 	if(i == choices.end())
 		throw exception("Unknown choice for variable " + pvar(var));

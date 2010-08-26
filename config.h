@@ -50,13 +50,13 @@ public:
 	std::string prefix;
 	bool autosave;
 
-	config(const std::string &filename): filename(filename), autosave(false) { parse(); }
-	config(): autosave(false) {};
+	config(const std::string &filename, const std::string &prefix = ""): filename(filename), prefix(prefix), autosave(false) { parse(); }
+	config(): prefix(""), autosave(false) {};
 	~config() { if(autosave) write(); }
 
-	void parse(const std::string &filename) { this->filename = filename; parse(); }
+	void parse(const std::string &filename, const std::string &prefix = "") { this->filename = filename; this->prefix = prefix; parse(); }
 	void parse();
-	void write(const std::string &filename) { this->filename = filename; write(); }
+	void write(const std::string &filename, const std::string &prefix = "") { this->filename = filename; this->prefix = prefix; write(); }
 	void write();
 
 	class exception: public std::runtime_error {
@@ -67,28 +67,28 @@ public:
 	void require(const std::string &var) { if(variables.find(pvar(var)) == variables.end()) throw exception("Variable " + pvar(var) + " is required"); }
 	bool getbool(const std::string &var) { require(pvar(var)); return variables[pvar(var)] == "yes" || variables[pvar(var)] == "true"; }
 	int getchoice(const std::string &var, const std::map<std::string, int> &choices);
-	int getint(const std::string &var) { require(pvar(var)); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
-	double getdouble(const std::string &var) { require(pvar(var)); return atof(variables[pvar(var)].c_str()); }
-	uint16_t getuint16(const std::string &var) { require(pvar(var)); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
-	int16_t getint16(const std::string &var) { require(pvar(var)); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
-	uint32_t getuint32(const std::string &var) { require(pvar(var)); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
-	int32_t getint32(const std::string &var) { require(pvar(var)); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
-	uint64_t getuint64(const std::string &var) { require(pvar(var)); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
-	int64_t getint64(const std::string &var) { require(pvar(var)); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
-	std::string getstring(const std::string &var) { require(pvar(var)); return variables[pvar(var)]; }
+	int getint(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
+	double getdouble(const std::string &var) { require(var); return atof(variables[pvar(var)].c_str()); }
+	uint16_t getuint16(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
+	int16_t getint16(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
+	uint32_t getuint32(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
+	int32_t getint32(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
+	uint64_t getuint64(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
+	int64_t getint64(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
+	std::string getstring(const std::string &var) { require(var); return variables[pvar(var)]; }
 
 	bool exists(const std::string &var) { return variables.find(pvar(var)) != variables.end(); }
-	bool getbool(const std::string &var, bool def) { if(!exists(pvar(var))) return def; else return variables[pvar(var)] == "yes" || variables[pvar(var)] == "true"; }
+	bool getbool(const std::string &var, bool def) { if(!exists(var)) return def; else return variables[pvar(var)] == "yes" || variables[pvar(var)] == "true"; }
 	int getchoice(const std::string &var, const std::map<std::string, int> &choices, int def);
-	int getint(const std::string &var, int def) { if(!exists(pvar(var))) return def; else return strtoll(variables[pvar(var)].c_str(),0, 0); }
-	double getdouble(const std::string &var, double def) { if(!exists(pvar(var))) return def; else return atof(variables[pvar(var)].c_str()); }
-	uint16_t getuint16(const std::string &var, uint16_t def) { if(!exists(pvar(var))) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
-	int16_t getint16(const std::string &var, int16_t def) { if(!exists(pvar(var))) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
-	uint32_t getuint32(const std::string &var, uint32_t def) { if(!exists(pvar(var))) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
-	int32_t getint32(const std::string &var, int32_t def) { if(!exists(pvar(var))) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
-	uint64_t getuint64(const std::string &var, uint64_t def) { if(!exists(pvar(var))) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
-	int64_t getint64(const std::string &var, int64_t def) { if(!exists(pvar(var))) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
-	std::string getstring(const std::string &var, const std::string def) { if(!exists(pvar(var))) return def; else return variables[pvar(var)]; }
+	int getint(const std::string &var, int def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(),0, 0); }
+	double getdouble(const std::string &var, double def) { if(!exists(var)) return def; else return atof(variables[pvar(var)].c_str()); }
+	uint16_t getuint16(const std::string &var, uint16_t def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
+	int16_t getint16(const std::string &var, int16_t def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
+	uint32_t getuint32(const std::string &var, uint32_t def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
+	int32_t getint32(const std::string &var, int32_t def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
+	uint64_t getuint64(const std::string &var, uint64_t def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
+	int64_t getint64(const std::string &var, int64_t def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
+	std::string getstring(const std::string &var, const std::string def) { if(!exists(var)) return def; else return variables[pvar(var)]; }
 
 	void set(const std::string &var, bool value) { variables[pvar(var)] = value ? "yes" : "no"; }
 	void set(const std::string &var, double value) { variables[pvar(var)] = format("%lg", value); }
