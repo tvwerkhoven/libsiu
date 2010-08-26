@@ -47,14 +47,15 @@ static double clamp(double val, double min, double max) {
 
 OpenGLImageViewer::OpenGLImageViewer():
 scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX),
-flipv(false), fliph(false), crosshair(false), pager(false) {
+flipv(false), fliph(false), crosshair(false), pager(false) 
+{
 	glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGBA | Gdk::GL::MODE_DOUBLE);
 	if(!glconfig) {
-		fprintf(stderr, "Not double-buffered!\n");
+		fprintf(stderr, "OpenGLImageViewer(): Not double-buffered!\n");
 		glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGBA);
 	}
 	if(!glconfig)
-		throw runtime_error("Could not create OpenGL-capable visual");
+		throw runtime_error("OpenGLImageViewer(): Could not create OpenGL-capable visual");
 	
 	gtkimage.set_gl_capability(glconfig);
 	gtkimage.set_double_buffered(false);

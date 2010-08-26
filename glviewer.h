@@ -30,9 +30,9 @@
 #include <GL/glext.h>
 
 // Default scaling steps and range
-static double SCALESTEP = 1.0/3.0;
-static double SCALEMIN = -5.0;
-static double SCALEMAX = 5.0;
+const double SCALESTEP = 1.0/3.0;
+const double SCALEMIN = -5.0;
+const double SCALEMAX = 5.0;
 
 /*! 
  @brief OpenGL scrolled area
