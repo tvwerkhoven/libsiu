@@ -75,11 +75,11 @@ int Io::msg(int type, const char *fmtstr, ...) {
 		char *msg;
 		vasprintf(&msg, newfmt, ap);
 		
-		fprintf(termfd, msg);
+		fputs(msg, termfd);
 		fflush(termfd);
 		
 		if (logfd) {
-			fprintf(logfd, msg);
+			fputs(msg, logfd);
 			fflush(logfd);
 		}
 		
