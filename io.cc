@@ -22,15 +22,14 @@
  @author Michiel van Noort
  @brief input/output routines
 
+ @todo Review thread safety, might be some problems in msg()...
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <algorithm>
-#include <fstream>
+#include <cstdio>
+#include <string>
+//#include <fstream>
 
+#include "format.h"
 #include "io.h"
 
 void Io::init(int l) {
@@ -51,45 +50,45 @@ int Io::setLogfile(std::string file) {
 	return 0;
 }
 
-int Io::msg(int type, const char *fmtstr, ...) {
+int Io::msg(int type, std::string &message) {
 	int level = type & IO_LEVEL_MASK;
-	
-	static const char *prefix[] = {"",  "err ", "warn", "info", "xnfo", "dbg1", "dbg2"};
+	static const std::string prefix[] = {"",  "err ", "warn", "info", "xnfo", "dbg1", "dbg2"};
 
 	if (level <= verb) {
-		va_list ap;
-		va_start(ap, fmtstr);
-		char *newfmt;
+		if (!(type & IO_NOID))
+			message = prefix[level] + " " + message;
+		if (!(type & IO_NOLF))
+			message += "\n";
 
-		if (type & IO_NOID) {
-			newfmt = strcpy(new char[strlen(fmtstr) + 1], fmtstr);
-		}
-		else if (type & IO_NOLF) {
-			newfmt = new char[strlen(fmtstr) + strlen(prefix[level]) + 4];
-			sprintf(newfmt, "[%s] %s", prefix[level], fmtstr);
-		}
-		else {
-			newfmt = new char[strlen(fmtstr) + strlen(prefix[level]) + 5];
-			sprintf(newfmt, "[%s] %s\n", prefix[level], fmtstr);			
-		}
-		char *msg;
-		vasprintf(&msg, newfmt, ap);
-		
-		fputs(msg, termfd);
+		fputs(message.c_str(), termfd);
 		fflush(termfd);
 		
 		if (logfd) {
-			fputs(msg, logfd);
+			fputs(message.c_str(), logfd);
 			fflush(logfd);
 		}
-		
-		free(msg);
-		delete[] newfmt;
-		va_end(ap);
 	}
 	
 	if (type & IO_FATAL) exit(-1);
 	if (type & IO_ERR) return -1;
+	
+	return 0;	
+}
 
-	return 0;
+int Io::msg(int type, const char *fmtstr, ...) {
+	int level = type & IO_LEVEL_MASK;
+	
+	if (level <= verb) {
+		va_list va;
+		va_start(va, fmtstr);
+		std::string result = vformat(fmtstr, va);
+		va_end(va);
+	
+		msg(type, result);
+	}
+
+	if (type & IO_FATAL) exit(-1);
+	if (type & IO_ERR) return -1;
+	
+	return 0;	
 }

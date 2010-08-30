@@ -22,8 +22,7 @@
 #define __IO_H__
 
 #include <string>
-#include <stdio.h>
-#include <unistd.h>
+#include <cstdio>
 
 // Logging flags
 #define IO_NOID         0x00000100      //!< Do not add loglevel string
@@ -57,6 +56,7 @@ public:
 	void init(int);
 
 	int msg(int, const char*, ...);
+	int msg(int type, std::string &message);
 	
 	int setLogfile(string);
 	
