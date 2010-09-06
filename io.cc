@@ -32,6 +32,8 @@
 #include "format.h"
 #include "io.h"
 
+const std::string PREFIX[] = {"",  "err ", "warn", "info", "xnfo", "dbg1", "dbg2"};
+
 void Io::init(int l) {
 	setVerb(l);
 	logfd = NULL;
@@ -50,21 +52,24 @@ int Io::setLogfile(std::string file) {
 	return 0;
 }
 
-int Io::msg(int type, std::string &message) {
+int Io::msg(int type, const std::string &message) {
 	int level = type & IO_LEVEL_MASK;
-	static const std::string prefix[] = {"",  "err ", "warn", "info", "xnfo", "dbg1", "dbg2"};
+	string tmpmsg;
 
 	if (level <= verb) {
-		if (!(type & IO_NOID))
-			message = prefix[level] + " " + message;
+		if (type & IO_NOID)
+			tmpmsg = message;
+		else
+			tmpmsg = "[" + PREFIX[level] + "] " + message;
+		
 		if (!(type & IO_NOLF))
-			message += "\n";
+			tmpmsg += "\n";
 
-		fputs(message.c_str(), termfd);
+		fputs(tmpmsg.c_str(), termfd);
 		fflush(termfd);
 		
 		if (logfd) {
-			fputs(message.c_str(), logfd);
+			fputs(tmpmsg.c_str(), logfd);
 			fflush(logfd);
 		}
 	}
@@ -72,7 +77,7 @@ int Io::msg(int type, std::string &message) {
 	if (type & IO_FATAL) exit(-1);
 	if (type & IO_ERR) return -1;
 	
-	return 0;	
+	return 0;
 }
 
 int Io::msg(int type, const char *fmtstr, ...) {

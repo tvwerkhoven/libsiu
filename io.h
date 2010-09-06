@@ -56,9 +56,10 @@ public:
 	void init(int);
 
 	int msg(int, const char*, ...);
-	int msg(int type, std::string &message);
+	int msg(int, const std::string&);
 	
 	int setLogfile(string);
+	string getLogfile() { return logfile; }
 	
 	int getVerb() { return verb; }
 	int setVerb(int l) { verb = max(1, min(l, IO_MAXLEVEL)); return verb; }
