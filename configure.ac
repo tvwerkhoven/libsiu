@@ -6,6 +6,7 @@ AC_INIT([LIBSIU], [0.1], [t.i.m.vanwerkhoven@xs4all.nl])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_FILES([
 Makefile
+testing/Makefile
 ])
 AC_CONFIG_HEADERS(autoconfig.h)
 
@@ -21,6 +22,12 @@ AC_PROG_RANLIB
 AC_ARG_WITH([ui],
 		AC_HELP_STRING([--with-ui], [enable ui libraries]),
 		[test "$withval" = yes && withui=true])
+
+# Check command line options
+AC_ARG_WITH([tests],
+		AC_HELP_STRING([--with-tests], [build test programs]),
+		[test "$withval" = yes && withtests=true])
+AM_CONDITIONAL([TESTING], [test "$withtests" = true])
 
 # These libraries are crucial for all targets
 AC_SEARCH_LIBS([sin],

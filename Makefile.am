@@ -1,5 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
+SUBDIRS = testing/
+
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CXXFLAGS = -pthread -g -Wall
