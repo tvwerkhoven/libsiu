@@ -117,10 +117,19 @@ public:
 	void setshift(float s) { setshift(s, s); }
 	
 	void setflipv(bool v = true) { flipv = v; }
+	bool getflipv() { return flipv; }
+	
 	void setfliph(bool v = true) { fliph = v; }
+	bool getfliph() { return fliph; }
+	
 	void setzoomfit(bool v = true) { zoomfit = v; }
+	bool getzoomfit() { return zoomfit; }
+
 	void setcrosshair(bool v = true) { crosshair = v; }
+	bool getcrosshair() { return crosshair; }
+
 	void setpager(bool v = true) { pager = v; }
+	bool getpager() { return pager; }
 	
 	void linkData(void *data, int depth, int w, int h);
 };
