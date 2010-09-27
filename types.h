@@ -46,11 +46,11 @@ typedef struct fcoord_t {
  @brief We use this to store gain information for WFC's
  */
 typedef struct gain_t {
-	gain_t(float _p=1, float i=0, float d=0) : p(_p), i(_i), d(_d) { }
+	gain_t(float _p=1, float _i=0, float _d=0) : p(_p), i(_i), d(_d) { }
 	float p;                //!< proportional gain
 	float i;                //!< integral gain
 	float d;                //!< differential gain
-} gain_t
+} gain_t;
 
 /*! 
  @brief This enum is used to distinguish between various datatypes for processing.
