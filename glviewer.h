@@ -58,7 +58,17 @@ class OpenGLImageViewer: public Gtk::EventBox {
 	float sx, sy;						//!< Current image displacement
 	float sxstart, systart;	//!< Tracks mouse dragging 
 	gdouble xstart, ystart;	//!< Tracks mouse dragging
-
+	
+	struct ngrid {
+		ngrid(int i, int j) {
+			x=i;
+			y=j;
+		}
+		int x;
+		int y;
+	} ngrid;								//!< Grid overlay (number of cells)
+	bool grid;							//!< Overlay grid toggle
+	
 	bool flipv;							//!< Vertical flip toggle
 	bool fliph;							//!< Horizontal flip toggle
 	bool zoomfit;						//!< Fit image to parent window
@@ -117,6 +127,11 @@ public:
 	
 	void setshift(float, float);
 	void setshift(float s) { setshift(s, s); }
+	
+	void setgrid(int, int);
+	void setgrid(int n) { setgrid(n, n); }
+	void setgrid(bool v = true) { grid = v; }
+	bool getgrid() { return grid; }
 	
 	void setflipv(bool v = true) { flipv = v; }
 	bool getflipv() { return flipv; }

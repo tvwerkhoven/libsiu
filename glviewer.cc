@@ -47,7 +47,7 @@ static double clamp(double val, double min, double max) {
 
 OpenGLImageViewer::OpenGLImageViewer():
 scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX),
-flipv(false), fliph(false), crosshair(false), pager(false) 
+ngrid(8, 8), grid(false), flipv(false), fliph(false), crosshair(false), pager(false) 
 {
 	glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGBA | Gdk::GL::MODE_DOUBLE);
 	if(!glconfig) {
@@ -183,6 +183,13 @@ void OpenGLImageViewer::setscale(double s) {
 	view_update();
 	scale = clamp(s, scalemin, scalemax);
 	force_update();
+}
+
+void OpenGLImageViewer::setgrid(int nx, int ny) {
+	// Overlay a grid of nx by ny cells over the image
+	setgrid(true);
+	ngrid.x = nx;
+	ngrid.y = ny;
 }
 
 void OpenGLImageViewer::setshift(float x, float y) {
@@ -340,6 +347,27 @@ void OpenGLImageViewer::do_update() {
 		glVertex2f(-1, +1);
 		glEnd();
 		
+		glPopMatrix();
+	}
+	
+	// Render grid overlay
+	if (grid) {
+		glPushMatrix();
+		glTranslatef(sx, sy, 0);
+		glDisable(GL_LINE_SMOOTH);
+		glBegin(GL_LINES);
+		glColor3f(0, 1, 0);
+		// Horizontal lines
+		for (int n=1; n<ngrid.y; n++) {
+			glVertex2f(-1, 2.0*n/ngrid.y - 1);
+			glVertex2f(+1, 2.0*n/ngrid.y - 1);
+		}
+		// Vertical lines
+		for (int n=1; n<ngrid.x; n++) {
+			glVertex2f(2.0*n/ngrid.x - 1, -1);
+			glVertex2f(2.0*n/ngrid.x - 1, +1);
+		}
+		glEnd();
 		glPopMatrix();
 	}
 	
