@@ -58,6 +58,12 @@ class OpenGLImageViewer: public Gtk::EventBox {
 	float sx, sy;						//!< Current image displacement
 	float sxstart, systart;	//!< Tracks mouse dragging 
 	gdouble xstart, ystart;	//!< Tracks mouse dragging
+
+	bool flipv;							//!< Vertical flip toggle
+	bool fliph;							//!< Horizontal flip toggle
+	bool zoomfit;						//!< Fit image to parent window
+	bool crosshair;					//!< Crosshair toggle
+	bool pager;							//!< Pager toggle	
 		
 	// OpenGL drawing-related events
 	void on_image_configure_event(GdkEventConfigure *event);
@@ -110,10 +116,11 @@ public:
 	void setshift(float, float);
 	void setshift(float s) { setshift(s, s); }
 	
-	bool flipv;			//!< Vertical flip toggle
-	bool fliph;			//!< Horizontal flip toggle
-	bool crosshair;	//!< Crosshair toggle
-	bool pager;			//!< Pager toggle
+	void setflipv(bool v = true) { flipv = v; }
+	void setfliph(bool v = true) { fliph = v; }
+	void setzoomfit(bool v = true) { zoomfit = v; }
+	void setcrosshair(bool v = true) { crosshair = v; }
+	void setpager(bool v = true) { pager = v; }
 	
 	void linkData(void *data, int depth, int w, int h);
 };

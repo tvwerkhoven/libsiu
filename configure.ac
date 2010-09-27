@@ -19,9 +19,12 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 
 # Check command line options
+
+# @todo CHECK THIS OPTION!
+withui=true
 AC_ARG_WITH([ui],
-		AC_HELP_STRING([--with-ui], [enable ui libraries]),
-		[test "$withval" = yes && withui=true])
+		AC_HELP_STRING([--without-ui], [enable ui libraries]),
+		[test "$withval" = yes && withui=false])
 
 # Check command line options
 AC_ARG_WITH([tests],

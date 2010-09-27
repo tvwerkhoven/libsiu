@@ -249,12 +249,11 @@ void OpenGLImageViewer::do_update() {
 	int ch = gl_img.h * s;
 	
 	// TODO: implement window-fitting
-	//	if(fit.get_active()) {
-	//		s = min((float)ww / cw, (float)wh / ch);
-	//		scale = log(s)/log(2.0);
-	//		sx = sy = 0;
-	//	} else {
-	//	}	
+	if (zoomfit) {
+		s = min((float)ww / cw, (float)wh / ch);
+		scale = log(s)/log(2.0);
+		sx = sy = 0;
+	}
 	
 	glLoadIdentity();
 	glScalef((float)cw / ww, (float)ch / wh, 1);
