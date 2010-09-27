@@ -100,6 +100,8 @@ public:
 	
 	gl_img_t gl_img;
 	
+	Glib::Dispatcher view_update;
+	
 	OpenGLImageViewer();
 	~OpenGLImageViewer();
 	
@@ -107,7 +109,7 @@ public:
 
 	int map_coord(double inx, double iny, double *outx, double *outy, map_dir_t direction);
 	void setscale(double);
-	void scalestep(double step) { setscale(scale + step); }
+	void scalestep(double step) { setzoomfit(false); setscale(scale + step); }
 	double getscale() { return scale; }
 	
 	void setscalerange(double min, double max) { scalemin = min; scalemax = max; }

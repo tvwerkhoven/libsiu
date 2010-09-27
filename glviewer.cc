@@ -107,16 +107,19 @@ bool OpenGLImageViewer::on_image_motion_event(GdkEventMotion *event) {
 bool OpenGLImageViewer::on_image_button_event(GdkEventButton *event) {
 	if (event->type == GDK_2BUTTON_PRESS) {
 		// Double-click: reset translation
+		view_update();
 		sx = sy = 0;
 		do_update();
 	}
 	else if (event->type == GDK_3BUTTON_PRESS) {
 		// Triple-click: reset translation & zoom
+		view_update();
 		scale = 0;
 		do_update();		
 	}
 	else {
 		// Normal click: remember current translation, use in on_image_motion_event()
+		view_update();
 		sxstart = sx;
 		systart = sy;
 		xstart = event->x;
@@ -177,11 +180,13 @@ bool OpenGLImageViewer::on_image_scroll_event(GdkEventScroll *event) {
 }
 
 void OpenGLImageViewer::setscale(double s) {
+	view_update();
 	scale = clamp(s, scalemin, scalemax);
 	force_update();
 }
 
 void OpenGLImageViewer::setshift(float x, float y) {
+	view_update();
 	sx = clamp(x, -1, 1);
 	sy = clamp(y, -1, 1);
 	do_update();
@@ -244,19 +249,22 @@ void OpenGLImageViewer::do_update() {
 	glViewport(0, 0, ww, wh);
 	
 	// Image scaling and centering
-	float s = pow(2.0, scale);
-	int cw = gl_img.w * s;
-	int ch = gl_img.h * s;
+	float cw = gl_img.w;
+	float ch = gl_img.h;
+	float mwh = min(ww, wh);
+
+	float s;
 	
-	// TODO: implement window-fitting
 	if (zoomfit) {
 		s = min((float)ww / cw, (float)wh / ch);
 		scale = log(s)/log(2.0);
 		sx = sy = 0;
+	} else {
+		s = pow(2.0, scale);
 	}
 	
 	glLoadIdentity();
-	glScalef((float)cw / ww, (float)ch / wh, 1);
+	glScalef((float)s * cw / ww, (float)s * ch / wh, 1);
 	//glScalef((float)1, (float)1, 1);
 	
 	// Render image
@@ -300,13 +308,15 @@ void OpenGLImageViewer::do_update() {
 	}
 	
 	// Render pager, 10% size of original window, 5% from the lower-right corner
-	if (pager) {
+	if (pager && (s * cw > ww || s * ch > wh)) {
 		glPushMatrix();
 		// Reset coordinate system
 		glLoadIdentity();
+		// Scale to approx. 10%
+		double mcwh = std::min(cw, ch);
 		// Translate to lower-right corner, scale down
 		glTranslatef(0.8, -0.8, 0);
-		glScalef(0.1, 0.1, 1);
+		glScalef(0.1 * cw / mcwh / ww * mwh, 0.1 * ch / mcwh / wh * mwh, 1);
 		
 		// Draw pager bounding box
 		glDisable(GL_LINE_SMOOTH);
@@ -319,10 +329,11 @@ void OpenGLImageViewer::do_update() {
 		glEnd();
 		
 		// Draw image contour
-		glScalef((float)cw / ww, (float)ch / wh, 1);
 		glTranslatef(sx, sy, 0);
+		//glScalef((float)s * cw / ww, (float)s * ch / wh, 1);
+		glScalef(ww / cw / s, wh / ch / s, 1);
 		glBegin(GL_POLYGON);
-		glColor3f(0.0f, 0.0f, 0.0f);
+		glColor3f(0, 1, 1);
 		glVertex2f(-1, -1);
 		glVertex2f(+1, -1);
 		glVertex2f(+1, +1);
