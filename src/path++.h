@@ -33,23 +33,23 @@ public:
 	Path();
 	~Path() { ; }
 	
-	string dir;					//!< Directory of the path (if any, absolute or relative)
-	string file;				//!< File of the path (if any)
+	string path;				//!< Full path
 	string sep;					//!< Directory seperator
-	
+		
 	//string append(string p1);	//!< Append p1 to current path
 	string join(string &p1, string &p2); //!< Join p1 and p2
 	
-	string basename(string p);	//!< Get the filename from the path
+	string basename(string &p);	//!< Get the filename from the path
 	string basename();	//!< Get the filename from the path
-//	string dirname(string p);	//!< Get the directory name from the path
-//	string dirname();		//!< Get the directory name from the path
+	string dirname(string &p);	//!< Get the directory name from the path
+	string dirname();		//!< Get the directory name from the path
 	
 //	string abspath();
 	
-//	bool exists();
+	bool exists();
+	bool exists(string &p);
 	bool isabs();
-	bool isabs(string p);
+	bool isabs(string &p);
 //	bool isdir();
 //	bool isfile();
 //	bool isrel();

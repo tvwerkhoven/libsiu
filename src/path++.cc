@@ -23,19 +23,18 @@
 using namespace std;
 
 Path::Path(string p):
-dir(""), file(""), sep("/")
+path(""), sep("/")
 {
 	//! @todo get seperator from OS
-	dir = p;
-	file = p;
+	path = p;
 }
 
 Path::Path():
-dir(""), file(""), sep("/")
+path(""), sep("/")
 { ; }
 
-bool Path::isabs() { return isabs(dir); }
-bool Path::isabs(string p) { return ((p.substr(0,1)) == sep); }
+bool Path::isabs() { return isabs(path); }
+bool Path::isabs(string &p) { return ((p.substr(0,1)) == sep); }
 
 string Path::join(string &p1, string &p2) {
 	if (p2.substr(0,1) == sep) {
@@ -51,20 +50,29 @@ string Path::join(string &p1, string &p2) {
 	return p1;
 }
 
-string Path::basename(string p) {
-	size_t pos = p.rfind(sep);
-	if (pos != string::npos)
-		return p.substr(pos);
-	else
-		return "";
+string Path::basename(string &p) {
+	return p.substr(p.rfind(sep)+1);
 }
 
-//Path::dirname(string p) {
-//	
-//}
-//
-//Path::dirname() {
-//	return dirname(join(dir, file));
-//}
+string Path::basename() { return basename(path); }
 
+string Path::dirname(string &p) {
+	return p.substr(0,p.rfind(sep)+1);
+}
 
+string Path::dirname() { return dirname(path); }
+
+bool Path::exists(string &p) {
+	return (!access(p.c_str(), F_OK));
+}
+
+bool Path::exists() { return exists(path); }
+
+bool Path::isdir(string &p) {
+	if (!exists(p))
+		return false;
+	
+	struct stat buf;
+	stat(constp.c_str(), &buf);
+	
+}
