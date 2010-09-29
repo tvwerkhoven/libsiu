@@ -45,6 +45,17 @@ const double SCALEMAX = 5.0;
  area. The image stretches from (-1,-1) to (1,1) in OpenGL coordinates, 
  and is offset by (sx, sy). To convert from one coordinate system to 
  another, see map_coordinates().
+ 
+ Scale is used for image scaling, which is a logarithmic scale.
+ 
+ Optional overlays include:
+ - Crosshair through the middle of the image
+ - Grid of lines over the image
+ - A small overview of the image when zoomed in (pager)
+ 
+ Other features:
+ - Flip horizontal or vertical
+ - Zoom in/out/fit to window
  */
 class OpenGLImageViewer: public Gtk::EventBox {
 	Glib::RefPtr<Gdk::GL::Config> glconfig;	//!< OpenGL configuration
