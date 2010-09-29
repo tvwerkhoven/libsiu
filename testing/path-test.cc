@@ -20,15 +20,39 @@
 #include <string>
 #include "path++.h"
 
-int main() {
+int main(int argc, char *argv[]) {
+	printf("testing: %s\n", argv[0]);
+	
 	Path p1("/absolute/path/file1");
-	Path p2("relative/path/file1");
-	Path p3("just_a_file");
-	Path p3("just_a_file.extension");
+	Path p2("relative/path/file1.ext");
+	Path p3("/only/path/");
+	Path p4(argv[0]);
 
-	printf("isabs(%s): %d\n", p1.path;, p1.isabs());
-	printf("isabs(%s): %d\n", p2.path;, p2.isabs());
-	printf("isabs(%s): %d\n", p3.path;, p3.isabs());
+	printf("isabs(%s): %d\n", p1.path.c_str(), p1.isabs());
+	printf("isabs(%s): %d\n", p2.path.c_str(), p2.isabs());
+	printf("isabs(%s): %d\n", p3.path.c_str(), p3.isabs());
+	printf("isabs(%s): %d\n", p4.path.c_str(), p4.isabs());
+	
+	printf("---\n");
+
+	printf("basename(%s): %s\n", p1.path.c_str(), p1.basename().c_str());
+	printf("basename(%s): %s\n", p2.path.c_str(), p2.basename().c_str());
+	printf("basename(%s): %s\n", p3.path.c_str(), p3.basename().c_str());
+	printf("basename(%s): %s\n", p4.path.c_str(), p4.basename().c_str());
+
+	printf("---\n");
+	
+	printf("dirname(%s): %s\n", p1.path.c_str(), p1.dirname().c_str());
+	printf("dirname(%s): %s\n", p2.path.c_str(), p2.dirname().c_str());
+	printf("dirname(%s): %s\n", p3.path.c_str(), p3.dirname().c_str());
+	printf("dirname(%s): %s\n", p4.path.c_str(), p4.dirname().c_str());
+
+	printf("---\n");
+
+	printf("exists(%s): %d\n", p1.path.c_str(), p1.exists());
+	printf("exists(%s): %d\n", p2.path.c_str(), p2.exists());
+	printf("exists(%s): %d\n", p3.path.c_str(), p3.exists());
+	printf("exists(%s): %d\n", p4.path.c_str(), p4.exists());
 	
 	return 0;
 }
