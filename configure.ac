@@ -6,6 +6,7 @@ AC_INIT([LIBSIU], [0.1], [t.i.m.vanwerkhoven@xs4all.nl])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_FILES([
 Makefile
+src/Makefile
 testing/Makefile
 ])
 AC_CONFIG_HEADERS(autoconfig.h)
