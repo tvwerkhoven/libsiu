@@ -60,7 +60,9 @@ typedef enum {
 	DATA_INT8,			//!< ID for int8_t
 	DATA_UINT8,			//!< ID for uint8_t
 	DATA_INT16,			//!< ID for int16_t
-	DATA_UINT16			//!< ID for uint16_t
+	DATA_UINT16,		//!< ID for uint16_t
+	DATA_FLOAT32,		//!< ID for float
+	DATA_FLOAT64,		//!< ID for double
 } dtype_t;
 
 
