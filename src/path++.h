@@ -36,7 +36,6 @@ public:
 	string path;				//!< Full path
 	string sep;					//!< Directory seperator
 		
-	//string append(string p1);	//!< Append p1 to current path
 	string join(string &p1, string &p2); //!< Join p1 and p2
 	
 	string basename(string &p);	//!< Get the filename from the path
@@ -44,15 +43,18 @@ public:
 	string dirname(string &p);	//!< Get the directory name from the path
 	string dirname();		//!< Get the directory name from the path
 	
-//	string abspath();
+	bool test_stat(string &p, mode_t test_mode); //!< Test whether path p has mode test_mode (see stat(2))
 	
 	bool exists();
 	bool exists(string &p);
 	bool isabs();
 	bool isabs(string &p);
-//	bool isdir();
-//	bool isfile();
-//	bool isrel();
+	bool isdir();
+	bool isdir(string &p);
+	bool isfile();
+	bool isfile(string &p);
+	bool islink();
+	bool islink(string &p);
 };
 
 #endif // HAVE_PATHPP_H

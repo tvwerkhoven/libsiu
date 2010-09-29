@@ -53,6 +53,13 @@ int main(int argc, char *argv[]) {
 	printf("exists(%s): %d\n", p2.path.c_str(), p2.exists());
 	printf("exists(%s): %d\n", p3.path.c_str(), p3.exists());
 	printf("exists(%s): %d\n", p4.path.c_str(), p4.exists());
+
+	printf("---\n");
+	
+	printf("isdir(%s): %d\n", p1.path.c_str(), p1.isdir());
+	printf("isdir(%s): %d\n", p2.path.c_str(), p2.isdir());
+	printf("isdir(%s): %d\n", p3.path.c_str(), p3.isdir());
+	printf("isdir(%s): %d\n", p4.path.c_str(), p4.isdir());
 	
 	return 0;
 }

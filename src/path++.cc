@@ -18,6 +18,9 @@
  */
 
 #include <string>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "path++.h"
 
 using namespace std;
@@ -68,11 +71,20 @@ bool Path::exists(string &p) {
 
 bool Path::exists() { return exists(path); }
 
-bool Path::isdir(string &p) {
+bool Path::test_stat(string &p, mode_t test_mode) {
 	if (!exists(p))
 		return false;
 	
 	struct stat buf;
-	stat(constp.c_str(), &buf);
-	
+	stat(p.c_str(), &buf);	
+	return (buf.st_mode & test_mode);
 }
+
+bool Path::isdir(string &p) { return test_stat(p, S_IFDIR); }
+bool Path::isdir() { return isdir(path); }
+
+bool Path::isfile(string &p) { return test_stat(p, S_IFREG); }
+bool Path::isfile() { return isfile(path); }
+
+bool Path::islink(string &p) { return test_stat(p, S_IFLNK); }
+bool Path::islink() { return islink(path); }
