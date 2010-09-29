@@ -47,7 +47,7 @@ static double clamp(double val, double min, double max) {
 
 OpenGLImageViewer::OpenGLImageViewer():
 scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX),
-ngrid(8, 8), grid(false), flipv(false), fliph(false), crosshair(false), pager(false) 
+ngrid(8, 8), grid(false), flipv(false), fliph(false), zoomfit(false), crosshair(false), pager(false) 
 {
 	glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGBA | Gdk::GL::MODE_DOUBLE);
 	if(!glconfig) {
@@ -354,6 +354,12 @@ void OpenGLImageViewer::do_update() {
 	if (grid) {
 		glPushMatrix();
 		glTranslatef(sx, sy, 0);
+
+		if (fliph)
+			glScalef(-1, 1, 1);
+		if (flipv)
+			glScalef(1, -1, 1);
+		
 		glDisable(GL_LINE_SMOOTH);
 		glBegin(GL_LINES);
 		glColor3f(0, 1, 0);
