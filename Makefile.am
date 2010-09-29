@@ -3,10 +3,12 @@ AUTOMAKE_OPTIONS = foreign
 
 ACLOCAL_AMFLAGS = -I m4
 
+SUBDIRS = src/ testing/
+
 AM_CXXFLAGS = -pthread -g -Wall
 AM_CPPFLAGS = $(SIGC_CFLAGS)
 
-noinst_LIBRARIES = libconfig.a libmessages.a libpidfile.a libserial.a libsocket.a libprotocol.a libio.a libimgdata.a
+noinst_LIBRARIES = libconfig.a libmessages.a libpidfile.a libserial.a libsocket.a libprotocol.a libio.a libimgdata.a libpath.a
 
 if HAVE_OPENGL
 noinst_LIBRARIES += libglviewer.a
@@ -24,13 +26,15 @@ libimgdata_a_SOURCES = imgdata.cc
 libimgdata_a_CFLAGS = $(IMGDATA_CFLAGS)
 #libimgdata_a_LIBADD = $(IMGDATA_LIBS)
 
+libpath_a_SOURCES = path++.cc
+
 if HAVE_OPENGL
 libglviewer_a_SOURCES = glviewer.cc
 libglviewer_a_CPPFLAGS = $(OPENGL_CFLAGS) $(AM_CPPFLAGS)
 libglviewer_a_CFLAGS = $(OPENGL_CFLAGS) 
 endif
 
-noinst_HEADERS = config.h format.h messages.h pidfile.h protocol.h pthread++.h serial.h socket.h io.h glviewer.h imgdata.h
+noinst_HEADERS = config.h format.h messages.h pidfile.h protocol.h pthread++.h serial.h socket.h io.h glviewer.h imgdata.h path++.h
 
-#SUBDIRS = testing/
+
 

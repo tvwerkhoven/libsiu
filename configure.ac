@@ -27,9 +27,10 @@ AC_ARG_WITH([ui],
 		[test "$withval" = yes && withui=false])
 
 # Check command line options
+withtests=true
 AC_ARG_WITH([tests],
-		AC_HELP_STRING([--with-tests], [build test programs]),
-		[test "$withval" = yes && withtests=true])
+		AC_HELP_STRING([--without-tests], [build test programs]),
+		[test "$withval" = yes && withtests=false])
 AM_CONDITIONAL([TESTING], [test "$withtests" = true])
 
 # These libraries are crucial for all targets
