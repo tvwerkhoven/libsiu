@@ -57,12 +57,17 @@ typedef struct gain_t {
  
  */
 typedef enum {
-	DATA_INT8,			//!< ID for int8_t
-	DATA_UINT8,			//!< ID for uint8_t
-	DATA_INT16,			//!< ID for int16_t
-	DATA_UINT16,		//!< ID for uint16_t
-	DATA_FLOAT32,		//!< ID for float
-	DATA_FLOAT64,		//!< ID for double
+	UINT8=0,			//!< ID for uint8_t
+	INT8,					//!< ID for int8_t
+	UINT16,				//!< ID for uint16_t
+	INT16,				//!< ID for int16_t
+	UINT32,				//!< ID for uint32_t
+	INT32,				//!< ID for int32_t
+	UINT64,				//!< ID for uint64_t
+	INT64,				//!< ID for int64_t
+	FLOAT32,			//!< ID for float
+	FLOAT64,			//!< ID for double
+	DATA_UNDEF		//!< ID for undefined
 } dtype_t;
 
 
