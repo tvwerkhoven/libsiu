@@ -44,7 +44,14 @@ Path Path::operator+(const Path &rhs) const {
 	return out.append(rhs);
 }
 
+Path Path::operator+(const string &rhs) const {
+	// + returns 'this' concatenated with 'rhs'. Should not change 'this', so make a new object
+	Path out(*this);
+	return out.append(rhs);
+}
+
 Path Path::operator+=(const Path &rhs) { return append(rhs); }
+Path Path::operator+=(const string &rhs) { return append(rhs); }
 
 /* 
  * Public methods

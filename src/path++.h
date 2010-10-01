@@ -45,7 +45,9 @@ public:
 	inline bool operator==(const Path &b) const { return (b.str() == path); }
 	inline bool operator==(Path &b) const { return (b.str() == path); }
 	Path operator+(const Path& rhs) const;
+	Path operator+(const string& rhs) const;
 	Path operator+=(const Path& rhs);
+	Path operator+=(const string& rhs);
 	
 	Path append(const string &p1); //!< Append string p1 to current path 
 	Path append(const Path &p1) { return append(p1.str()); } //!< Append Path p1 to the current path
@@ -61,8 +63,8 @@ public:
 	bool stat(const mode_t test_mode) const; //!< Test whether Path has mode test_mode (see stat(2))
 	bool access(const int test_mode) const; //!< Test whether Path has mode test_mode (see access(2))
 	
-	bool exists() const { return !access(F_OK); }
-	bool rwx() const { return !access(R_OK | W_OK | X_OK); }
+	bool exists() const { return !this->access(F_OK); }
+	bool rwx() const { return !this->access(R_OK | W_OK | X_OK); }
 	bool isabs() const { return ((path.substr(0,1)) == sep); }
 	bool isrel() const { return !isabs(); }
 	bool isdir() const { return stat(S_IFDIR); }
