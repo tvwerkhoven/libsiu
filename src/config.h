@@ -51,15 +51,15 @@ public:
 	std::string prefix;
 	bool autosave;
 
-	config(const Path &path, const std::string &prefix = ""): filename(path.as_str()), prefix(prefix), autosave(false) { parse(); }
+	config(const Path &path, const std::string &prefix = ""): filename(path.str()), prefix(prefix), autosave(false) { parse(); }
 	config(const std::string &filename, const std::string &prefix = ""): filename(filename), prefix(prefix), autosave(false) { parse(); }
 	config(): prefix(""), autosave(false) {};
 	~config() { if(autosave) write(); }
 
-	void parse(const Path &path, const std::string &prefix = "") { this->filename = path.as_str(); this->prefix = prefix; parse(); }
+	void parse(const Path &path, const std::string &prefix = "") { this->filename = path.str(); this->prefix = prefix; parse(); }
 	void parse(const std::string &filename, const std::string &prefix = "") { this->filename = filename; this->prefix = prefix; parse(); }
 	void parse();
-	void write(const Path &path, const std::string &prefix = "") { this->filename = path.as_str(); this->prefix = prefix; write(); }
+	void write(const Path &path, const std::string &prefix = "") { this->filename = path.str(); this->prefix = prefix; write(); }
 	void write(const std::string &filename, const std::string &prefix = "") { this->filename = filename; this->prefix = prefix; write(); }
 	void write();
 
