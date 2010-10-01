@@ -37,8 +37,8 @@ private:
 	bool isfile(const string &p) const;
 	bool islink(const string &p) const;
 
-	string basename(string &p);	//!< Get the filename from the path
-	string dirname(string &p);	//!< Get the directory name from the path
+	string basename(const string &p) const;	//!< Get the filename from the path
+	string dirname(const string &p) const;	//!< Get the directory name from the path
 
 	string path;				//!< Full path
 	string sep;					//!< Directory seperator
@@ -55,10 +55,10 @@ public:
 	Path append(const string &p1); //!< Append string p1 to current path 
 	Path append(const Path &p1); //!< Append Path p1 to the current path
 	
-	string basename();	//!< Get the filename from the path
-	const char *basename_c() { return basename().c_str(); }	//!< Get the filename from the path as c_str()
-	string dirname();		//!< Get the directory name from the path
-	const char *dirname_c() { return dirname().c_str(); }	//!< Get the directory name from the path as c_str()
+	string basename() const;	//!< Get the filename from the path
+	const char *basename_c() const { return basename().c_str(); }	//!< Get the filename from the path as c_str()
+	string dirname() const;		//!< Get the directory name from the path
+	const char *dirname_c() const { return dirname().c_str(); }	//!< Get the directory name from the path as c_str()
 	
 	string getpath() const { return path; } //!< Return the path
 	const char *getpath_c() const { return path.c_str(); } //!< Return the path as c_str()

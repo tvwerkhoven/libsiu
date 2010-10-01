@@ -84,11 +84,11 @@ bool Path::test_stat(const string &p, const mode_t test_mode) const {
 bool Path::isabs() { return isabs(path); }
 bool Path::isabs(const string &p) const { return ((p.substr(0,1)) == sep); }
 
-string Path::basename(string &p) { return p.substr(p.rfind(sep)+1); }
-string Path::basename() { return basename(path); }
+string Path::basename(const string &p) const { return p.substr(p.rfind(sep)+1); }
+string Path::basename() const { return basename(path); }
 
-string Path::dirname(string &p) { return p.substr(0,p.rfind(sep)+1); }
-string Path::dirname() { return dirname(path); }
+string Path::dirname(const string &p) const { return p.substr(0,p.rfind(sep)+1); }
+string Path::dirname() const { return dirname(path); }
 
 bool Path::exists(const string &p) const { return (!access(p.c_str(), F_OK)); }
 bool Path::exists() { return exists(path); }
