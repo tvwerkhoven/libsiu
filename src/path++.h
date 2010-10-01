@@ -64,6 +64,9 @@ public:
 	bool access(const int test_mode) const; //!< Test whether Path has mode test_mode (see access(2))
 	
 	bool exists() const { return !this->access(F_OK); }
+	bool r() const { return !this->access(R_OK); }
+	bool w() const { return !this->access(W_OK); }
+	bool x() const { return !this->access(X_OK); }
 	bool rwx() const { return !this->access(R_OK | W_OK | X_OK); }
 	bool isabs() const { return ((path.substr(0,1)) == sep); }
 	bool isrel() const { return !isabs(); }
