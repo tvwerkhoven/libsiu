@@ -28,38 +28,44 @@ int main(int argc, char *argv[]) {
 	Path p3("/only/path/");
 	Path p4(argv[0]);
 
-	printf("isabs(%s): %d\n", p1.path.c_str(), p1.isabs());
-	printf("isabs(%s): %d\n", p2.path.c_str(), p2.isabs());
-	printf("isabs(%s): %d\n", p3.path.c_str(), p3.isabs());
-	printf("isabs(%s): %d\n", p4.path.c_str(), p4.isabs());
+	printf("isabs(%s): %d\n", p1.getpath_c(), p1.isabs());
+	printf("isabs(%s): %d\n", p2.getpath_c(), p2.isabs());
+	printf("isabs(%s): %d\n", p3.getpath_c(), p3.isabs());
+	printf("isabs(%s): %d\n", p4.getpath_c(), p4.isabs());
 	
 	printf("---\n");
 
-	printf("basename(%s): %s\n", p1.path.c_str(), p1.basename().c_str());
-	printf("basename(%s): %s\n", p2.path.c_str(), p2.basename().c_str());
-	printf("basename(%s): %s\n", p3.path.c_str(), p3.basename().c_str());
-	printf("basename(%s): %s\n", p4.path.c_str(), p4.basename().c_str());
+	printf("basename(%s): %s\n", p1.getpath_c(), p1.basename_c());
+	printf("basename(%s): %s\n", p2.getpath_c(), p2.basename_c());
+	printf("basename(%s): %s\n", p3.getpath_c(), p3.basename_c());
+	printf("basename(%s): %s\n", p4.getpath_c(), p4.basename_c());
 
 	printf("---\n");
 	
-	printf("dirname(%s): %s\n", p1.path.c_str(), p1.dirname().c_str());
-	printf("dirname(%s): %s\n", p2.path.c_str(), p2.dirname().c_str());
-	printf("dirname(%s): %s\n", p3.path.c_str(), p3.dirname().c_str());
-	printf("dirname(%s): %s\n", p4.path.c_str(), p4.dirname().c_str());
+	printf("dirname(%s): %s\n", p1.getpath_c(), p1.dirname_c());
+	printf("dirname(%s): %s\n", p2.getpath_c(), p2.dirname_c());
+	printf("dirname(%s): %s\n", p3.getpath_c(), p3.dirname_c());
+	printf("dirname(%s): %s\n", p4.getpath_c(), p4.dirname_c());
 
 	printf("---\n");
 
-	printf("exists(%s): %d\n", p1.path.c_str(), p1.exists());
-	printf("exists(%s): %d\n", p2.path.c_str(), p2.exists());
-	printf("exists(%s): %d\n", p3.path.c_str(), p3.exists());
-	printf("exists(%s): %d\n", p4.path.c_str(), p4.exists());
+	printf("exists(%s): %d\n", p1.getpath_c(), p1.exists());
+	printf("exists(%s): %d\n", p2.getpath_c(), p2.exists());
+	printf("exists(%s): %d\n", p3.getpath_c(), p3.exists());
+	printf("exists(%s): %d\n", p4.getpath_c(), p4.exists());
 
 	printf("---\n");
 	
-	printf("isdir(%s): %d\n", p1.path.c_str(), p1.isdir());
-	printf("isdir(%s): %d\n", p2.path.c_str(), p2.isdir());
-	printf("isdir(%s): %d\n", p3.path.c_str(), p3.isdir());
-	printf("isdir(%s): %d\n", p4.path.c_str(), p4.isdir());
+	printf("isdir(%s): %d\n", p1.getpath_c(), p1.isdir());
+	printf("isdir(%s): %d\n", p2.getpath_c(), p2.isdir());
+	printf("isdir(%s): %d\n", p3.getpath_c(), p3.isdir());
+	printf("isdir(%s): %d\n", p4.getpath_c(), p4.isdir());
+
+	printf("---\n");
+
+	printf("%s.append(%s): ", p3.getpath_c(), p4.getpath_c());
+	printf("%s\n", (p3.append(p4)).getpath_c());
+	printf("now %s.append(%s)\n", p3.getpath_c(), p4.getpath_c());
 	
 	return 0;
 }

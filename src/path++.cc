@@ -25,51 +25,52 @@
 
 using namespace std;
 
-Path::Path(string p):
+Path::Path(const string &p):
 path(""), sep("/")
 {
 	//! @todo get seperator from OS
 	path = p;
 }
 
+Path::Path(const Path &p):
+path(""), sep("/")
+{
+	//! @todo get seperator from OS
+	path = p.getpath();
+}
+
+
 Path::Path():
 path(""), sep("/")
 { ; }
 
-bool Path::isabs() { return isabs(path); }
-bool Path::isabs(string &p) { return ((p.substr(0,1)) == sep); }
+inline bool Path::operator== (const Path &b) const { return (b.getpath() == path); }
 
-string Path::join(string &p1, string &p2) {
-	if (p2.substr(0,1) == sep) {
-		p1 = p2;
-		return p1;
+Path Path::operator+(const Path &rhs) {
+//	Path tmp(rhs);
+	return append(rhs);
+}
+
+Path Path::append(const string &p1) {
+	if (p1.substr(0,1) == sep) {
+		path = p1;
+		return *this;
 	}
 	
-	if (p1.substr(p1.length()-1) == sep)
-		p1 += p2;
+	if (path.substr(path.length()-1) == sep)
+		path += p1;
 	else
-		p1 = p1 + sep + p2;
+		path = path + sep + p1;
 	
-	return p1;
+	return *this;
 }
 
-string Path::basename(string &p) {
-	return p.substr(p.rfind(sep)+1);
+Path Path::append(const Path &p1) { 
+	std::string tmp = p1.getpath();
+	//! @todo Why does return append(tmp); not work, or even return append(p1.getpath()); ?
+	append(tmp);
+	return *this;	
 }
-
-string Path::basename() { return basename(path); }
-
-string Path::dirname(string &p) {
-	return p.substr(0,p.rfind(sep)+1);
-}
-
-string Path::dirname() { return dirname(path); }
-
-bool Path::exists(string &p) {
-	return (!access(p.c_str(), F_OK));
-}
-
-bool Path::exists() { return exists(path); }
 
 bool Path::test_stat(string &p, mode_t test_mode) {
 	if (!exists(p))
@@ -79,6 +80,18 @@ bool Path::test_stat(string &p, mode_t test_mode) {
 	stat(p.c_str(), &buf);	
 	return (buf.st_mode & test_mode);
 }
+
+bool Path::isabs() { return isabs(path); }
+bool Path::isabs(string &p) { return ((p.substr(0,1)) == sep); }
+
+string Path::basename(string &p) { return p.substr(p.rfind(sep)+1); }
+string Path::basename() { return basename(path); }
+
+string Path::dirname(string &p) { return p.substr(0,p.rfind(sep)+1); }
+string Path::dirname() { return dirname(path); }
+
+bool Path::exists(string &p) { return (!access(p.c_str(), F_OK)); }
+bool Path::exists() { return exists(path); }
 
 bool Path::isdir(string &p) { return test_stat(p, S_IFDIR); }
 bool Path::isdir() { return isdir(path); }

@@ -25,36 +25,49 @@
 using namespace std;
 
 /*!
- @brief Implements easier path-handling, based on Python's os.path
+ @brief Implements easier path-handling, loosely based on Python's os.path
  */
 class Path {
-public:
-	Path(string p);
-	Path();
-	~Path() { ; }
-	
-	string path;				//!< Full path
-	string sep;					//!< Directory seperator
-		
-	string join(string &p1, string &p2); //!< Join p1 and p2
-	
-	string basename(string &p);	//!< Get the filename from the path
-	string basename();	//!< Get the filename from the path
-	string dirname(string &p);	//!< Get the directory name from the path
-	string dirname();		//!< Get the directory name from the path
-	
+private:
 	bool test_stat(string &p, mode_t test_mode); //!< Test whether path p has mode test_mode (see stat(2))
 	
-	bool exists();
-	bool exists(string &p);
-	bool isabs();
 	bool isabs(string &p);
-	bool isdir();
+	bool exists(string &p);
 	bool isdir(string &p);
-	bool isfile();
 	bool isfile(string &p);
-	bool islink();
 	bool islink(string &p);
+
+	string basename(string &p);	//!< Get the filename from the path
+	string dirname(string &p);	//!< Get the directory name from the path
+
+	string path;				//!< Full path
+	string sep;					//!< Directory seperator
+
+public:
+	Path(const string &p); //!< New Path from string
+	Path(const Path &p); //!< New Path from Path
+	Path();							//!< New empty Path
+	~Path() { ; }				//!< Nothing to destruct here
+	
+	inline bool operator == (const Path &b) const;
+	Path operator+(const Path& rhs);
+	
+	Path append(const string &p1); //!< Append string p1 to current path 
+	Path append(const Path &p1); //!< Append Path p1 to the current path
+	
+	string basename();	//!< Get the filename from the path
+	const char *basename_c() { return basename().c_str(); }	//!< Get the filename from the path as c_str()
+	string dirname();		//!< Get the directory name from the path
+	const char *dirname_c() { return dirname().c_str(); }	//!< Get the directory name from the path as c_str()
+	
+	string getpath() const { return path; } //!< Return the path
+	const char *getpath_c() const { return path.c_str(); } //!< Return the path as c_str()
+	
+	bool exists();
+	bool isabs();
+	bool isdir();
+	bool isfile();
+	bool islink();
 };
 
 #endif // HAVE_PATHPP_H
