@@ -24,6 +24,8 @@
 #include <string>
 #include <cstdio>
 
+#include "path++.h"
+
 // Logging flags
 #define IO_NOID         0x00000100      //!< Do not add loglevel string
 #define IO_FATAL        0x00000200      //!< Fatal, quit immediately
@@ -46,7 +48,7 @@ class Io {
 	int verb, level_mask;
 	FILE *termfd;
 	FILE *logfd;
-	string logfile;
+	Path logfile;
 	
 public:
 	Io() { Io::init(IO_MAXLEVEL); }
@@ -58,8 +60,8 @@ public:
 	int msg(int, const char*, ...);
 	int msg(int, const std::string&);
 	
-	int setLogfile(string);
-	string getLogfile() { return logfile; }
+	int setLogfile(Path&);
+	Path getLogfile() { return logfile; }
 	
 	int getVerb() { return verb; }
 	int setVerb(int l) { verb = max(1, min(l, IO_MAXLEVEL)); return verb; }

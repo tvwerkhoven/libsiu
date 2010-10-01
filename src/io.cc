@@ -27,8 +27,8 @@
 
 #include <cstdio>
 #include <string>
-//#include <fstream>
 
+#include "path++.h"
 #include "format.h"
 #include "io.h"
 
@@ -45,7 +45,7 @@ Io::~Io(void) {
 		fclose(logfd);
 }
 
-int Io::setLogfile(std::string file) {
+int Io::setLogfile(Path &file) {
 	logfile = file;
 	logfd = fopen(logfile.c_str(), "a");
 	if (!logfd) return -1;
