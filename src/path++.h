@@ -33,14 +33,7 @@ private:
 	string path;				//!< Full path
 	string sep;					//!< Directory seperator (will never change runtime) @todo cannot make this const? foamctrl.cc gives ../libsiu/path++.h: In member function ‘Path& Path::operator=(const Path&)’:	../libsiu/path++.h:31: error: non-static const member ‘const std::string Path::sep’, can't use default assignment operator
 	string extsep;			//!< Extension seperator (will never change runtime) @todo cannot make this const? 
-	
-	//! @todo These functions might not be necessary, we always apply these functions on the object itself anyway.
-	bool isabs(const string &p) const { return ((p.substr(0,1)) == sep); }
-	bool exists(const string &p) const { return (!access(p.c_str(), F_OK)); }
-	bool isdir(const string &p) const { return test_stat(p, S_IFDIR); }
-	bool isfile(const string &p) const { return test_stat(p, S_IFREG); }
-	bool islink(const string &p) const { return test_stat(p, S_IFLNK); }
-	
+		
 public:
 	// Path(const char *p); //!< @todo implemeting this causes error in config-test? config-test.cc:48: error: call of overloaded ‘write(const char [19])’ is ambiguous
 	Path(const string &p); //!< New Path from string
@@ -65,14 +58,16 @@ public:
 	string str() const { return path; } //!< Return the path as string
 	const char *c_str() const { return path.c_str(); } //!< Return the path as c_str()
 	
-	bool test_stat(const string &p, const mode_t test_mode) const; //!< Test whether path p has mode test_mode (see stat(2))
+	bool stat(const mode_t test_mode) const; //!< Test whether Path has mode test_mode (see stat(2))
+	bool access(const int test_mode) const; //!< Test whether Path has mode test_mode (see access(2))
 	
-	bool exists() const { return exists(path); }
-	bool isabs() const { return isabs(path); }
-	bool isrel() const { return !isabs(path); }
-	bool isdir() const { return isdir(path); }
-	bool isfile() const { return isfile(path); }
-	bool islink() const { return islink(path); }
+	bool exists() const { return !access(F_OK); }
+	bool rwx() const { return !access(R_OK | W_OK | X_OK); }
+	bool isabs() const { return ((path.substr(0,1)) == sep); }
+	bool isrel() const { return !isabs(); }
+	bool isdir() const { return stat(S_IFDIR); }
+	bool isfile() const { return stat(S_IFREG); }
+	bool islink() const { return stat(S_IFLNK); }
 };
 
 #endif // HAVE_PATHPP_H

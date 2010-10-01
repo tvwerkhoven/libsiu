@@ -64,12 +64,16 @@ Path Path::append(const string &p1) {
 	return *this;
 }
 
-bool Path::test_stat(const string &p, const mode_t test_mode) const {
-	if (!exists(p))
+bool Path::stat(const mode_t test_mode) const {
+	if (!exists())
 		return false;
 	
 	struct stat buf;
-	stat(p.c_str(), &buf);	
+	::stat(this->c_str(), &buf);
 	return (buf.st_mode & test_mode);
+}
+
+bool Path::access(int test_mode) const {
+	return ::access(this->c_str(), test_mode);
 }
 
