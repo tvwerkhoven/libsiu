@@ -46,10 +46,13 @@ path(""), sep("/")
 
 inline bool Path::operator== (const Path &b) const { return (b.getpath() == path); }
 
-Path Path::operator+(const Path &rhs) {
-//	Path tmp(rhs);
-	return append(rhs);
+Path Path::operator+(const Path &rhs) const {
+	// + returns 'this' concatenated with 'rhs'. Should not change 'this', so make a new object
+	Path out(*this);
+	return out.append(rhs);
 }
+
+Path Path::operator+=(const Path &rhs) { return append(rhs); }
 
 Path Path::append(const string &p1) {
 	if (p1.substr(0,1) == sep) {

@@ -50,7 +50,8 @@ public:
 	~Path() { ; }				//!< Nothing to destruct here
 	
 	inline bool operator == (const Path &b) const;
-	Path operator+(const Path& rhs);
+	Path operator+(const Path& rhs) const;
+	Path operator+=(const Path& rhs);
 	
 	Path append(const string &p1); //!< Append string p1 to current path 
 	Path append(const Path &p1); //!< Append Path p1 to the current path

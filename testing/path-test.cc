@@ -62,6 +62,16 @@ int main(int argc, char *argv[]) {
 	printf("isdir(%s): %d\n", p4.getpath_c(), p4.isdir());
 
 	printf("---\n");
+	
+	printf("%s + %s = %s", p3.getpath_c(), p4.getpath_c(), (p3+p4).getpath_c());
+	printf("%s + %s = %s", p1.getpath_c(), p2.getpath_c(), (p1+p2).getpath_c());
+
+	printf("---\n");
+	
+	printf("%s += %s = %s", p3.getpath_c(), p4.getpath_c(), (p3+=p4).getpath_c());
+	printf("%s += %s = %s", p1.getpath_c(), p2.getpath_c(), (p1+=p2).getpath_c());
+	
+	printf("---\n");
 
 	printf("%s.append(%s): ", p3.getpath_c(), p4.getpath_c());
 	printf("%s\n", (p3.append(p4)).getpath_c());
