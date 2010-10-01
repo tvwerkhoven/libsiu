@@ -41,7 +41,7 @@ private:
 	string dirname(const string &p) const;	//!< Get the directory name from the path
 
 	string path;				//!< Full path
-	string sep;					//!< Directory seperator
+	const string sep;		//!< Directory seperator (will never change runtime)
 
 public:
 	Path(const string &p); //!< New Path from string
@@ -63,11 +63,11 @@ public:
 	string getpath() const { return path; } //!< Return the path
 	const char *getpath_c() const { return path.c_str(); } //!< Return the path as c_str()
 	
-	bool exists();
-	bool isabs();
-	bool isdir();
-	bool isfile();
-	bool islink();
+	bool exists() const;
+	bool isabs() const;
+	bool isdir() const;
+	bool isfile() const;
+	bool islink() const;
 };
 
 #endif // HAVE_PATHPP_H
