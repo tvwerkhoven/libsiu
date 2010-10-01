@@ -37,8 +37,8 @@ private:
 	bool isfile(const string &p) const { return test_stat(p, S_IFREG); }
 	bool islink(const string &p) const { return test_stat(p, S_IFLNK); }
 	
-	string basename(const string &p) const;	//!< Get the filename from the path
-	string dirname(const string &p) const;	//!< Get the directory name from the path
+	string basename(const string &p) const { return p.substr(p.rfind(sep)+1); } //!< Get the filename from the path
+	string dirname(const string &p) const { return p.substr(0,p.rfind(sep)+1); } //!< Get the directory name from the path
 
 	string path;				//!< Full path
 	const string sep;		//!< Directory seperator (will never change runtime)

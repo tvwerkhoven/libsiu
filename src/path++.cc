@@ -49,9 +49,6 @@ Path Path::operator+(const Path &rhs) const {
 
 Path Path::operator+=(const Path &rhs) { return append(rhs); }
 
-string Path::basename(const string &p) const { return p.substr(p.rfind(sep)+1); }
-string Path::dirname(const string &p) const { return p.substr(0,p.rfind(sep)+1); }
-
 /* 
  * Public methods
  */
