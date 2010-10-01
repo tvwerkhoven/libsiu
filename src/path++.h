@@ -42,6 +42,7 @@ private:
 	bool islink(const string &p) const { return test_stat(p, S_IFLNK); }
 	
 public:
+	// Path(const char *p); //!< @todo implemeting this causes error in config-test? config-test.cc:48: error: call of overloaded ‘write(const char [19])’ is ambiguous
 	Path(const string &p); //!< New Path from string
 	Path(const Path &p); //!< New Path from Path
 	Path();							//!< New empty Path
@@ -68,6 +69,7 @@ public:
 	
 	bool exists() const { return exists(path); }
 	bool isabs() const { return isabs(path); }
+	bool isrel() const { return !isabs(path); }
 	bool isdir() const { return isdir(path); }
 	bool isfile() const { return isfile(path); }
 	bool islink() const { return islink(path); }

@@ -29,7 +29,6 @@ using namespace std;
  * Constructors / destructor
  */
 
-//! @todo get seperators from OS
 Path::Path(const string &p): path(p), sep("/"), extsep(".") { ; }
 //! @todo get seperators from OS
 Path::Path(const Path &p): path(p.str()), sep("/"), extsep(".") { ; }
