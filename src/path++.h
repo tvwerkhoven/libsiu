@@ -29,13 +29,13 @@ using namespace std;
  */
 class Path {
 private:
-	bool test_stat(string &p, mode_t test_mode); //!< Test whether path p has mode test_mode (see stat(2))
+	bool test_stat(const string &p, const mode_t test_mode) const; //!< Test whether path p has mode test_mode (see stat(2))
 	
-	bool isabs(string &p);
-	bool exists(string &p);
-	bool isdir(string &p);
-	bool isfile(string &p);
-	bool islink(string &p);
+	bool isabs(const string &p) const;
+	bool exists(const string &p) const;
+	bool isdir(const string &p) const;
+	bool isfile(const string &p) const;
+	bool islink(const string &p) const;
 
 	string basename(string &p);	//!< Get the filename from the path
 	string dirname(string &p);	//!< Get the directory name from the path

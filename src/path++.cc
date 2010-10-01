@@ -72,7 +72,7 @@ Path Path::append(const Path &p1) {
 	return *this;	
 }
 
-bool Path::test_stat(string &p, mode_t test_mode) {
+bool Path::test_stat(const string &p, const mode_t test_mode) const {
 	if (!exists(p))
 		return false;
 	
@@ -82,7 +82,7 @@ bool Path::test_stat(string &p, mode_t test_mode) {
 }
 
 bool Path::isabs() { return isabs(path); }
-bool Path::isabs(string &p) { return ((p.substr(0,1)) == sep); }
+bool Path::isabs(const string &p) const { return ((p.substr(0,1)) == sep); }
 
 string Path::basename(string &p) { return p.substr(p.rfind(sep)+1); }
 string Path::basename() { return basename(path); }
@@ -90,14 +90,14 @@ string Path::basename() { return basename(path); }
 string Path::dirname(string &p) { return p.substr(0,p.rfind(sep)+1); }
 string Path::dirname() { return dirname(path); }
 
-bool Path::exists(string &p) { return (!access(p.c_str(), F_OK)); }
+bool Path::exists(const string &p) const { return (!access(p.c_str(), F_OK)); }
 bool Path::exists() { return exists(path); }
 
-bool Path::isdir(string &p) { return test_stat(p, S_IFDIR); }
+bool Path::isdir(const string &p) const { return test_stat(p, S_IFDIR); }
 bool Path::isdir() { return isdir(path); }
 
-bool Path::isfile(string &p) { return test_stat(p, S_IFREG); }
+bool Path::isfile(const string &p) const { return test_stat(p, S_IFREG); }
 bool Path::isfile() { return isfile(path); }
 
-bool Path::islink(string &p) { return test_stat(p, S_IFLNK); }
+bool Path::islink(const string &p) const { return test_stat(p, S_IFLNK); }
 bool Path::islink() { return islink(path); }
