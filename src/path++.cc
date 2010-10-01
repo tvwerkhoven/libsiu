@@ -68,12 +68,7 @@ Path Path::append(const string &p1) {
 	return *this;
 }
 
-Path Path::append(const Path &p1) { 
-	std::string tmp = p1.getpath();
-	//! @todo Why does return append(tmp); not work, or even return append(p1.getpath()); ?
-	append(tmp);
-	return *this;	
-}
+Path Path::append(const Path &p1) { return append(p1.getpath()); }
 
 bool Path::test_stat(const string &p, const mode_t test_mode) const {
 	if (!exists(p))
