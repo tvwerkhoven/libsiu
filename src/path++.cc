@@ -32,14 +32,12 @@ using namespace std;
 //! @todo get seperators from OS
 Path::Path(const string &p): path(p), sep("/"), extsep(".") { ; }
 //! @todo get seperators from OS
-Path::Path(const Path &p): path(p.as_str()), sep("/"), extsep(".") { ; }
+Path::Path(const Path &p): path(p.str()), sep("/"), extsep(".") { ; }
 Path::Path(): path(""), sep("/"), extsep(".") { ; }
 
 /* 
  * Operator overloading
  */
-
-inline bool Path::operator==(const Path &b) const { return (b.as_str() == path); }
 
 Path Path::operator+(const Path &rhs) const {
 	// + returns 'this' concatenated with 'rhs'. Should not change 'this', so make a new object

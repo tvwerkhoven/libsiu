@@ -47,18 +47,20 @@ public:
 	Path();							//!< New empty Path
 	~Path() { ; }				//!< Nothing to destruct here
 	
-	inline bool operator==(const Path &b) const;
+	inline bool operator==(const string &b) const { return (b == path); }
+	inline bool operator==(const Path &b) const { return (b.str() == path); }
+	inline bool operator==(Path &b) const { return (b.str() == path); }
 	Path operator+(const Path& rhs) const;
 	Path operator+=(const Path& rhs);
 	
 	Path append(const string &p1); //!< Append string p1 to current path 
-	Path append(const Path &p1) { return append(p1.as_str()); } //!< Append Path p1 to the current path
+	Path append(const Path &p1) { return append(p1.str()); } //!< Append Path p1 to the current path
 	
 	Path basename() const { return Path(path.substr(path.rfind(sep)+1)); } //!< Get the filename from the path
 	Path dirname() const { return Path(path.substr(0, path.rfind(sep)+1)); } //!< Get the dirname from the path
 	
-	string as_str() const { return path; } //!< Return the path as string
-	const char *as_cstr() const { return path.c_str(); } //!< Return the path as c_str()
+	string str() const { return path; } //!< Return the path as string
+	const char *c_str() const { return path.c_str(); } //!< Return the path as c_str()
 	
 	bool test_stat(const string &p, const mode_t test_mode) const; //!< Test whether path p has mode test_mode (see stat(2))
 	
