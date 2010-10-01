@@ -59,6 +59,8 @@ public:
 	Path basename() const { return Path(path.substr(path.rfind(sep)+1)); } //!< Get the filename from the path
 	Path dirname() const { return Path(path.substr(0, path.rfind(sep)+1)); } //!< Get the dirname from the path
 	
+	int length() const { return path.length(); } //!< Get path length (i.e. length of string)
+	
 	string str() const { return path; } //!< Return the path as string
 	const char *c_str() const { return path.c_str(); } //!< Return the path as c_str()
 	
