@@ -25,24 +25,19 @@
 
 using namespace std;
 
-Path::Path(const string &p):
-path(""), sep("/")
-{
-	//! @todo get seperator from OS
-	path = p;
-}
+/* 
+ * Constructors / destructor
+ */
 
-Path::Path(const Path &p):
-path(""), sep("/")
-{
-	//! @todo get seperator from OS
-	path = p.getpath();
-}
+//! @todo get seperators from OS
+Path::Path(const string &p): path(p), sep("/"), extsep(".") { ; }
+//! @todo get seperators from OS
+Path::Path(const Path &p): path(p.getpath()), sep("/"), extsep(".") { ; }
+Path::Path(): path(""), sep("/"), extsep(".") { ; }
 
-
-Path::Path():
-path(""), sep("/")
-{ ; }
+/* 
+ * Operator overloading
+ */
 
 inline bool Path::operator== (const Path &b) const { return (b.getpath() == path); }
 
@@ -53,6 +48,13 @@ Path Path::operator+(const Path &rhs) const {
 }
 
 Path Path::operator+=(const Path &rhs) { return append(rhs); }
+
+string Path::basename(const string &p) const { return p.substr(p.rfind(sep)+1); }
+string Path::dirname(const string &p) const { return p.substr(0,p.rfind(sep)+1); }
+
+/* 
+ * Public methods
+ */
 
 Path Path::append(const string &p1) {
 	if (p1.substr(0,1) == sep) {
@@ -68,8 +70,6 @@ Path Path::append(const string &p1) {
 	return *this;
 }
 
-Path Path::append(const Path &p1) { return append(p1.getpath()); }
-
 bool Path::test_stat(const string &p, const mode_t test_mode) const {
 	if (!exists(p))
 		return false;
@@ -79,23 +79,3 @@ bool Path::test_stat(const string &p, const mode_t test_mode) const {
 	return (buf.st_mode & test_mode);
 }
 
-bool Path::isabs() const { return isabs(path); }
-bool Path::isabs(const string &p) const { return ((p.substr(0,1)) == sep); }
-
-string Path::basename(const string &p) const { return p.substr(p.rfind(sep)+1); }
-string Path::basename() const { return basename(path); }
-
-string Path::dirname(const string &p) const { return p.substr(0,p.rfind(sep)+1); }
-string Path::dirname() const { return dirname(path); }
-
-bool Path::exists(const string &p) const { return (!access(p.c_str(), F_OK)); }
-bool Path::exists() const { return exists(path); }
-
-bool Path::isdir(const string &p) const { return test_stat(p, S_IFDIR); }
-bool Path::isdir() const { return isdir(path); }
-
-bool Path::isfile(const string &p) const { return test_stat(p, S_IFREG); }
-bool Path::isfile() const { return isfile(path); }
-
-bool Path::islink(const string &p) const { return test_stat(p, S_IFLNK); }
-bool Path::islink() const { return islink(path); }
