@@ -59,7 +59,9 @@ public:
 	
 	string str() const { return path; } //!< Return the path as string
 	const char *c_str() const { return path.c_str(); } //!< Return the path as c_str()
-	
+
+	string get_ext() const { return path.substr(path.rfind(extsep)+1); } //!< Get the file extension from the path
+
 	bool stat(const mode_t test_mode) const; //!< Test whether Path has mode test_mode (see stat(2))
 	bool access(const int test_mode) const; //!< Test whether Path has mode test_mode (see access(2))
 	
