@@ -58,11 +58,22 @@ Path Path::operator+=(const string &rhs) { return append(rhs); }
  */
 
 Path Path::append(const string &p1) {
+	// If p1 is nothing, return *this
+	if (p1.length() == 0)
+		return *this;
+	// If our current path is empty, simply replace it with the appendix
+	if (path.length() == 0) {
+		path = p1;
+		return *this;
+	}
+	
+	// If p1 is absolute, replace our path with the new path, i.e. /some/path + /absolute/path = /absolute/path
 	if (p1.substr(0,1) == sep) {
 		path = p1;
 		return *this;
 	}
 	
+	// If p1 is not absolute (see above), add them together with a seperator if necessary
 	if (path.substr(path.length()-1) == sep)
 		path += p1;
 	else
