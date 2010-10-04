@@ -4,6 +4,7 @@
 
 #include <libics.h>
 #include <fitsio.h>
+#include <gsl/gsl_matrix.h>
 
 #include "types.h"
 #include "io.h"
@@ -31,7 +32,9 @@ io(io), finfo(Path(f), t), err(ERR_NO_ERROR)
 
 
 ImgData::~ImgData() {
-	if (data.data) 
+	// If there is only one process using this data (i.e. this object), delete 
+	// it upon destruction of this object
+	if (data.refs <= 1 && data.data)
 		free(data.data);
 }
 
@@ -48,7 +51,9 @@ string ImgData::dtype_str(dtype_t dt) {
 		case INT64: return "INT64";
 		case FLOAT32: return "FLOAT32";
 		case FLOAT64: return "FLOAT64";
-		case DATA_UNDEF: return "DATA_UNDEF";
+		case DATA_UNDEF:
+		default:
+			return "DATA_UNDEF";
 	}
 }
 
@@ -69,8 +74,8 @@ ImgData::imgtype_t ImgData::guesstype(const Path &file) {
 
 void ImgData::calcstats() {
 	double sum=0, min=getpixel(0), max=getpixel(0), pix=0;
-	uint64_t minidx=0, maxidx=0;
-	uint64_t p;
+	size_t minidx=0, maxidx=0;
+	size_t p;
 	
 	for (p=0; p<data.nel; p++) {
 		pix = getpixel(p);
@@ -153,8 +158,8 @@ void ImgData::_swapaxes(const int* /* order */, T datacast) {
 	
 	T tmp = (T) malloc(data.size);
 	int i,j,k,l;
-	uint64_t curridx, newidx;
-	uint64_t *dim = data.dims;
+	size_t curridx, newidx;
+	size_t *dim = data.dims;
 	
 	//	d, i, j, k, l
 	//	0  0  0  0  0
@@ -167,7 +172,7 @@ void ImgData::_swapaxes(const int* /* order */, T datacast) {
 		return (void) io.msg(IO_ERR, "ImgData::_swapaxes(): Only works for ndims=4 for now");
 	
 	//! @todo re-implement this
-	for (uint64_t d=0; d<data.nel; d++) {
+	for (size_t d=0; d<data.nel; d++) {
 		i = d % dim[0];
 		j = (d/dim[0]) % dim[1];
 		k = (d/(dim[0]*dim[1])) % dim[2];
@@ -185,14 +190,14 @@ void ImgData::_swapaxes(const int* /* order */, T datacast) {
 	data.data = tmp;
 }
 
-int ImgData::setdata(void *newdata, int nd, uint64_t dims[], dtype_t dt, int bpp) {
+int ImgData::setdata(void *newdata, int nd, size_t dims[], dtype_t dt, int bpp) {
 	io.msg(IO_DEB2, "ImgData::setdata(%p, %d, ..., ..., %d)", newdata, nd, bpp);
-	uint64_t nel=1;
+	size_t nel=1;
 	
 	data.data = newdata;
 	data.ndims = nd;
 	for (int d=0; d<nd; d++) {
-		if (d >= IMGDATA_MAXDIM)
+		if (d >= IMGDATA_MAXNDIM)
 			return io.msg(IO_ERR, "ImgData::setdata(): number of dimensions too big!");
 		
 		nel *= dims[d];
@@ -208,6 +213,57 @@ int ImgData::setdata(void *newdata, int nd, uint64_t dims[], dtype_t dt, int bpp
 	stats.init = false;
 	
 	return 0;
+}
+
+gsl_matrix *ImgData::as_GSL(bool own=true) {
+	if (data.ndims != 2)
+		return NULL;
+	
+	//@ !todo This code is probably very slow
+	gsl_matrix *tmpmat = gsl_matrix_alloc(data.dims[0], data.dims[1]);
+	
+	if (data.dt == UINT8)
+		for (size_t i=0; i<data.dims[0]; i++)
+			for (size_t j=0; j<data.dims[1]; j++)
+				tmpmat->data[i * tmpmat->tda + j] = (double) ((uint8_t*) data.data)[i * data.dims[0] + j];
+	else if (data.dt == INT8)
+		for (size_t i=0; i<data.dims[0]; i++)
+			for (size_t j=0; j<data.dims[1]; j++)
+				tmpmat->data[i * tmpmat->tda + j] = (double) ((int8_t*) data.data)[i * data.dims[0] + j];
+	else if (data.dt == UINT16)
+		for (size_t i=0; i<data.dims[0]; i++)
+			for (size_t j=0; j<data.dims[1]; j++)
+				tmpmat->data[i * tmpmat->tda + j] = (double) ((uint16_t*) data.data)[i * data.dims[0] + j];
+	else if (data.dt == INT16)
+		for (size_t i=0; i<data.dims[0]; i++)
+			for (size_t j=0; j<data.dims[1]; j++)
+				tmpmat->data[i * tmpmat->tda + j] = (double) ((int16_t*) data.data)[i * data.dims[0] + j];	
+	else if (data.dt == UINT32)
+		for (size_t i=0; i<data.dims[0]; i++)
+			for (size_t j=0; j<data.dims[1]; j++)
+				tmpmat->data[i * tmpmat->tda + j] = (double) ((uint32_t*) data.data)[i * data.dims[0] + j];
+	else if (data.dt == INT32)
+		for (size_t i=0; i<data.dims[0]; i++)
+			for (size_t j=0; j<data.dims[1]; j++)
+				tmpmat->data[i * tmpmat->tda + j] = (double) ((int32_t*) data.data)[i * data.dims[0] + j];
+	else if (data.dt == UINT64)
+		for (size_t i=0; i<data.dims[0]; i++)
+			for (size_t j=0; j<data.dims[1]; j++)
+				tmpmat->data[i * tmpmat->tda + j] = (double) ((uint64_t*) data.data)[i * data.dims[0] + j];
+	else if (data.dt == INT64)
+		for (size_t i=0; i<data.dims[0]; i++)
+			for (size_t j=0; j<data.dims[1]; j++)
+				tmpmat->data[i * tmpmat->tda + j] = (double) ((int64_t*) data.data)[i * data.dims[0] + j];	
+	else if (data.dt == FLOAT32)
+		for (size_t i=0; i<data.dims[0]; i++)
+			for (size_t j=0; j<data.dims[1]; j++)
+				tmpmat->data[i * tmpmat->tda + j] = (double) ((float*) data.data)[i * data.dims[0] + j];
+	else if (data.dt == FLOAT64)
+		for (size_t i=0; i<data.dims[0]; i++)
+			for (size_t j=0; j<data.dims[1]; j++)
+				tmpmat->data[i * tmpmat->tda + j] = (double) ((double*) data.data)[i * data.dims[0] + j];
+	
+	return tmpmat;
 }
 
 int ImgData::loaddata(const Path &f, imgtype_t t) {
@@ -300,6 +356,7 @@ int ImgData::loadFITS(const Path &file) {
 	}
 	data.size = data.nel * data.bpp/8;
 	data.data = (void *) malloc(data.size);
+	data.refs++;
 	
 	// BYTE_IMG (8), SHORT_IMG (16), LONG_IMG (32), LONGLONG_IMG (64), FLOAT_IMG (-32), and DOUBLE_IMG (-64)
 	// TBYTE, TSBYTE, TSHORT, TUSHORT, TINT, TUINT, TLONG, TLONGLONG, TULONG, TFLOAT, TDOUBLE
@@ -355,6 +412,7 @@ int ImgData::loadFITS(const Path &file) {
 			free(data.data);
 		
 		data.data = NULL;
+		data.refs--;
 		return io.msg(IO_ERR, "ImgData::loadFITS() fits_read_img error: %s", fits_err);
 	}
 	
@@ -402,12 +460,15 @@ int ImgData::loadICS(const Path &file) {
 	
 	// Read data
 	data.data = (void *) malloc(data.size);
+	data.refs++;
 	retval = IcsGetData (ip, data.data, data.size);
 	if (retval != IcsErr_Ok) {
 		errtxt = IcsGetErrorText(retval); 
 		err = ERR_LOAD_FILE;
-		free(data.data);
+		if (data.data)
+			free(data.data);
 		data.data = NULL;
+		data.refs--;
 		return io.msg(IO_ERR, "ImgData::loadICS(): Could not read data from '%s': %s.", file.c_str(), errtxt);
 	}
 	
@@ -467,10 +528,110 @@ int ImgData::loadICS(const Path &file) {
 }
 #endif
 
-int ImgData::loadPGM(const Path & /* file */) {
-	err = ERR_TYPE_UNSUPP;
-	return io.msg(IO_ERR, "ImgData::loadPGM(): Not implemented yet");
+int ImgData::loadPGM(const Path &file) {
+	io.msg(IO_DEB2, "ImgData::loadPGM():");
+	
+	// see http://netpbm.sourceforge.net/doc/pgm.html
+	FILE *fd;
+	int n, maxval;
+	char magic[2];
+	
+	fd = fopen(file.c_str(), "rb");
+	if (!fd) {
+		err = ERR_OPEN_FILE;
+		return io.msg(IO_ERR, "ImgData::loadPGM(): Error opening file '%s'.", file.c_str());
+	}
+	
+	// Read magic
+	fread(magic, 2, 1, fd);
+	if (ferror(fd)) {
+		err = ERR_LOAD_FILE;
+		return io.msg(IO_ERR, "ImgData::loadPGM(): Error reading PGM file.");
+	}
+	
+	// Resolution
+	data.ndims = 2;
+	data.dims[0] = readNumber(fd);
+	data.dims[1] = readNumber(fd);
+	data.nel = data.dims[0] * data.dims[1];
+	
+	if (data.dims[0] <= 0 || data.dims[1] <= 0) {
+		err = ERR_LOAD_FILE;
+		return io.msg(IO_ERR, "ImgData::loadPGM(): Unable to read image width and height");
+	}
+	
+	// Maxval
+	maxval = readNumber(fd);
+	if (maxval <= 0 || maxval > 65536) {
+		err = ERR_TYPE_UNSUPP;
+		return io.msg(IO_ERR, "ImgData::loadPGM(): Unsupported PGM format");
+	}
+	
+	if (maxval <= 255) {
+		data.dt = UINT8;
+		data.bpp = 8;
+	}
+	else {		
+		data.dt = UINT16;
+		data.bpp = 16;
+	}
+	data.data = malloc(data.nel * data.bpp/8);
+	data.refs++;
+	
+	// Read the rest
+	if (!strncmp(magic, "P5", 2)) { // Binary
+		n = fread(data.data, data.bpp/8, data.nel, fd);
+		if (ferror(fd)) {
+			err = ERR_LOAD_FILE;
+			if (data.data)
+				free(data.data);
+			data.data = NULL;
+			data.refs--;
+			return io.msg(IO_ERR, "ImgData::loadPGM(): Could not read file.");
+		}
+	}
+	else if (!strncmp(magic, "P2", 2)) { // ASCII
+		if (data.dt == UINT8)
+			for (size_t p=0; p < data.nel; p++)
+				((uint8_t *) data.data)[p] = readNumber(fd);
+		else
+			for (size_t p=0; p < data.nel; p++)
+				((uint16_t *) data.data)[p] = readNumber(fd);
+	}
+	else {
+		err = ERR_TYPE_UNSUPP;
+		return io.msg(IO_ERR, "ImgData::loadPGM(): Unsupported PGM format");
+	}
+	
+	return 0;
 }
+
+int ImgData::readNumber(FILE *fd) {
+	int number;
+	unsigned char ch;
+	
+	number = 0;
+	
+	do {
+		if (!fread(&ch, 1, 1, fd)) return -1;
+		if ( ch == '#' ) {  // Comment is '#' to end of line
+			do {
+				if (!fread(&ch, 1, 1, fd)) return -1;
+			} while ( (ch != '\r') && (ch != '\n') );
+		}
+	} while ( isspace(ch) );
+	
+	// Read number
+	do {
+		number *= 10;
+		number += ch-'0';
+		
+		if (!fread(&ch, 1, 1, fd)) return -1;
+	} while ( isdigit(ch) );
+	
+	return number;
+}
+
 
 #ifdef HAVE_GSL
 int ImgData::loadGSL(const Path & /* file */) {
@@ -556,9 +717,39 @@ int ImgData::writeICS(const Path&) {
 }
 #endif HAVE_ICS
 
-int ImgData::writePGM(const Path& /* file */) {
-	err = ERR_TYPE_UNSUPP;
-	return io.msg(IO_ERR, "ImgData::writePGM(): Not implemented yet");	
+int ImgData::writePGM(const Path &file) {
+	io.msg(IO_DEB2, "ImgData::writePGM()");	
+	
+	FILE *fd = fopen(file.c_str(), "wb+");
+	
+	int maxval=0;
+	switch (data.dt) {
+		case UINT8: {
+			uint8_t *datap = (uint8_t *) data.data;
+			for (size_t p=0; p<data.dims[0] * data.dims[1]; p++)
+				if (datap[p] > maxval) maxval = datap[p];
+			fprintf(fd, "P5\n%zu %zu\n%d\n", data.dims[0], data.dims[1], maxval);
+			if (fwrite(datap, data.size, 1, fd) < 1)
+				io.msg(IO_ERR, "ImgData::writePGM() Error writing file, something went wrong.");
+			break;
+		}
+		case UINT16: {
+			uint16_t *datap = (uint16_t *) data.data;
+			for (size_t p=0; p<data.dims[0] * data.dims[1]; p++)
+				if (datap[p] > maxval) maxval = datap[p];
+			fprintf(fd, "P5\n%zu %zu\n%d\n", data.dims[0], data.dims[1], maxval);
+			if (fwrite(datap, data.size, 1, fd) < 1)
+				io.msg(IO_ERR, "ImgData::writePGM() Error writing file, something went wrong.");
+			break;
+		}			
+		default:
+			io.msg(IO_ERR, "ImgData::writePGM() PGM only supports unsigned 8- or 16-bit integer images, cannot save.");
+			break;
+	}
+	
+	fclose(fd);
+	
+	return 0;	
 }
 
 #ifdef HAVE_GSL

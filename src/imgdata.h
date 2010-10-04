@@ -4,6 +4,7 @@
 #include <string>
 #include <stdio.h>
 #include <inttypes.h>
+#include <gsl/gsl_matrix.h>
 
 #ifdef HAVE_CONFIG_H
 #include <autoconfig.h>
@@ -13,7 +14,7 @@
 #include "path++.h"
 #include "io.h"
 
-const uint8_t IMGDATA_MAXDIM = 32;
+const uint8_t IMGDATA_MAXNDIM = 32;
 
 class ImgData {
 public:
@@ -41,14 +42,15 @@ public:
 	
 	// Data layout
 	typedef struct data_t {
-		void *data;
-		int ndims;
-		uint64_t dims[IMGDATA_MAXDIM];
-		dtype_t dt;
-		int bpp;
-		uint64_t size;
-		uint64_t nel;
-		data_t() : data(NULL), ndims(0), dt(DATA_UNDEF), bpp(-1), size(0), nel(0) { }
+		void *data;											//!< Data blob
+		int ndims;											//!< Number of dimenions (<= IMGDATA_MAXNDIM)
+		size_t dims[IMGDATA_MAXNDIM];	//!< Actual dimenions
+		dtype_t dt;											//!< Datatype
+		int bpp;												//!< Bits per pixel
+		size_t size;										//!< Size in bytes
+		size_t nel;											//!< Number of elements (== size*8/bpp)
+		int refs;												//!< Reference counter, i.e. number of processes using this data
+		data_t() : data(NULL), ndims(0), dt(DATA_UNDEF), bpp(-1), size(0), nel(0), refs(0) { }
 	} data_t;
 
 	// Data statistics
@@ -57,8 +59,8 @@ public:
 		double min;
 		double max;
 		double sum;
-		uint64_t minidx;
-		uint64_t maxidx;
+		size_t minidx;
+		size_t maxidx;
 		bool init;
 		stats_t() : init(false) { }
 	} stats_t;
@@ -83,6 +85,8 @@ private:
 	int writeICS(const Path&);
 	int writeGSL(const Path&);
 	int writePGM(const Path&);
+	
+	int readNumber(FILE *fd);			//!< Helper function for readPGM()
 	
 	imgtype_t guesstype(const Path&);
 	
@@ -110,7 +114,7 @@ public:
 	int writedata(const std::string, const imgtype_t);
 	
 	// Create from data
-	int setdata(void *data, int nd, uint64_t dims[], dtype_t dt, int bpp);
+	int setdata(void *data, int nd, size_t dims[], dtype_t dt, int bpp);
 	
 	// Return a single pixel at (1-d) index idx
 	double getpixel(const int idx);
@@ -124,6 +128,8 @@ public:
 	void printmeta();
 	
 	// Public handlers
+	gsl_matrix *as_GSL(bool);
+	data_t as_datat() { data.refs++; return data; }
 	error_t geterr() { return err; }
 	dtype_t getdtype() { return data.dt; }
 	int getbitpix() { return data.bpp; }
