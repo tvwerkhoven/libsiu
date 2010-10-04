@@ -137,9 +137,11 @@ public:
 	void *getdata() { return data.data; }
 	imgtype_t getimgtype() { return finfo.itype; }
 	int getndims() { return data.ndims; }
-	int getdim(int d) { return data.dims[d]; }
-	int getsize() { return data.size; }
-	int getnel() { return data.nel; }
+	size_t getdim(int d) { if (d >= data.ndims) return data.dims[d]; return 0; }
+	size_t getwidth() { return getdim(0); }
+	size_t getheight() { return getdim(1); }
+	size_t getsize() { return data.size; }
+	size_t getnel() { return data.nel; }
 
 };
 
