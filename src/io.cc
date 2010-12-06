@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <string>
 
+#include "pthread++.h"
 #include "path++.h"
 #include "format.h"
 #include "io.h"
@@ -52,16 +53,26 @@ int Io::setLogfile(Path &file) {
 	return 0;
 }
 
-int Io::msg(int type, const std::string &message) {
+int Io::msg(int type, const std::string message) {
+	// Apply default mask
+	type = type | defmask;
+	
+	// Separate level from type mask	
 	int level = type & IO_LEVEL_MASK;
-	string tmpmsg;
 
 	if (level <= verb) {
-		if (type & IO_NOID)
-			tmpmsg = message;
-		else
-			tmpmsg = "[" + PREFIX[level] + "] " + message;
+		string tmpmsg;
+
+		// Build prefix
+		if (!(type & IO_NOID))
+			tmpmsg += "[" + PREFIX[level] + "] ";
+		if (type & IO_THR)
+			tmpmsg += format("(%x) ", (int) pthread_self());
 		
+		// Add message
+		tmpmsg = tmpmsg + message;
+		
+		// Add postfix
 		if (!(type & IO_NOLF))
 			tmpmsg += "\n";
 
@@ -81,6 +92,7 @@ int Io::msg(int type, const std::string &message) {
 }
 
 int Io::msg(int type, const char *fmtstr, ...) {
+	// Separate level from type mask
 	int level = type & IO_LEVEL_MASK;
 	
 	if (level <= verb) {

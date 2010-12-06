@@ -26,14 +26,15 @@ int main() {
 
 	for (int i=0; i<10; i++) {
 		io = new Io(i);
-		printf("==== Level = %d = %d\n", i, io->getVerb());
+		io->setdefmask(IO_THR);
+		printf("==== Level: set to %d, actual = %d\n", i, io->getVerb());
 
 		io->msg(IO_ERR, "Error");
-		io->msg(IO_WARN, "W");
-		io->msg(IO_INFO, "I");
-		io->msg(IO_XNFO, "X");
-		io->msg(IO_DEB1, "1");
-		io->msg(IO_DEB2, "2");
+		io->msg(IO_WARN, "Warn");
+		io->msg(IO_INFO, "Info");
+		io->msg(IO_XNFO, "Xtra");
+		io->msg(IO_DEB1, "deb1");
+		io->msg(IO_DEB2, "deb2");
 		delete io;
 	}
 

@@ -23,6 +23,7 @@
 
 #include <string>
 #include <cstdio>
+#include <stdint.h>
 
 #include "path++.h"
 
@@ -31,6 +32,7 @@
 #define IO_FATAL        0x00000200      //!< Fatal, quit immediately
 #define IO_RETURN       0x00000400      //!< Give a non-zero return code
 #define IO_NOLF         0x00000800      //!< Do not add linefeed
+#define IO_THR          0x00001000      //!< Show thread id prefix
 
 // Logging levels
 #define IO_ERR          0x00000001 | IO_RETURN
@@ -45,20 +47,21 @@
 using namespace std;
 
 class Io {
-	int verb, level_mask;
+	int verb, level_mask;								//!< Verbosity that we display
 	FILE *termfd;
 	FILE *logfd;
-	Path logfile;
+	Path logfile;												//!< File to log to
+	uint32_t defmask;										//!< Default type mask
 	
 public:
-	Io() { Io::init(IO_MAXLEVEL); }
-	Io(int l) { Io::init(l); }
+	Io(): defmask(0) { Io::init(IO_MAXLEVEL); }
+	Io(int l): defmask(0) { Io::init(l); }
 	~Io();
 	
 	void init(int);
 
 	int msg(int, const char*, ...);
-	int msg(int, const std::string&);
+	int msg(int, const std::string);
 	
 	int setLogfile(Path&);
 	Path getLogfile() { return logfile; }
@@ -67,6 +70,10 @@ public:
 	int setVerb(int l) { verb = max(1, min(l, IO_MAXLEVEL)); return verb; }
 	int setVerb(string l) { return setVerb((int) strtoll(l.c_str(), NULL, 0)); }
 	
+	uint32_t setdefmask(uint32_t m) { defmask = m; return m; }
+	uint32_t getdefmask() { return defmask; }
+	
+		
 	int incVerb() { return setVerb(verb+1); }
 	int decVerb() { return setVerb(verb-1); }
 };
