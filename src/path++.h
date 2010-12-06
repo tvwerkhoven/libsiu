@@ -65,6 +65,7 @@ public:
 	bool stat(const mode_t test_mode) const; //!< Test whether Path has mode test_mode (see stat(2))
 	bool access(const int test_mode) const; //!< Test whether Path has mode test_mode (see access(2))
 	
+	bool isset() const { return (this->length() != 0); }
 	bool exists() const { return !this->access(F_OK); }
 	bool r() const { return !this->access(R_OK); }
 	bool w() const { return !this->access(W_OK); }

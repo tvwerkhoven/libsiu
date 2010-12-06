@@ -23,18 +23,23 @@
 
 #include "pthread++.h"
 
-int nworker = 4;
+int nworker = 1;
 double work;
 
 pthread::mutex rw;
 pthread::mutex mut;
 pthread::cond cond;
 
+void sub_worker_prog() {
+	fprintf(stderr, "worker(%X) subworker waiting...\n", pthread_self());
+	cond.wait(mut);
+}
+
 void *worker_prog(void *args) {
 	fprintf(stderr, "worker(%X) 1 init, sleeping\n", pthread_self());
 	{
-	pthread::mutexholder h(&mut);
-	cond.wait(mut);
+		pthread::mutexholder h(&mut);
+		sub_worker_prog();
 	}
 
 	fprintf(stderr, "worker(%X) 2 awake! waiting for rw.lock()\n", pthread_self());

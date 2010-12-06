@@ -327,13 +327,16 @@ int ImgData::writedata(const std::string f, const imgtype_t t) {
 
 #ifdef HAVE_FITS
 int ImgData::loadFITS(const Path &file) {
+	io.msg(IO_DEB2, "ImgData::loadFITS(): %s", file.c_str());
 	fitsfile *fptr;
 	char fits_err[30];
 	int stat = 0;
-	// TODO how big should naxes be? What's the maximum according to the FITS standard?
+	//! @todo how big should naxes be? What's the maximum according to the FITS standard?
 	long naxes[8];
+	int ndims = 0;
 	int anynul = 0;
 	data.data = NULL;
+	int bitpix = -1;
 	
 	fits_open_file(&fptr, file.c_str(), READONLY, &stat);
 	if (stat) {
@@ -342,12 +345,18 @@ int ImgData::loadFITS(const Path &file) {
 		return io.msg(IO_ERR, "ImgData::loadFITS() fits_open_file error: %s", fits_err);
 	}
 	
-	fits_get_img_param(fptr, 8, &(data.bpp), &(data.ndims), naxes, &stat);
+	fits_get_img_param(fptr, 8, &bitpix, &ndims, naxes, &stat);
+	
 	if (stat) {
 		fits_get_errstatus(stat, fits_err);
 		err = ERR_OPEN_FILE;
 		return io.msg(IO_ERR, "ImgData::loadFITS() fits_get_img_param error: %s", fits_err);
 	}
+
+	
+	data.bpp = bitpix;
+	if (bitpix < 0) data.bpp *= -1;
+	data.ndims = ndims;
 	
 	data.nel = 1;
 	for (int d=0; d<data.ndims; d++) {
@@ -358,10 +367,12 @@ int ImgData::loadFITS(const Path &file) {
 	data.data = (void *) malloc(data.size);
 	data.refs++;
 	
+	io.msg(IO_DEB2, "ImgData::loadFITS(): %d: %zu x %zu x %d, %zu", data.ndims, data.dims[0], data.dims[1], data.bpp, data.nel);
+	
 	// BYTE_IMG (8), SHORT_IMG (16), LONG_IMG (32), LONGLONG_IMG (64), FLOAT_IMG (-32), and DOUBLE_IMG (-64)
 	// TBYTE, TSBYTE, TSHORT, TUSHORT, TINT, TUINT, TLONG, TLONGLONG, TULONG, TFLOAT, TDOUBLE
 	
-	switch (data.bpp) {
+	switch (bitpix) {
 		case BYTE_IMG: {
 			uint8_t nulval = 0;
 			fits_read_img(fptr, TBYTE, 1, data.nel, &nulval, \
@@ -428,7 +439,7 @@ int ImgData::loadFITS(const Path &file) {
 
 #ifdef HAVE_ICS
 int ImgData::loadICS(const Path &file) {
-	io.msg(IO_XNFO, "ImgData::loadICS('%s')", file.c_str());
+	io.msg(IO_DEB2, "ImgData::loadICS(): %s", file.c_str());
 
 	// Init ICS variables
 	::ICS *ip;
@@ -529,8 +540,8 @@ int ImgData::loadICS(const Path &file) {
 #endif
 
 int ImgData::loadPGM(const Path &file) {
-	io.msg(IO_DEB2, "ImgData::loadPGM():");
-	
+	io.msg(IO_DEB2, "ImgData::loadPGM(): %s", file.c_str());
+
 	// see http://netpbm.sourceforge.net/doc/pgm.html
 	FILE *fd;
 	int n, maxval;
