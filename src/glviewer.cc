@@ -182,7 +182,7 @@ bool OpenGLImageViewer::on_image_scroll_event(GdkEventScroll *event) {
 void OpenGLImageViewer::setscale(double s) {
 	view_update();
 	scale = clamp(s, scalemin, scalemax);
-	force_update();
+	do_update();
 }
 
 void OpenGLImageViewer::setgrid(int nx, int ny) {
@@ -238,10 +238,6 @@ void OpenGLImageViewer::on_update() {
 	
 	glwindow->gl_end();
 	
-	force_update();
-}
-
-void OpenGLImageViewer::force_update() {
 	do_update();
 }
 

@@ -101,7 +101,6 @@ class OpenGLImageViewer: public Gtk::EventBox {
 	void on_zoomout_activate() { scalestep(SCALESTEP); }
 	
 	void on_update();
-	void force_update();
 	
 public:
 	// Transform coordinates direction
