@@ -95,3 +95,25 @@ bool Path::access(int test_mode) const {
 	return ::access(this->c_str(), test_mode);
 }
 
+/* 
+ * File reading/writing operations
+ */
+
+FILE *Path::fopen(string mode) {
+	fd = ::fopen(path.c_str(), mode.c_str());
+	return fd;
+}
+
+int Path::fprintf(const char * format, ... ) {
+	va_list va;
+	va_start(va, format);
+	int ret = vfprintf(fd, format, va);
+	va_end(va);
+
+	return ret;
+}
+
+int Path::fprintf(const string msg) {
+	return ::fprintf(fd, msg.c_str());
+}
+
