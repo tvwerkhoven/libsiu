@@ -53,6 +53,24 @@ Path Path::operator+(const string &rhs) const {
 Path Path::operator+=(const Path &rhs) { return append(rhs); }
 Path Path::operator+=(const string &rhs) { return append(rhs); }
 
+Path Path::operator=(const Path &rhs) {
+	if (this == &rhs) return *this;
+	
+	// Copy class contents
+	path = rhs.path;
+	sep = rhs.sep;
+	extsep = rhs.extsep;
+	fd = rhs.fd;
+	
+	// Return updated class
+	return *this;
+}
+
+Path Path::operator=(const string &rhs) {
+	// Call Path-based assignment operator here for convenience
+	return operator=(Path(rhs));
+}
+
 /* 
  * Public methods
  */

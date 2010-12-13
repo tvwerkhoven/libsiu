@@ -50,6 +50,8 @@ public:
 	Path operator+(const string& rhs) const;
 	Path operator+=(const Path& rhs);
 	Path operator+=(const string& rhs);
+	Path operator=(const string& rhs);
+	Path operator=(const Path& rhs);
 	
 	Path append(const string &p1); //!< Append string p1 to current path 
 	Path append(const Path &p1) { return append(p1.str()); } //!< Append Path p1 to the current path

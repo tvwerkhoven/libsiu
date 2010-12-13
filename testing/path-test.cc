@@ -28,6 +28,8 @@ int main(int argc, char *argv[]) {
 	Path p3("/only/path/");
 	Path p4(argv[0]);
 
+	printf("---\n");
+
 	printf("isabs(%s): %d\n", p1.c_str(), p1.isabs());
 	printf("isabs(%s): %d\n", p2.c_str(), p2.isabs());
 	printf("isabs(%s): %d\n", p3.c_str(), p3.isabs());
@@ -81,6 +83,13 @@ int main(int argc, char *argv[]) {
 	printf("%s.append(%s): ", p3.c_str(), p4.c_str());
 	printf("%s\n", (p3.append(p4)).c_str());
 	printf("now %s.append(%s)\n", p3.c_str(), p4.c_str());
+	
+	printf("---\n");
+	
+	p1 = "/absolute/path/file2";
+	p2 = Path("/test/path");
+	printf("p1 = '%s': '%s'\n", "/absolute/path/file2", p1.c_str());
+	printf("p2 = 'Path(\"/test/path\")': '%s'\n", p2.c_str());
 	
 	return 0;
 }
