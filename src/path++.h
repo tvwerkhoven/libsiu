@@ -34,10 +34,7 @@ private:
 	string sep;					//!< Directory seperator (will never change runtime) @todo cannot make this const? foamctrl.cc gives ../libsiu/path++.h: In member function ‘Path& Path::operator=(const Path&)’:	../libsiu/path++.h:31: error: non-static const member ‘const std::string Path::sep’, can't use default assignment operator
 	string extsep;			//!< Extension seperator (will never change runtime) @todo cannot make this const? 
 	
-	FILE *fd;						//!< Used for reading/writing to a file
-		
 public:
-	// Path(const char *p); //!< @todo implemeting this causes error in config-test? config-test.cc:48: error: call of overloaded ‘write(const char [19])’ is ambiguous
 	Path(const string &p); //!< New Path from string
 	Path(const Path &p); //!< New Path from Path
 	Path();							//!< New empty Path
@@ -51,7 +48,6 @@ public:
 	Path operator+=(const Path& rhs);
 	Path operator+=(const string& rhs);
 	Path operator=(const string& rhs);
-	Path operator=(const Path& rhs);
 	
 	Path append(const string &p1); //!< Append string p1 to current path 
 	Path append(const Path &p1) { return append(p1.str()); } //!< Append Path p1 to the current path
@@ -81,11 +77,7 @@ public:
 	bool isfile() const { return stat(S_IFREG); }
 	bool islink() const { return stat(S_IFLNK); }
 	
-	FILE *fopen(string mode="a+");
-	int fprintf(const string msg);
-	int fprintf(const char *format, ... );
-	int fclose() { return ::fclose(fd); }
-	FILE *get_fd() { return fd; }
+	FILE *fopen(string mode="a+") { return ::fopen(path.c_str(), mode.c_str()); }
 };
 
 #endif // HAVE_PATHPP_H

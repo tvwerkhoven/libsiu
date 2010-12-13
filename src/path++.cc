@@ -52,24 +52,7 @@ Path Path::operator+(const string &rhs) const {
 
 Path Path::operator+=(const Path &rhs) { return append(rhs); }
 Path Path::operator+=(const string &rhs) { return append(rhs); }
-
-Path Path::operator=(const Path &rhs) {
-	if (this == &rhs) return *this;
-	
-	// Copy class contents
-	path = rhs.path;
-	sep = rhs.sep;
-	extsep = rhs.extsep;
-	fd = rhs.fd;
-	
-	// Return updated class
-	return *this;
-}
-
-Path Path::operator=(const string &rhs) {
-	// Call Path-based assignment operator here for convenience
-	return operator=(Path(rhs));
-}
+Path Path::operator=(const string &rhs) { return operator=(Path(rhs)); }
 
 /* 
  * Public methods
@@ -112,26 +95,3 @@ bool Path::stat(const mode_t test_mode) const {
 bool Path::access(int test_mode) const {
 	return ::access(this->c_str(), test_mode);
 }
-
-/* 
- * File reading/writing operations
- */
-
-FILE *Path::fopen(string mode) {
-	fd = ::fopen(path.c_str(), mode.c_str());
-	return fd;
-}
-
-int Path::fprintf(const char * format, ... ) {
-	va_list va;
-	va_start(va, format);
-	int ret = vfprintf(fd, format, va);
-	va_end(va);
-
-	return ret;
-}
-
-int Path::fprintf(const string msg) {
-	return ::fprintf(fd, msg.c_str());
-}
-
