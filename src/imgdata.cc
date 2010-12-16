@@ -219,49 +219,49 @@ gsl_matrix *ImgData::as_GSL(bool own=true) {
 	if (data.ndims != 2)
 		return NULL;
 	
-	//@ !todo This code is probably very slow
-	gsl_matrix *tmpmat = gsl_matrix_alloc(data.dims[0], data.dims[1]);
+	// Allocate (nrows, ncols) = (height, width)
+	gsl_matrix *tmpmat = gsl_matrix_alloc(data.dims[1], data.dims[0]);
 	
 	if (data.dt == UINT8)
-		for (size_t i=0; i<data.dims[0]; i++)
-			for (size_t j=0; j<data.dims[1]; j++)
-				tmpmat->data[i * tmpmat->tda + j] = (double) ((uint8_t*) data.data)[i * data.dims[0] + j];
+		for (size_t i=0; i<data.dims[1]; i++) // Height (row)
+			for (size_t j=0; j<data.dims[0]; j++) // Width (column, changes fastest)
+				gsl_matrix_set(tmpmat, i, j, (double) ((uint8_t*) data.data)[i * data.dims[0] + j]);
 	else if (data.dt == INT8)
-		for (size_t i=0; i<data.dims[0]; i++)
-			for (size_t j=0; j<data.dims[1]; j++)
-				tmpmat->data[i * tmpmat->tda + j] = (double) ((int8_t*) data.data)[i * data.dims[0] + j];
+		for (size_t i=0; i<data.dims[1]; i++)
+			for (size_t j=0; j<data.dims[0]; j++)
+				gsl_matrix_set(tmpmat, i, j, (double) ((int8_t*) data.data)[i * data.dims[0] + j]);
 	else if (data.dt == UINT16)
-		for (size_t i=0; i<data.dims[0]; i++)
-			for (size_t j=0; j<data.dims[1]; j++)
-				tmpmat->data[i * tmpmat->tda + j] = (double) ((uint16_t*) data.data)[i * data.dims[0] + j];
+		for (size_t i=0; i<data.dims[1]; i++)
+			for (size_t j=0; j<data.dims[0]; j++)
+				gsl_matrix_set(tmpmat, i, j, (double) ((uint16_t*) data.data)[i * data.dims[0] + j]);
 	else if (data.dt == INT16)
-		for (size_t i=0; i<data.dims[0]; i++)
-			for (size_t j=0; j<data.dims[1]; j++)
-				tmpmat->data[i * tmpmat->tda + j] = (double) ((int16_t*) data.data)[i * data.dims[0] + j];	
+		for (size_t i=0; i<data.dims[1]; i++)
+			for (size_t j=0; j<data.dims[0]; j++)
+				gsl_matrix_set(tmpmat, i, j, (double) ((int16_t*) data.data)[i * data.dims[0] + j]);
 	else if (data.dt == UINT32)
-		for (size_t i=0; i<data.dims[0]; i++)
-			for (size_t j=0; j<data.dims[1]; j++)
-				tmpmat->data[i * tmpmat->tda + j] = (double) ((uint32_t*) data.data)[i * data.dims[0] + j];
+		for (size_t i=0; i<data.dims[1]; i++)
+			for (size_t j=0; j<data.dims[0]; j++)
+				gsl_matrix_set(tmpmat, i, j, (double) ((uint32_t*) data.data)[i * data.dims[0] + j]);
 	else if (data.dt == INT32)
-		for (size_t i=0; i<data.dims[0]; i++)
-			for (size_t j=0; j<data.dims[1]; j++)
-				tmpmat->data[i * tmpmat->tda + j] = (double) ((int32_t*) data.data)[i * data.dims[0] + j];
+		for (size_t i=0; i<data.dims[1]; i++)
+			for (size_t j=0; j<data.dims[0]; j++)
+				gsl_matrix_set(tmpmat, i, j, (double) ((int32_t*) data.data)[i * data.dims[0] + j]);
 	else if (data.dt == UINT64)
-		for (size_t i=0; i<data.dims[0]; i++)
-			for (size_t j=0; j<data.dims[1]; j++)
-				tmpmat->data[i * tmpmat->tda + j] = (double) ((uint64_t*) data.data)[i * data.dims[0] + j];
+		for (size_t i=0; i<data.dims[1]; i++)
+			for (size_t j=0; j<data.dims[0]; j++)
+				gsl_matrix_set(tmpmat, i, j, (double) ((uint64_t*) data.data)[i * data.dims[0] + j]);
 	else if (data.dt == INT64)
-		for (size_t i=0; i<data.dims[0]; i++)
-			for (size_t j=0; j<data.dims[1]; j++)
-				tmpmat->data[i * tmpmat->tda + j] = (double) ((int64_t*) data.data)[i * data.dims[0] + j];	
+		for (size_t i=0; i<data.dims[1]; i++)
+			for (size_t j=0; j<data.dims[0]; j++)
+				gsl_matrix_set(tmpmat, i, j, (double) ((int64_t*) data.data)[i * data.dims[0] + j]);
 	else if (data.dt == FLOAT32)
-		for (size_t i=0; i<data.dims[0]; i++)
-			for (size_t j=0; j<data.dims[1]; j++)
-				tmpmat->data[i * tmpmat->tda + j] = (double) ((float*) data.data)[i * data.dims[0] + j];
+		for (size_t i=0; i<data.dims[1]; i++)
+			for (size_t j=0; j<data.dims[0]; j++)
+				gsl_matrix_set(tmpmat, i, j, (double) ((float*) data.data)[i * data.dims[0] + j]);
 	else if (data.dt == FLOAT64)
-		for (size_t i=0; i<data.dims[0]; i++)
-			for (size_t j=0; j<data.dims[1]; j++)
-				tmpmat->data[i * tmpmat->tda + j] = (double) ((double*) data.data)[i * data.dims[0] + j];
+		for (size_t i=0; i<data.dims[1]; i++)
+			for (size_t j=0; j<data.dims[0]; j++)
+				gsl_matrix_set(tmpmat, i, j, (double) ((double*) data.data)[i * data.dims[0] + j]);
 	
 	return tmpmat;
 }
