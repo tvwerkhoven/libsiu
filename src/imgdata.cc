@@ -108,6 +108,19 @@ void ImgData::printmeta() {
 		   stats.min, stats.minidx, stats.max, stats.maxidx, stats.sum/data.nel, stats.sum);
 }
 
+double ImgData::getpixel(const int idx0, const int idx1) {
+	return getpixel(idx0 + data.dims[0] * idx1);
+}
+
+double ImgData::getpixel(const int idx0, const int idx1, const int idx2) {
+	return getpixel(idx0 + data.dims[0] * idx1 + data.dims[0] * data.dims[1] * idx2);
+}
+
+double ImgData::getpixel(const int idx0, const int idx1, const int idx2, const int idx3) {
+	return getpixel(idx0 + data.dims[0] * idx1 + data.dims[0] * data.dims[1] * idx2 + data.dims[0] * data.dims[1] * data.dims[2] * idx3);
+}
+
+
 double ImgData::getpixel(const int idx) {
 	if (data.dt == UINT8) return (double) ((uint8_t*) data.data)[idx];
 	else if (data.dt == INT8) return (double) ((int8_t*) data.data)[idx];

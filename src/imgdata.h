@@ -119,6 +119,10 @@ public:
 	// Return a single pixel at (1-d) index idx
 	double getpixel(const int idx);
 	//template <typename T> T getPixel(const int idx);
+	// Return a single pixel in 2d, 3d or 4d data.
+	double getpixel(const int idx0, const int idx1);
+	double getpixel(const int idx0, const int idx1, const int idx2);
+	double getpixel(const int idx0, const int idx1, const int idx2, const int idx3);
 	
 	// Swap axis & transpose data
 	int swapaxes(const int *order);
