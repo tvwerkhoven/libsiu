@@ -21,6 +21,7 @@
 #define HAVE_PATHPP_H
 
 #include <string>
+#include <stdio.h>
 #include <sys/stat.h>
 
 using namespace std;

@@ -18,7 +18,9 @@
  */
 
 #include <string>
+#include <stdio.h>
 #include <sys/stat.h>
+#include <stdarg.h>
 #include <unistd.h>
 
 #include "path++.h"

@@ -24,6 +24,7 @@
 #include <string>
 #include <cstdio>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "path++.h"
 
