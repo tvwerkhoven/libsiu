@@ -1,10 +1,22 @@
 #include <string>
+#include <string.h>
 #include <stdio.h>
 #include <inttypes.h>
 
+#ifdef HAVE_CONFIG_H
+// Contains various library we have.
+#include "autoconfig.h"
+
+#endif
+#ifdef HAVE_ICS
 #include <libics.h>
+#endif
+#ifdef HAVE_FITS
 #include <fitsio.h>
+#endif
+#ifdef HAVE_GSL
 #include <gsl/gsl_matrix.h>
+#endif
 
 #include "types.h"
 #include "io.h"
@@ -288,12 +300,12 @@ int ImgData::loaddata(const Path &f, imgtype_t t) {
 		case ImgData::FITS:
 			return loadFITS(f);
 			break;
-#endif
+#endif // HAVE_FITS
 #ifdef HAVE_ICS
 		case ImgData::ICS:
 			return loadICS(f);
 			break;
-#endif
+#endif // HAVE_ICS
 		case ImgData::PGM:
 			return loadPGM(f);
 			break;
@@ -301,7 +313,7 @@ int ImgData::loaddata(const Path &f, imgtype_t t) {
 		case ImgData::GSL:
 			return loadGSL(f);
 			break;
-#endif
+#endif // HAVE_GSL
 		default:
 			err = ERR_TYPE_UNKNOWN;
 			return io.msg(IO_ERR, "Unknown datatype, cannot load file.");
@@ -317,12 +329,12 @@ int ImgData::writedata(const std::string f, const imgtype_t t) {
 		case ImgData::FITS:
 			return writeFITS(f);
 			break;
-#endif
+#endif // HAVE_FITS
 #ifdef HAVE_ICS
 		case ImgData::ICS:
 			return writeICS(f);
 			break;
-#endif
+#endif // HAVE_ICS
 		case ImgData::PGM:
 			return writePGM(f);
 			break;
@@ -330,7 +342,7 @@ int ImgData::writedata(const std::string f, const imgtype_t t) {
 		case ImgData::GSL:
 			return writeGSL(f);
 			break;
-#endif
+#endif // HAVE_GSL
 		default:
 			err = ERR_TYPE_UNKNOWN;
 			return io.msg(IO_ERR, "ImgData::writedata(): Unknown datatype, cannot write data.");
@@ -448,7 +460,7 @@ int ImgData::loadFITS(const Path &file) {
 int ImgData::loadFITS(const Path &file) {
 	return io.msg(IO_ERR, "ImgData::loadFITS(): not supported, library was not available during compilation.");
 }
-#endif
+#endif // HAVE_FITS
 
 #ifdef HAVE_ICS
 int ImgData::loadICS(const Path &file) {
@@ -550,7 +562,7 @@ int ImgData::loadICS(const Path &file) {
 int ImgData::loadICS(const Path &file) {
 	return io.msg(IO_ERR, "ImgData::loadICS(): not supported, library was not available during compilation.");
 }
-#endif
+#endif // HAVE_ICS
 
 int ImgData::loadPGM(const Path &file) {
 	io.msg(IO_DEB2, "ImgData::loadPGM(): %s", file.c_str());
@@ -666,7 +678,7 @@ int ImgData::loadGSL(const Path & /* file */) {
 int ImgData::loadGSL(const Path & /* file */) {
 	return io.msg(IO_ERR, "lImgData::loadGSL(): Not supported, librabry was not available during compilation.");
 }
-#endif
+#endif // HAVE_GSL
 
 #ifdef HAVE_FITS
 int ImgData::writeFITS(const Path &file) {
@@ -727,7 +739,7 @@ int ImgData::writeFITS(const Path&) {
 	return io.msg(IO_ERR, "ImgData::writeFITS() not supported, library was not available during compilation.");
 	
 }
-#endif
+#endif // HAVE_FITS
 
 #ifdef HAVE_ICS
 int ImgData::writeICS(const Path& /* file */) {
@@ -739,7 +751,7 @@ int ImgData::writeICS(const Path&) {
 	return io.msg(IO_ERR, "ImgData::writeICS() not supported, library was not available during compilation.");
 	
 }
-#endif HAVE_ICS
+#endif // HAVE_ICS
 
 int ImgData::writePGM(const Path &file) {
 	io.msg(IO_DEB2, "ImgData::writePGM()");	
@@ -786,4 +798,5 @@ int ImgData::writeGSL(const Path&) {
 	return io.msg(IO_ERR, "ImgData::writeGSL(): not supported, library was not available during compilation.");
 
 }
-#endif
+#endif // HAVE_GSL
+

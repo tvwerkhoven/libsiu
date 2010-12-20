@@ -7,7 +7,8 @@
 #include <gsl/gsl_matrix.h>
 
 #ifdef HAVE_CONFIG_H
-#include <autoconfig.h>
+// Contains various library we have.
+#include "autoconfig.h"
 #endif
 
 #include "types.h"
