@@ -29,7 +29,9 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
 #include <stdint.h>
 #include <inttypes.h>
 #include <stdexcept>
