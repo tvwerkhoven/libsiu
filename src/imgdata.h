@@ -3,8 +3,12 @@
 
 #include <string>
 #include <stdio.h>
+#ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
+#endif
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
 #include <stdint.h>
 #include <gsl/gsl_matrix.h>
 

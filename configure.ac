@@ -1,6 +1,7 @@
 ## @file configure.ac
 ## @author Tim van Werkhoven (t.i.m.vanwerkhoven@xs4all.nl)
 
+AC_PREREQ(2.59)
 AC_INIT([LIBSIU], [0.1], [t.i.m.vanwerkhoven@xs4all.nl])
 
 AC_CONFIG_AUX_DIR([build-aux])
@@ -10,6 +11,7 @@ src/Makefile
 testing/Makefile
 ])
 AC_CONFIG_HEADERS(autoconfig.h)
+AC_CONFIG_SRCDIR(src/io.cc)
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 

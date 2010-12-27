@@ -1,5 +1,5 @@
 AM_CXXFLAGS = -pthread -g -Wall
-AM_CPPFLAGS = $(SIGC_CFLAGS) -D__STDC_FORMAT_MACROS
+AM_CPPFLAGS = $(SIGC_CFLAGS) -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
 
 noinst_LIBRARIES = libconfig.a libmessages.a libpidfile.a libserial.a libsocket.a libprotocol.a libio.a libimgdata.a libpath.a
 
