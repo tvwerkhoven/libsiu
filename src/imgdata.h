@@ -3,7 +3,9 @@
 
 #include <string>
 #include <stdio.h>
-#include <inttypes.h>
+#define __STDC_LIMIT_MACROS
+#define __STDC_FORMAT_MACROS
+#include <stdint.h>
 #include <gsl/gsl_matrix.h>
 
 #ifdef HAVE_CONFIG_H
