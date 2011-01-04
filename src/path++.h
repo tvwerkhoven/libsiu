@@ -41,9 +41,10 @@ public:
 	Path();							//!< New empty Path
 	~Path() { ; }				//!< Nothing to destruct here
 	
+	inline bool operator!=(const string &b) const { return (b != path); }
+	inline bool operator!=(const Path &b) const { return (b.str() != path); }
 	inline bool operator==(const string &b) const { return (b == path); }
 	inline bool operator==(const Path &b) const { return (b.str() == path); }
-	inline bool operator==(Path &b) const { return (b.str() == path); }
 	Path operator+(const Path& rhs) const;
 	Path operator+(const string& rhs) const;
 	Path operator+=(const Path& rhs);
