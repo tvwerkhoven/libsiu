@@ -12,7 +12,7 @@ noinst_PROGRAMS = io-test io-test2 config-test path-test protocol-test pthread-t
 io_test_SOURCES = io-test.cc
 io_test_LDADD = ${top_srcdir}/src/libio.a
 
-io_test2_SOURCES = io-test.cc
+io_test2_SOURCES = io-test2.cc
 io_test2_LDADD = ${top_srcdir}/src/libio.a
 
 config_test_SOURCES = config-test.cc
@@ -30,5 +30,6 @@ protocol_test_LDADD = ${top_srcdir}/src/libprotocol.a \
 pthread_test_SOURCES = pthread-test.cc
 pthread_test_CPPFLAGS = $(SIGC_CFLAGS) $(AM_CPPFLAGS)
 
+TESTS = $(noinst_PROGRAMS)
 
 endif TESTING
