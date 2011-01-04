@@ -75,12 +75,12 @@ public:
 	int getchoice(const std::string &var, const std::map<std::string, int> &choices);
 	int getint(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
 	double getdouble(const std::string &var) { require(var); return atof(variables[pvar(var)].c_str()); }
-	uint16_t getuint16(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
-	int16_t getint16(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
-	uint32_t getuint32(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
-	int32_t getint32(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
-	uint64_t getuint64(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
-	int64_t getint64(const std::string &var) { require(var); return strtoll(variables[pvar(var)].c_str(), NULL, 0); }
+	uint16_t getuint16(const std::string &var) { require(var); return (uint16_t) strtoumax(variables[pvar(var)].c_str(), NULL, 0); }
+	int16_t getint16(const std::string &var) { require(var); return (int16_t) strtoimax(variables[pvar(var)].c_str(), NULL, 0); }
+	uint32_t getuint32(const std::string &var) { require(var); return (uint32_t) strtoumax(variables[pvar(var)].c_str(), NULL, 0); }
+	int32_t getint32(const std::string &var) { require(var); return (int32_t) strtoimax(variables[pvar(var)].c_str(), NULL, 0); }
+	uint64_t getuint64(const std::string &var) { require(var); return (uint64_t) strtoumax(variables[pvar(var)].c_str(), NULL, 0); }
+	int64_t getint64(const std::string &var) { require(var); return (int64_t) strtoimax(variables[pvar(var)].c_str(), NULL, 0); }
 	std::string getstring(const std::string &var) { require(var); return variables[pvar(var)]; }
 
 	bool exists(const std::string &var) { return variables.find(pvar(var)) != variables.end(); }
@@ -88,12 +88,12 @@ public:
 	int getchoice(const std::string &var, const std::map<std::string, int> &choices, int def);
 	int getint(const std::string &var, int def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(),0, 0); }
 	double getdouble(const std::string &var, double def) { if(!exists(var)) return def; else return atof(variables[pvar(var)].c_str()); }
-	uint16_t getuint16(const std::string &var, uint16_t def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
-	int16_t getint16(const std::string &var, int16_t def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
-	uint32_t getuint32(const std::string &var, uint32_t def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
-	int32_t getint32(const std::string &var, int32_t def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
-	uint64_t getuint64(const std::string &var, uint64_t def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
-	int64_t getint64(const std::string &var, int64_t def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(), 0, 0); }
+	uint16_t getuint16(const std::string &var, uint16_t def) { if(!exists(var)) return def; else return (uint16_t) strtoumax(variables[pvar(var)].c_str(), 0, 0); }
+	int16_t getint16(const std::string &var, int16_t def) { if(!exists(var)) return def; else return (int16_t) strtoimax(variables[pvar(var)].c_str(), 0, 0); }
+	uint32_t getuint32(const std::string &var, uint32_t def) { if(!exists(var)) return def; else return (uint32_t) strtoumax(variables[pvar(var)].c_str(), 0, 0); }
+	int32_t getint32(const std::string &var, int32_t def) { if(!exists(var)) return def; else return (int32_t) strtoimax(variables[pvar(var)].c_str(), 0, 0); }
+	uint64_t getuint64(const std::string &var, uint64_t def) { if(!exists(var)) return def; else return (uint64_t) strtoumax(variables[pvar(var)].c_str(), 0, 0); }
+	int64_t getint64(const std::string &var, int64_t def) { if(!exists(var)) return def; else return (int64_t) strtoimax(variables[pvar(var)].c_str(), 0, 0); }
 	std::string getstring(const std::string &var, const std::string def) { if(!exists(var)) return def; else return variables[pvar(var)]; }
 
 	void set(const std::string &var, bool value) { variables[pvar(var)] = value ? "yes" : "no"; }
