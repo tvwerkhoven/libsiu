@@ -23,76 +23,84 @@
 
 #include "pthread++.h"
 
-int nworker = 1;
+int nworker = 4;
 double work;
+int sum = 0;
 
 pthread::mutex rw;
 pthread::mutex mut;
 pthread::cond cond;
 
 void sub_worker_prog() {
-	fprintf(stderr, "worker(%X) subworker waiting...\n", pthread_self());
+	fprintf(stderr, "pthread-test.cc::worker(%X) subworker waiting...\n", pthread_self());
 	cond.wait(mut);
 }
 
 void *worker_prog(void *args) {
-	fprintf(stderr, "worker(%X) 1 init, sleeping\n", pthread_self());
+	fprintf(stderr, "pthread-test.cc::worker(%X) 1 init, sleeping\n", pthread_self());
+
 	{
 		pthread::mutexholder h(&mut);
 		sub_worker_prog();
 	}
 
-	fprintf(stderr, "worker(%X) 2 awake! waiting for rw.lock()\n", pthread_self());
-	{
-	pthread::mutexholder h(&rw);
-	fprintf(stderr, "worker(%X) 3 got lock! got %g\n", pthread_self(), work);
+	fprintf(stderr, "pthread-test.cc::worker(%X) 2 awake! waiting for rw.lock()\n", pthread_self());
 
-	usleep(work * 1000000);
+	{
+		pthread::mutexholder h(&rw);
+		fprintf(stderr, "pthread-test.cc::worker(%X) 3 got lock! got %g\n", pthread_self(), work);
+		sum++;
+		usleep(work * 1000000);
 	}
 	
-	fprintf(stderr, "worker(%X) 4 done\n", pthread_self());
+	fprintf(stderr, "pthread-test.cc::worker(%X) 4 done\n", pthread_self());
 	return NULL;
 }
 
 void *server_prog(void *args) {
-	fprintf(stderr, "server() 1 init\n");
+	fprintf(stderr, "pthread-test.cc::server() 1 init\n");
 	
 	for (int i=0; i<nworker; i++) {
-		fprintf(stderr, "server() 2a waiting for rw.lock()\n");
+		fprintf(stderr, "pthread-test.cc::server() 2a waiting for rw.lock()\n");
 		rw.lock();
 		work = drand48();
-		fprintf(stderr, "server() 2b got lock, work=%g\n", work);
+		fprintf(stderr, "pthread-test.cc::server() 2b got lock, work=%g\n", work);
 		rw.unlock();
-		fprintf(stderr, "server() 2c broadcast\n");
+		fprintf(stderr, "pthread-test.cc::server() 2c broadcast\n");
 		cond.signal();
 		usleep(0.5 * 1000000);
 	}
 
-	fprintf(stderr, "server() 3 done\n");
+	fprintf(stderr, "pthread-test.cc::server() 3 done\n");
 	return NULL;
 }
 
 int main() {
-	fprintf(stderr, "main() init nworker=%d\n", nworker);
+	fprintf(stderr, "pthread-test.cc::main() init nworker=%d\n", nworker);
 	
 	pthread::thread workers[nworker];
 	pthread::thread server;
 	
 	for (int i=0; i<nworker; i++) {
-		fprintf(stderr, "main() start worker=%d\n", i);
+		fprintf(stderr, "pthread-test.cc::main() start worker=%d\n", i);
 		workers[i].create(worker_prog);
 	}
 	
-	fprintf(stderr, "main() start server\n");
+	fprintf(stderr, "pthread-test.cc::main() start server\n");
 	server.create(server_prog);
 	
 	for (int i=0; i<nworker; i++) {
-		fprintf(stderr, "main() join worker=%d\n", i);
+		fprintf(stderr, "pthread-test.cc::main() join worker=%d\n", i);
 		workers[i].join();
 	}
 	
 	usleep(0.5 * 1000000);
 	
-	fprintf(stderr, "main() end\n");
+	if (sum != nworker) {
+		fprintf(stderr, "pthread-test.cc::main() error!\n");
+		return -1;
+	}
+	
+	fprintf(stderr, "pthread-test.cc::main() success!\n");
 	return 0;
 }
