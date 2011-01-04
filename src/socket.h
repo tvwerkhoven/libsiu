@@ -35,7 +35,7 @@ class Socket {
 
 	Socket(int fd);
 
-	public:
+public:
 	Socket();
 	Socket(const std::string &port);
 	Socket(const std::string &host, const std::string &port);
@@ -45,10 +45,10 @@ class Socket {
 	bool connect(const std::string &host, const std::string &port);
 	Socket *accept();
 	void close();
-	bool gets(char *buf, size_t len);
-	bool write(const void *buf, size_t len);
+	bool gets(char *buf, const size_t len);
+	bool write(const void *buf, const size_t len);
 	bool write(const std::string str);
-	bool read(void *buf, size_t len);
+	bool read(void *buf, const size_t len);
 	bool vprintf(const char *format, va_list va);
 	bool printf(const char *format, ...);
 	std::string readline();

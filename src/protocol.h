@@ -87,17 +87,17 @@ namespace Protocol {
 
 			void addtag(const std::string &tag);
 			void deltag(const std::string &tag);
-			bool hastag(const std::string &tag);
-			bool hastag(const std::string &tag, const std::string &prefix);
+			bool hastag(const std::string &tag) const;
+			bool hastag(const std::string &tag, const std::string &prefix) const;
 
-			void write(const std::string &msg);
-			void write(const std::string &msg, const std::string &tag);
-			void write(const void *buf, size_t len);
-			std::string read();
-			bool read(void *buf, size_t len);
-			std::string getpeername();
-			std::string getsockname();
-			bool is_connected();
+			void write(const std::string &msg) const;
+			void write(const std::string &msg, const std::string &tag) const;
+			void write(const void *buf, size_t len) const;
+			std::string read() const;
+			bool read(void *buf, const size_t len) const;
+			std::string getpeername() const;
+			std::string getsockname() const;
+			bool is_connected() const;
 			void close();
 		};
 

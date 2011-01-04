@@ -200,7 +200,7 @@ void Socket::close() {
 	inlen = 0;
 }
 
-bool Socket::gets(char *buf, size_t len) {
+bool Socket::gets(char *buf, const size_t len) {
 	char *newline = (char *)memchr(inbuf, '\n', inlen);
 
 	if(fd < 0)
@@ -260,7 +260,7 @@ string Socket::readline() {
 		throw exception((string)"Error while reading line from socket: " + strerror(errno));
 }
 
-bool Socket::read(void *buf, size_t len) {
+bool Socket::read(void *buf, const size_t len) {
 	char *p = (char *)buf;
 	size_t left = len;
 	ssize_t result;
@@ -301,7 +301,7 @@ bool Socket::read(void *buf, size_t len) {
 	return true;
 }	
 
-bool Socket::write(const void *buf, size_t len) {
+bool Socket::write(const void *buf, const size_t len) {
 	const char *p = (const char *)buf;
 	size_t left = len;
 	ssize_t result;

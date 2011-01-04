@@ -299,15 +299,15 @@ namespace Protocol {
 		socket->close();
 	}
 
-	bool Server::Connection::is_connected() {
+	bool Server::Connection::is_connected() const {
 		return socket->is_connected();
 	}
 
-	void Server::Connection::write(const string &msg) {
+	void Server::Connection::write(const string &msg) const {
 		socket->write(server->prefix + msg + "\r\n");
 	}
 
-	void Server::Connection::write(const void *buf, size_t len) {
+	void Server::Connection::write(const void *buf, size_t len) const {
 		socket->write(buf, len);
 	}
 
@@ -323,17 +323,17 @@ namespace Protocol {
 		tags.erase(server->prefix + tag);
 	}
 
-	bool Server::Connection::hastag(const string &tag) {
+	bool Server::Connection::hastag(const string &tag) const {
 		if(!server)
 			return false;
 		return tags.find(server->prefix + tag) != tags.end();
 	}
 
-	bool Server::Connection::hastag(const string &tag, const string &prefix) {
+	bool Server::Connection::hastag(const string &tag, const string &prefix) const {
 		return tags.find(prefix + tag) != tags.end();
 	}
 
-	void Server::Connection::write(const string &msg, const string &tag) {
+	void Server::Connection::write(const string &msg, const string &tag) const {
 		pthread::mutexholder h(&port->mutex);
 		for(set<Connection *>::iterator i = port->connections.begin(); i != port->connections.end(); ++i) {
 			Connection *c = *i;
@@ -355,19 +355,19 @@ namespace Protocol {
 				(*i)->socket->write(prefix + msg + "\r\n");
 	}
 
-	string Server::Connection::read() {
+	string Server::Connection::read() const {
 		return socket->readline();
 	}
 
-	bool Server::Connection::read(void *buf, size_t len) {
+	bool Server::Connection::read(void *buf, const size_t len) const {
 		return socket->read(buf, len);
 	}
 
-	string Server::Connection::getpeername() {
+	string Server::Connection::getpeername() const {
 		return socket->getpeername();
 	}
 
-	string Server::Connection::getsockname() {
+	string Server::Connection::getsockname() const {
 		return socket->getsockname();
 	}
 };
