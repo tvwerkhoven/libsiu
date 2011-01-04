@@ -56,23 +56,23 @@ class Io {
 	
 public:
 	Io(): defmask(0) { Io::init(IO_MAXLEVEL); }
-	Io(int l): defmask(0) { Io::init(l); }
+	Io(const int l): defmask(0) { Io::init(l); }
 	~Io();
 	
-	void init(int);
+	void init(const int);
 
 	int msg(int, const char*, ...);
 	int msg(int, const std::string);
 	
 	int setLogfile(Path&);
-	Path getLogfile() { return logfile; }
+	Path getLogfile() const { return logfile; }
 	
-	int getVerb() { return verb; }
-	int setVerb(int l) { verb = max(1, min(l, IO_MAXLEVEL)); return verb; }
+	int getVerb() const { return verb; }
+	int setVerb(const int l) { verb = max(1, min(l, IO_MAXLEVEL)); return verb; }
 	int setVerb(string l) { return setVerb((int) strtoll(l.c_str(), NULL, 0)); }
 	
-	uint32_t setdefmask(uint32_t m) { defmask = m; return m; }
-	uint32_t getdefmask() { return defmask; }
+	uint32_t setdefmask(const uint32_t m) { defmask = m; return m; }
+	uint32_t getdefmask() const { return defmask; }
 	
 		
 	int incVerb() { return setVerb(verb+1); }

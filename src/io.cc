@@ -35,7 +35,7 @@
 
 const std::string PREFIX[] = {"",  "err ", "warn", "info", "xnfo", "dbg1", "dbg2"};
 
-void Io::init(int l) {
+void Io::init(const int l) {
 	setVerb(l);
 	logfd = NULL;
 	termfd = stdout;
