@@ -32,10 +32,10 @@ namespace Protocol {
 		void handler();
 		void setup(const std::string &h, const std::string &p, const std::string &n);
 
-		protected:
+	protected:
 		std::string prefix;
 
-		public:
+	public:
 		std::string host; //!< Hostname of target machine
 		std::string port; //!< Port on target machine
 		std::string name;
@@ -52,14 +52,14 @@ namespace Protocol {
 		void close();
 		void disconnect() { close(); }
 
-		bool is_connected();
+		bool is_connected() const;
 
 		void write(const std::string &msg);
 		void write(const void *buf, size_t len);
 		std::string read();
 		bool read(void *buf, size_t len);
-		std::string getpeername();
-		std::string getsockname();
+		std::string getpeername() const;
+		std::string getsockname() const;
 	};
 
 	class Server {

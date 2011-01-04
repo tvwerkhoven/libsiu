@@ -110,7 +110,7 @@ namespace Protocol {
 		socket.close();
 	}
 
-	bool Client::is_connected() {
+	bool Client::is_connected() const {
 		return socket.is_connected();
 	}
 
@@ -134,11 +134,11 @@ namespace Protocol {
 		return socket.read(buf, len);
 	}
 
-	string Client::getpeername() {
+	string Client::getpeername() const {
 		return socket.getpeername();
 	}
 
-	string Client::getsockname() {
+	string Client::getsockname() const {
 		return socket.getsockname();
 	}
 

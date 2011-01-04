@@ -36,7 +36,7 @@
 
 using namespace std;
 
-Socket::Socket(int fd): fd(fd), inlen(0) {}
+Socket::Socket(const int fd): fd(fd), inlen(0) {}
 
 Socket::Socket(): fd(-1), inlen(0) {}
 
@@ -53,7 +53,7 @@ Socket::~Socket() {
 	close();
 }
 
-bool Socket::is_connected() {
+bool Socket::is_connected() const {
 	return fd >= 0;
 }
 
@@ -158,7 +158,7 @@ string Socket::resolve(struct sockaddr *addr, socklen_t addrlen, int flags) {
 	return format("%s/%s", host, serv);
 }
 
-string Socket::getpeername() {
+string Socket::getpeername() const {
 	if(fd < 0)
 		return "";
 	
@@ -170,7 +170,7 @@ string Socket::getpeername() {
 	return resolve((struct sockaddr *)&name, namelen);
 }
 
-string Socket::getsockname() {
+string Socket::getsockname() const {
 	if(fd < 0)
 		return "";
 	
@@ -182,7 +182,7 @@ string Socket::getsockname() {
 	return resolve((struct sockaddr *)&name, namelen);
 }
 
-Socket::Socket *Socket::accept() {
+Socket::Socket *Socket::accept() const {
 	int newfd = ::accept(fd, 0, 0);
 
 	if(fd < 0)
@@ -243,7 +243,7 @@ bool Socket::gets(char *buf, const size_t len) {
 }
 
 bool Socket::readline(string &line) {
-	char buf[4096];
+	char buf[MAXBUFLEN];
 	if(gets(buf, sizeof buf)) {
 		line = buf;
 		return true;
@@ -253,7 +253,7 @@ bool Socket::readline(string &line) {
 }
 
 string Socket::readline() {
-	char buf[4096];
+	char buf[MAXBUFLEN];
 	if(gets(buf, sizeof buf))
 		return buf;
 	else
@@ -331,12 +331,12 @@ bool Socket::write(const std::string str) {
 	return write(str.c_str(), str.size());
 }
 
-bool Socket::readavailable() {
+bool Socket::readavailable() const {
 	struct pollfd pfd = {fd, POLLIN};
 	return poll(&pfd, 1, 0);
 }
 
-bool Socket::writeavailable() {
+bool Socket::writeavailable() const {
 	struct pollfd pfd = {fd, POLLOUT};
 	return poll(&pfd, 1, 0);
 }
