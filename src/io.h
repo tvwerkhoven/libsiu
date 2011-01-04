@@ -61,8 +61,8 @@ public:
 	
 	void init(const int);
 
-	int msg(int, const char*, ...);
-	int msg(int, const std::string);
+	int msg(int, const char*, ...) const;
+	int msg(int, const std::string) const;
 	
 	int setLogfile(Path&);
 	Path getLogfile() const { return logfile; }

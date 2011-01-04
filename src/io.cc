@@ -53,9 +53,9 @@ int Io::setLogfile(Path &file) {
 	return 0;
 }
 
-int Io::msg(int type, const std::string message) {
+int Io::msg(int type, const std::string message) const {
 	// Apply default mask
-	type = type | defmask;
+	type = (type | defmask);
 	
 	// Separate level from type mask	
 	int level = type & IO_LEVEL_MASK;
@@ -85,13 +85,13 @@ int Io::msg(int type, const std::string message) {
 		}
 	}
 	
-	if (type & IO_FATAL) exit(-1);
-	if (type & IO_ERR) return -1;
+	if (type & (IO_FATAL)) exit(-1);
+	if (type & (IO_ERR)) return -1;
 	
 	return 0;
 }
 
-int Io::msg(int type, const char *fmtstr, ...) {
+int Io::msg(int type, const char *fmtstr, ...) const {
 	// Separate level from type mask
 	int level = type & IO_LEVEL_MASK;
 	

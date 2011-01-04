@@ -79,7 +79,7 @@ public:
 	bool isfile() const { return stat(S_IFREG); }
 	bool islink() const { return stat(S_IFLNK); }
 	
-	FILE *fopen(string mode="a+") { return ::fopen(path.c_str(), mode.c_str()); }
+	FILE *fopen(const string mode="a+") const { return ::fopen(path.c_str(), mode.c_str()); }
 };
 
 #endif // HAVE_PATHPP_H
