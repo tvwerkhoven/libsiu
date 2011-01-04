@@ -21,75 +21,82 @@
 #include "path++.h"
 
 int main(int argc, char *argv[]) {
-	printf("testing: %s\n", argv[0]);
+	printf("path-test.cc:: testing: %s\n", argv[0]);
 	
 	Path p1("/absolute/path/file1");
 	Path p2("relative/path/file1.ext");
-	Path p3("/only/path/");
+	Path p3("/tmp/../tmp/");
 	Path p4(argv[0]);
+	
+	printf("path-test.cc:: p1: '%s'\n", p1.c_str());
+	printf("path-test.cc:: p2: '%s'\n", p2.c_str());
+	printf("path-test.cc:: p3: '%s'\n", p3.c_str());
+	printf("path-test.cc:: p4: '%s'\n", p4.c_str());
 
-	printf("---\n");
 
-	printf("isabs(%s): %d\n", p1.c_str(), p1.isabs());
-	printf("isabs(%s): %d\n", p2.c_str(), p2.isabs());
-	printf("isabs(%s): %d\n", p3.c_str(), p3.isabs());
-	printf("isabs(%s): %d\n", p4.c_str(), p4.isabs());
+	printf("path-test.cc:: isabs()\n");
+	if (!p1.isabs() || p2.isabs() || !p3.isabs() || p4.isabs()) {
+		printf("path-test.cc:: error\n");
+		return -1;
+	}		
 	
-	printf("---\n");
+	printf("path-test.cc:: basename()\n");
+	if (p1.basename() != "file1" || 
+			p2.basename() != "file1.ext" || 
+			p3.basename() != string("")) {
+		printf("path-test.cc:: error\n");
+		printf("path-test.cc:: p1: '%s'\n", p1.basename().c_str());
+		printf("path-test.cc:: p2: '%s'\n", p2.basename().c_str());
+		printf("path-test.cc:: p3: '%s'\n", p3.basename().c_str());
+		return -1;
+	}
+	
+	printf("path-test.cc:: dirname()\n");
+	if (p1.dirname() != "/absolute/path/" || 
+			p2.dirname() != "relative/path/" || 
+			p3.dirname() != "/tmp/../tmp/") {
+		printf("path-test.cc:: error\n");
+		printf("path-test.cc:: p1: '%s'\n", p1.dirname().c_str());
+		printf("path-test.cc:: p2: '%s'\n", p2.dirname().c_str());
+		printf("path-test.cc:: p3: '%s'\n", p3.dirname().c_str());
+		return -1;
+	}
 
-	printf("basename(%s): %s\n", p1.c_str(), p1.basename().c_str());
-	printf("basename(%s): %s\n", p2.c_str(), p2.basename().c_str());
-	printf("basename(%s): %s\n", p3.c_str(), p3.basename().c_str());
-	printf("basename(%s): %s\n", p4.c_str(), p4.basename().c_str());
+	
+	printf("path-test.cc:: exists()\n");
+	if (!p3.exists() ||
+			!p4.exists()) {
+		printf("path-test.cc:: error\n");
+		printf("path-test.cc:: p3: %d\n", p3.exists());
+		printf("path-test.cc:: p4: %d\n", p4.exists());
+		return -1;
+	}
+	
+	printf("path-test.cc:: isdir()\n");
+	if (!p3.isdir() ||
+			p4.isdir()) {
+		printf("path-test.cc:: error\n");
+		printf("path-test.cc:: p3: %d\n", p3.isdir());
+		printf("path-test.cc:: p4: %d\n", p4.isdir());
+		return -1;
+	}	
 
-	printf("---\n");
+	printf("path-test.cc:: == / !=\n");
+	if (p1 == p2 ||
+			p4 != p4) {
+		printf("path-test.cc:: error\n");
+		printf("path-test.cc:: p1 == p2: %d\n", p1 == p2);
+		printf("path-test.cc:: p4 != p4: %d\n", p4 != p4);
+		return -1;
+	}
 	
-	printf("dirname(%s): %s\n", p1.c_str(), p1.dirname().c_str());
-	printf("dirname(%s): %s\n", p2.c_str(), p2.dirname().c_str());
-	printf("dirname(%s): %s\n", p3.c_str(), p3.dirname().c_str());
-	printf("dirname(%s): %s\n", p4.c_str(), p4.dirname().c_str());
-
-	printf("---\n");
-
-	printf("exists(%s): %d\n", p1.c_str(), p1.exists());
-	printf("exists(%s): %d\n", p2.c_str(), p2.exists());
-	printf("exists(%s): %d\n", p3.c_str(), p3.exists());
-	printf("exists(%s): %d\n", p4.c_str(), p4.exists());
-
-	printf("---\n");
+	printf("path-test.cc:: +\n");
+	if (p1 + p2 != "/absolute/path/file1/relative/path/file1.ext" ||
+			p2 + p3 != p3) {
+		printf("path-test.cc:: error\n");
+		return -1;
+	}	
 	
-	printf("isdir(%s): %d\n", p1.c_str(), p1.isdir());
-	printf("isdir(%s): %d\n", p2.c_str(), p2.isdir());
-	printf("isdir(%s): %d\n", p3.c_str(), p3.isdir());
-	printf("isdir(%s): %d\n", p4.c_str(), p4.isdir());
-
-	printf("---\n");
-	
-	printf("%s == %s: %d\n", p1.c_str(), p2.c_str(), p1 == p2);
-	printf("%s == %s: %d\n", p1.c_str(), "test string", p1 == string("test string"));
-	
-	printf("---\n");
-	
-	printf("%s + %s = %s", p3.c_str(), p4.c_str(), (p3+p4).c_str());
-	printf("%s + %s = %s", p1.c_str(), p2.c_str(), (p1+p2).c_str());
-
-	printf("---\n");
-	
-	printf("%s += %s = %s", p3.c_str(), p4.c_str(), (p3+=p4).c_str());
-	printf("%s += %s = %s", p1.c_str(), p2.c_str(), (p1+=p2).c_str());
-	
-	printf("---\n");
-
-	printf("%s.append(%s): ", p3.c_str(), p4.c_str());
-	printf("%s\n", (p3.append(p4)).c_str());
-	printf("now %s.append(%s)\n", p3.c_str(), p4.c_str());
-	
-	printf("---\n");
-	
-	p1 = "/absolute/path/file2";
-	p2 = Path("/test/path");
-	printf("p1 = '%s': '%s'\n", "/absolute/path/file2", p1.c_str());
-	printf("p2 = 'Path(\"/test/path\")': '%s'\n", p2.c_str());
-	
+	printf("path-test.cc:: test ok!\n");
 	return 0;
 }
