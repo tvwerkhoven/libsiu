@@ -23,10 +23,10 @@
 int main() {
 	Io *io;
 
-	printf("Test printing at different error levels...\n");
+	printf("io-test2.cc::Test printing at different error levels...\n");
 	for (int i=0; i<IO_MAXLEVEL+1; i++) {
 		io = new Io(i);
-		printf("==== Error level = %d\n", io->getVerb());
+		printf("io-test2.cc:: Verbosity level = %d\n", io->getVerb());
 
 		io->msg(IO_ERR | IO_NOLF, "Error ");
 		io->msg(IO_WARN | IO_NOLF, "Warn ");
@@ -38,34 +38,51 @@ int main() {
 		delete io;
 	}
 	
-	printf("Test level incrementing and decrementing...\n");
+	printf("io-test2.cc::Test level incrementing and decrementing...\n");
 	io = new Io(1);
 	
-	if (io->getVerb() != 1)
-		printf("ERROR: initial level wrong!\n");
+	if (io->getVerb() != 1) {
+		printf("io-test2.cc::ERROR: initial level wrong!\n");
+		return -1;
+	}
 	
 	io->setVerb(2);
-	if (io->getVerb() != 2)
-		printf("ERROR: Cannot set level with int!\n");
+	if (io->getVerb() != 2) {
+		printf("io-test2.cc::ERROR: Cannot set level with int!\n");
+		return -1;
+	}
 	io->setVerb("2");
-	if (io->getVerb() != 2)
-		printf("ERROR: Cannot set level with string!\n");
+	if (io->getVerb() != 2) {
+		printf("io-test2.cc::ERROR: Cannot set level with string!\n");
+		return -1;
+	}
 	
 	// Increment a few times
 	io->incVerb();
 	io->incVerb();
-	io->incVerb();
-	io->incVerb();
-	io->incVerb();
-	io->incVerb();
-	io->incVerb();
 	
-	if (io->getVerb() != 7 && io->getVerb() != IO_MAXLEVEL)
-		printf("ERROR: incrementing failed!\n");
+	if (io->getVerb() != 4 && io->getVerb() != IO_MAXLEVEL) {
+		printf("io-test2.cc::ERROR: incrementing failed!\n");
+		return -1;
+	}
 
+	for (int i=0; i<IO_MAXLEVEL; i++) 
+		io->incVerb();
+
+	if (io->getVerb() != IO_MAXLEVEL) {
+		printf("io-test2.cc::ERROR: maxlevelcap failed failed!\n");
+		return -1;
+	}
+	
 	// Decrement more
 	io->decVerb();
 	io->decVerb();
+	
+	if (io->getVerb() != IO_MAXLEVEL-2) {
+		printf("io-test2.cc::ERROR: decVerb failed failed!\n");
+		return -1;
+	}
+	
 	io->decVerb();
 	io->decVerb();
 	io->decVerb();
@@ -77,12 +94,14 @@ int main() {
 	io->decVerb();
 	io->decVerb();
 	
-	if (io->getVerb() != 1)
-		printf("ERROR: decrementing failed!\n");
+	if (io->getVerb() != 1) {
+		printf("io-test2.cc::ERROR: lowlevelcap failed failed!\n");
+		return -1;
+	}
 	
 	delete io;
 	
-	printf("Done!\n");
+	printf("io-test2.cc::Succes!\n");
 	return 0;
 }
 

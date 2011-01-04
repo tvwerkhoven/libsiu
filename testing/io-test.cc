@@ -27,7 +27,7 @@ int main() {
 	for (int i=0; i<10; i++) {
 		io = new Io(i);
 		io->setdefmask(IO_THR);
-		printf("==== Level: set to %d, actual = %d\n", i, io->getVerb());
+		printf("io-test.cc: Level: set to %d, actual = %d\n", i, io->getVerb());
 
 		io->msg(IO_ERR, "Error");
 		io->msg(IO_WARN, "Warn");
@@ -39,17 +39,51 @@ int main() {
 	}
 
 	io = new Io(0);
-	printf("==== Level = %d = %d\n", 0, io->getVerb());
-	for (int i=0; i<10; i++) 
+	printf("io-test.cc: Level = %d = %d\n", 0, io->getVerb());
+	if (io->getVerb() != 1) {
+		printf("io-test.cc: Error: minlevel should be 1\n");
+		return -1;
+	}
+	
+	io->incVerb();
+	io->incVerb();
+	
+	if (io->getVerb() != 3) {
+		printf("io-test.cc: Error: incVerb() malfunctions.\n");
+		return -1;
+	}
+	
+	for (int i=0; i<IO_MAXLEVEL; i++) 
 		io->incVerb();
-	printf("==== Level = %d = %d\n", 10, io->getVerb());
+
+	if (io->getVerb() != IO_MAXLEVEL) {
+		printf("io-test.cc: Error: maxlevel should be %d.\n", IO_MAXLEVEL);
+		return -1;
+	}
+	
 	delete io;
 
 	io = new Io(5);
-	for (int i=0; i<10; i++) 
+	
+	io->decVerb();
+	io->decVerb();
+
+	if (io->getVerb() != 3) {
+		printf("io-test.cc: Error: decVerb() malfunctions.\n");
+		return -1;
+	}
+	
+	
+	for (int i=0; i<IO_MAXLEVEL; i++) 
 		io->decVerb();
-	printf("==== Level = %d = %d\n", -5, io->getVerb());
+	
+	if (io->getVerb() != 1) {
+		printf("io-test.cc: Error: minlevel should be 1\n");
+		return -1;
+	}
+	
 	delete io;
+	printf("io-test.cc: test succesful!\n");
 
 	return 0;
 }
