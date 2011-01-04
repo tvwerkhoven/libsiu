@@ -146,9 +146,10 @@ namespace Protocol {
 		
 		void listen();
 
-		void broadcast(const std::string &msg);
-		void broadcast(const std::string &msg, const std::string &tag);
-		void broadcast(const void *buf, size_t len);
+		void broadcast(const std::string &msg) const ;
+		void broadcast(const std::string &msg, const std::string &tag) const ;
+		//! @todo TvW: this is not implemented?
+		//void broadcast(const void *buf, size_t len) const ;
 	};
 };
 

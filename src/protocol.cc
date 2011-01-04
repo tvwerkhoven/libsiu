@@ -342,13 +342,13 @@ namespace Protocol {
 		}
 	}
 
-	void Server::broadcast(const string &msg) {
+	void Server::broadcast(const string &msg) const {
 		pthread::mutexholder h(&theport->mutex);
 		for(set<Connection *>::iterator i = theport->connections.begin(); i != theport->connections.end(); ++i)
 			(*i)->socket->write(prefix + msg + "\r\n");
 	}
 
-	void Server::broadcast(const string &msg, const string &tag) {
+	void Server::broadcast(const string &msg, const string &tag) const {
 		pthread::mutexholder h(&theport->mutex);
 		for(set<Connection *>::iterator i = theport->connections.begin(); i != theport->connections.end(); ++i)
 			if((*i)->hastag(tag, prefix))
