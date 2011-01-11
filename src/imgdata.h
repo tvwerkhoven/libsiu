@@ -23,6 +23,8 @@
 
 const uint8_t IMGDATA_MAXNDIM = 32;
 
+using namespace std;
+
 class ImgData {
 public:
 	// Image formats
@@ -40,18 +42,22 @@ public:
 		ERR_OPEN_FILE,
 		ERR_LOAD_FILE,
 		ERR_CREATE_FILE,
+		ERR_FILE_EXISTS,
 		ERR_CREATE_IMG,
 		ERR_WRITE_FILE,
 		ERR_TYPE_UNKNOWN,
 		ERR_TYPE_UNSUPP,
 		ERR_FILETYPE,
+		ERR_SETDATA,
+		ERR_UNKNOWN,
 	} error_t;
 	
 	// Data layout
 	typedef struct data_t {
 		void *data;											//!< Data blob
 		int ndims;											//!< Number of dimenions (<= IMGDATA_MAXNDIM)
-		size_t dims[IMGDATA_MAXNDIM];	//!< Actual dimenions
+		size_t dims[IMGDATA_MAXNDIM];		//!< Actual dimenions
+		size_t strides[IMGDATA_MAXNDIM]; //!< Internal memory strides
 		dtype_t dt;											//!< Datatype
 		int bpp;												//!< Bits per pixel
 		size_t size;										//!< Size in bytes
@@ -83,24 +89,30 @@ private:
 	Io &io;
 	std::string strerr;
 	
-	int loadFITS(const Path&);
-	int loadICS(const Path&);
-	int loadGSL(const Path&);
-	int loadPGM(const Path&);
+	int loadFITS(const Path&);					//!< Load FITS Files (cfitsio)
+	int loadICS(const Path&);						//!< Load ICS Files (libics)
+	int loadGSL(const Path&);						//!< Load GSL matrices (lgsl)
+	int loadPGM(const Path&);						//!< Load PGM files
 	
-	int writeFITS(const Path&);
-	int writeICS(const Path&);
-	int writeGSL(const Path&);
-	int writePGM(const Path&);
+	int writeFITS(const Path&);					//!< Write FITS
+	int writeICS(const Path&);					//!< Write ICS
+	int writeGSL(const Path&);					//!< Write GSL (warning: does not store metadata!)
+	int writePGM(const Path&);					//!< Write PGM
 	
-	int readNumber(FILE *fd);			//!< Helper function for readPGM()
+	int setGSLdata(const gsl_matrix *mat, const bool copy=false); //!< Set data from GSL matrix (double)
+	int setGSLdata(const gsl_matrix_float *mat, const bool copy=false); //!< Set data from GSL matrix (float)
 	
-	imgtype_t guesstype(const Path&);
+	template <class T>
+	int _setGSLdata(const T *mat, const bool copy);
 	
-	string dtype_str(dtype_t dt);
+	int readNumber(FILE *fd);						//!< Helper function for readPGM()
+	
+	imgtype_t guesstype(const Path&);		//!< Guess filetype based on extension
+	
+	string dtype_str(dtype_t dt);				//!< Return datatype as string
 	
 	template <typename T>
-	void _swapaxes(const int *order, T data);
+	void _swapaxes(const int *order, T data);	//!< Swap axes of data (transpose etc.)
 	
 public:	
 	data_t data;
@@ -113,12 +125,18 @@ public:
 	// New from file & filetype
 	ImgData(Io &io, const std::string f, imgtype_t t = AUTO);
 	ImgData(Io &io, const Path f, imgtype_t t = AUTO);
+	// New from data
+// #ifdef HAVE_GSL
+	ImgData(Io &io, const gsl_matrix *m, const bool copy=false);
+	ImgData(Io &io, const gsl_matrix_float *m, const bool copy=false);
+// #endif
+	
 	~ImgData(void);
 	
 	// Generic data IO routines
 	int loaddata(const Path&, imgtype_t);
-	int writedata(const Path &p, const imgtype_t t) { return writedata(p.str(), t); }
-	int writedata(const std::string, const imgtype_t);
+	int writedata(const Path &p, const imgtype_t t, const bool overwrite=false);
+	int writedata(const std::string pstr, const imgtype_t t, const bool overwrite=false) { Path p(pstr); return writedata(p, t, overwrite); }
 	
 	// Create from data
 	int setdata(void *data, int nd, size_t dims[], dtype_t dt, int bpp);
@@ -134,13 +152,15 @@ public:
 	// Swap axis & transpose data
 	int swapaxes(const int *order);
 	
+	// Calculate stats
 	void calcstats();
 	// Print file metadata
 	void printmeta();
 	
 	// Public handlers
-	gsl_matrix *as_GSL(bool);
+	gsl_matrix *as_GSL(bool copy=true);
 	data_t as_datat() { data.refs++; return data; }
+	
 	error_t geterr() { return err; }
 	dtype_t getdtype() { return data.dt; }
 	int getbitpix() { return data.bpp; }

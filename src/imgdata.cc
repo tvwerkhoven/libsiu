@@ -2,6 +2,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include <algorithm>
+#include <unistd.h>
+#include <errno.h>
 
 #ifdef HAVE_CONFIG_H
 // Contains various library we have.
@@ -42,6 +45,33 @@ io(io), finfo(Path(f), t), err(ERR_NO_ERROR)
 		err = ERR_LOAD_FILE;
 }
 
+#ifdef HAVE_GSL
+ImgData::ImgData(Io &io, const gsl_matrix *m, const bool copy):
+io(io), err(ERR_NO_ERROR)
+{
+	io.msg(IO_DEB2, "ImgData::ImgData(gsl_matrix, cp=%d)", copy);
+	
+	if (setGSLdata(m, copy)) {
+		err = ERR_SETDATA;
+		io.msg(IO_ERR, "ImgData::ImgData(): error at init");
+	}
+}
+
+
+ImgData::ImgData(Io &io, const gsl_matrix_float *m, const bool copy):
+io(io), err(ERR_NO_ERROR)
+{
+	io.msg(IO_DEB2, "ImgData::ImgData(gsl_matrix_float, cp=%d)", copy);
+	
+	if (setGSLdata(m, copy)) {
+		err = ERR_SETDATA;
+		io.msg(IO_ERR, "ImgData::ImgData(): error at init");
+	}
+}
+
+
+#endif
+
 
 ImgData::~ImgData() {
 	// If there is only one process using this data (i.e. this object), delete 
@@ -49,6 +79,63 @@ ImgData::~ImgData() {
 	if (data.refs <= 1 && data.data)
 		free(data.data);
 }
+
+#ifdef HAVE_GSL
+int ImgData::setGSLdata(const gsl_matrix *mat, const bool copy) {
+	io.msg(IO_DEB2, "ImgData::setGSLdata(gsl_matrix, cp=%d).", copy);
+	data.dt = FLOAT64;
+	data.bpp = sizeof(double);
+
+	return _setGSLdata(mat, copy);
+}
+
+int ImgData::setGSLdata(const gsl_matrix_float *mat, const bool copy) {
+	io.msg(IO_DEB2, "ImgData::setGSLdata(gsl_matrix_float, cp=%d).", copy);
+
+	data.dt = FLOAT32;
+	data.bpp = sizeof(float);
+
+	return _setGSLdata(mat, copy);
+}
+
+template <class T>
+int ImgData::_setGSLdata(const T *mat, const bool copy) {
+	data.ndims = 2;
+	data.dims[0] = mat->size2;
+	data.dims[1] = mat->size1;
+	data.nel = mat->size1 * mat->size2;
+	data.size = data.nel * data.bpp;
+
+	data.strides[0] = 1;
+	
+	if (copy) {
+		data.strides[1] = mat->size2;
+		if (data.dt == FLOAT64) {
+			double *datatmp = (double *) malloc(mat->size1 * mat->size1 * data.bpp);
+			for (size_t i=0; i<mat->size1; i++) // Height (row)
+				for (size_t j=0; j<mat->size2; j++) // Width (column, changes fastest)
+					datatmp[i * data.dims[0] + j] = mat->data[i * mat->tda + j];
+			
+			data.data = (void *) datatmp;
+		} else if (data.dt == FLOAT32) {
+			float *datatmp = (float *) malloc(mat->size1 * mat->size1 * data.bpp);
+			for (size_t i=0; i<mat->size1; i++) // Height (row)
+				for (size_t j=0; j<mat->size2; j++) // Width (column, changes fastest)
+					datatmp[i * data.dims[0] + j] = mat->data[i * mat->tda + j];
+
+			data.data = (void *) datatmp;
+		}
+	} else {
+		data.strides[1] = mat->tda;
+		data.data = (void *) mat->data;
+	}
+	
+	// New data, so stats are wrong now
+	stats.init = false;
+	
+	return 0;
+}
+#endif
 
 
 string ImgData::dtype_str(dtype_t dt) {
@@ -71,8 +158,8 @@ string ImgData::dtype_str(dtype_t dt) {
 
 ImgData::imgtype_t ImgData::guesstype(const Path &file) {
 	string ext = file.get_ext();
+	transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 	
-	//! @todo convert all to lowercase	
 	if (ext == "fits") return ImgData::FITS;
 	else if (ext == "gsl") return ImgData::GSL;
 	else if (ext == "ics" || ext == "ids") return ImgData::ICS;
@@ -240,53 +327,60 @@ int ImgData::setdata(void *newdata, int nd, size_t dims[], dtype_t dt, int bpp) 
 	return 0;
 }
 
-gsl_matrix *ImgData::as_GSL(bool own=true) {
+gsl_matrix *ImgData::as_GSL(bool copy) {
 	if (data.ndims != 2)
 		return NULL;
+
+	gsl_matrix *tmpmat;
 	
-	// Allocate (nrows, ncols) = (height, width)
-	gsl_matrix *tmpmat = gsl_matrix_alloc(data.dims[1], data.dims[0]);
-	
-	if (data.dt == UINT8)
-		for (size_t i=0; i<data.dims[1]; i++) // Height (row)
-			for (size_t j=0; j<data.dims[0]; j++) // Width (column, changes fastest)
-				gsl_matrix_set(tmpmat, i, j, (double) ((uint8_t*) data.data)[i * data.dims[0] + j]);
-	else if (data.dt == INT8)
-		for (size_t i=0; i<data.dims[1]; i++)
-			for (size_t j=0; j<data.dims[0]; j++)
-				gsl_matrix_set(tmpmat, i, j, (double) ((int8_t*) data.data)[i * data.dims[0] + j]);
-	else if (data.dt == UINT16)
-		for (size_t i=0; i<data.dims[1]; i++)
-			for (size_t j=0; j<data.dims[0]; j++)
-				gsl_matrix_set(tmpmat, i, j, (double) ((uint16_t*) data.data)[i * data.dims[0] + j]);
-	else if (data.dt == INT16)
-		for (size_t i=0; i<data.dims[1]; i++)
-			for (size_t j=0; j<data.dims[0]; j++)
-				gsl_matrix_set(tmpmat, i, j, (double) ((int16_t*) data.data)[i * data.dims[0] + j]);
-	else if (data.dt == UINT32)
-		for (size_t i=0; i<data.dims[1]; i++)
-			for (size_t j=0; j<data.dims[0]; j++)
-				gsl_matrix_set(tmpmat, i, j, (double) ((uint32_t*) data.data)[i * data.dims[0] + j]);
-	else if (data.dt == INT32)
-		for (size_t i=0; i<data.dims[1]; i++)
-			for (size_t j=0; j<data.dims[0]; j++)
-				gsl_matrix_set(tmpmat, i, j, (double) ((int32_t*) data.data)[i * data.dims[0] + j]);
-	else if (data.dt == UINT64)
-		for (size_t i=0; i<data.dims[1]; i++)
-			for (size_t j=0; j<data.dims[0]; j++)
-				gsl_matrix_set(tmpmat, i, j, (double) ((uint64_t*) data.data)[i * data.dims[0] + j]);
-	else if (data.dt == INT64)
-		for (size_t i=0; i<data.dims[1]; i++)
-			for (size_t j=0; j<data.dims[0]; j++)
-				gsl_matrix_set(tmpmat, i, j, (double) ((int64_t*) data.data)[i * data.dims[0] + j]);
-	else if (data.dt == FLOAT32)
-		for (size_t i=0; i<data.dims[1]; i++)
-			for (size_t j=0; j<data.dims[0]; j++)
-				gsl_matrix_set(tmpmat, i, j, (double) ((float*) data.data)[i * data.dims[0] + j]);
-	else if (data.dt == FLOAT64)
-		for (size_t i=0; i<data.dims[1]; i++)
-			for (size_t j=0; j<data.dims[0]; j++)
-				gsl_matrix_set(tmpmat, i, j, (double) ((double*) data.data)[i * data.dims[0] + j]);
+	if (copy == false) {
+		//! @todo implement no-copy
+		return NULL;
+	} else {
+		// Allocate (nrows, ncols) = (height, width)
+		tmpmat = gsl_matrix_alloc(data.dims[1], data.dims[0]);
+		
+		if (data.dt == UINT8)
+			for (size_t i=0; i<data.dims[1]; i++) // Height (row)
+				for (size_t j=0; j<data.dims[0]; j++) // Width (column, changes fastest)
+					gsl_matrix_set(tmpmat, i, j, (double) ((uint8_t*) data.data)[i * data.dims[0] + j]);
+		else if (data.dt == INT8)
+			for (size_t i=0; i<data.dims[1]; i++)
+				for (size_t j=0; j<data.dims[0]; j++)
+					gsl_matrix_set(tmpmat, i, j, (double) ((int8_t*) data.data)[i * data.dims[0] + j]);
+		else if (data.dt == UINT16)
+			for (size_t i=0; i<data.dims[1]; i++)
+				for (size_t j=0; j<data.dims[0]; j++)
+					gsl_matrix_set(tmpmat, i, j, (double) ((uint16_t*) data.data)[i * data.dims[0] + j]);
+		else if (data.dt == INT16)
+			for (size_t i=0; i<data.dims[1]; i++)
+				for (size_t j=0; j<data.dims[0]; j++)
+					gsl_matrix_set(tmpmat, i, j, (double) ((int16_t*) data.data)[i * data.dims[0] + j]);
+		else if (data.dt == UINT32)
+			for (size_t i=0; i<data.dims[1]; i++)
+				for (size_t j=0; j<data.dims[0]; j++)
+					gsl_matrix_set(tmpmat, i, j, (double) ((uint32_t*) data.data)[i * data.dims[0] + j]);
+		else if (data.dt == INT32)
+			for (size_t i=0; i<data.dims[1]; i++)
+				for (size_t j=0; j<data.dims[0]; j++)
+					gsl_matrix_set(tmpmat, i, j, (double) ((int32_t*) data.data)[i * data.dims[0] + j]);
+		else if (data.dt == UINT64)
+			for (size_t i=0; i<data.dims[1]; i++)
+				for (size_t j=0; j<data.dims[0]; j++)
+					gsl_matrix_set(tmpmat, i, j, (double) ((uint64_t*) data.data)[i * data.dims[0] + j]);
+		else if (data.dt == INT64)
+			for (size_t i=0; i<data.dims[1]; i++)
+				for (size_t j=0; j<data.dims[0]; j++)
+					gsl_matrix_set(tmpmat, i, j, (double) ((int64_t*) data.data)[i * data.dims[0] + j]);
+		else if (data.dt == FLOAT32)
+			for (size_t i=0; i<data.dims[1]; i++)
+				for (size_t j=0; j<data.dims[0]; j++)
+					gsl_matrix_set(tmpmat, i, j, (double) ((float*) data.data)[i * data.dims[0] + j]);
+		else if (data.dt == FLOAT64)
+			for (size_t i=0; i<data.dims[1]; i++)
+				for (size_t j=0; j<data.dims[0]; j++)
+					gsl_matrix_set(tmpmat, i, j, (double) ((double*) data.data)[i * data.dims[0] + j]);
+	}
 	
 	return tmpmat;
 }
@@ -316,14 +410,28 @@ int ImgData::loaddata(const Path &f, imgtype_t t) {
 #endif // HAVE_GSL
 		default:
 			err = ERR_TYPE_UNKNOWN;
-			return io.msg(IO_ERR, "Unknown datatype, cannot load file.");
+			return io.msg(IO_ERR, "ImgData::loaddata(f=%s): Unknown datatype, cannot load file.", f.c_str());
 			break;
 	}
 	
 	return -1;
 }
 
-int ImgData::writedata(const std::string f, const imgtype_t t) {
+int ImgData::writedata(const Path &f, const imgtype_t t, const bool overwrite) {
+	if (f.exists()) {
+		if (!overwrite) {
+			err = ERR_FILE_EXISTS;
+			return io.msg(IO_ERR, "ImgData::writedata(): File '%s' exists, cannot write to disk.", f.c_str());
+			return -1;
+		}	else {
+			// File exists, remove
+			if (unlink(f.c_str())) {
+				return io.msg(IO_ERR, "ImgData::writedata(): Error deleting file '%s': %s", f.c_str(), strerror(errno));
+				err = ERR_UNKNOWN;
+			}
+		}
+	}
+	
 	switch (t) {
 #ifdef HAVE_FITS
 		case ImgData::FITS:
@@ -510,50 +618,20 @@ int ImgData::loadICS(const Path &file) {
 	
 	retval = IcsClose (ip);
 	
-	switch (dt) {
-		case Ics_uint8: {
-			data.dt = UINT8;
-			break;
-		}
-		case Ics_sint8: {
-			data.dt = INT8;
-			break;
-		}
-		case Ics_uint16: {
-			data.dt = UINT16;
-			break;
-		}
-		case Ics_sint16: {
-			data.dt = INT16;
-			break;
-		}
-		case Ics_uint32: {
-			data.dt = UINT32;
-			break;
-		}
-		case Ics_sint32: {
-			data.dt = INT32;
-			break;
-		}
-		case Ics_real32: {
-			data.dt = FLOAT32;
-			break;
-		}
-		case Ics_real64: {
-			data.dt = FLOAT64;
-			break;
-		}
-		case Ics_complex32:
-		case Ics_complex64: {
-			err = ERR_TYPE_UNSUPP;
-			return io.msg(IO_ERR, "ImgData::loadICS(): Unsupported datatype (complex), cannot process file");
-			break;
-		}
-		default: {
-			err = ERR_TYPE_UNKNOWN;
-			return io.msg(IO_ERR, "ImgData::loadICS(): Unknown datatype, cannot process file");
-			break;
-		}
+	if (dt == Ics_uint8) data.dt = UINT8;
+	else if (dt ==  Ics_sint8) data.dt = INT8;
+	else if (dt ==  Ics_uint16) data.dt = UINT16;
+	else if (dt ==  Ics_sint16)	data.dt = INT16;
+	else if (dt ==  Ics_uint32)	data.dt = UINT32;
+	else if (dt ==  Ics_sint32)	data.dt = INT32;
+	else if (dt ==  Ics_real32)	data.dt = FLOAT32;
+	else if (dt ==  Ics_real64)	data.dt = FLOAT64;
+	else if (dt ==  Ics_complex32 || dt ==  Ics_complex64) {
+		err = ERR_TYPE_UNSUPP;
+		return io.msg(IO_ERR, "ImgData::loadICS(): Unsupported datatype (complex), cannot process file");
+	} else {
+		err = ERR_TYPE_UNKNOWN;
+		return io.msg(IO_ERR, "ImgData::loadICS(): Unknown datatype, cannot process file");
 	}
 	
 	return (int) !(retval == IcsErr_Ok);
@@ -717,7 +795,7 @@ int ImgData::writeFITS(const Path &file) {
 	}
 	
 	// create & write image
-	fits_create_img(fptr, SHORT_IMG, naxis, naxes, &status);
+	fits_create_img(fptr, bitpix, naxis, naxes, &status);
 	if (status) {
 		fits_read_errmsg(fitserr);
 		err = ERR_CREATE_IMG;
