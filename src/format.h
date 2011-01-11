@@ -8,6 +8,8 @@
 #include <string>
 #include <cstdlib>
 
+#include <inttypes.h>
+
 static std::string popword(std::string &line, const char *separator = " \t\n") {
 	size_t b, e = 0;
 	
@@ -49,11 +51,12 @@ static inline void popexpect(std::string &line, const std::string &expect, const
 static inline double str2double(const std::string &line) { return strtod(line.c_str(), (char **)NULL); }
 static inline int str2int(const std::string &line) { return (int) strtol(line.c_str(), (char **)NULL, 10); }
 static inline int32_t str2int32(const std::string &line) { return (int32_t) strtol(line.c_str(), (char **)NULL, 10); }
+static inline intmax_t str2imax(const std::string &line) { return (intmax_t) strtoimax(line.c_str(), (char **)NULL, 10); }
 
 static inline double popdouble(std::string &line) { return str2double(popword(line)); }
 static inline int popint(std::string &line) { return str2int(popword(line)); }
 static inline bool popbool(std::string &line) { return (str2int(popword(line)) != 0); }
-static inline size_t popsize(std::string &line) { return (size_t) str2int(popword(line)); }
+static inline size_t popsize(std::string &line) { return (size_t) str2imax(popword(line)); }
 static inline int32_t popint32(std::string &line) { return str2int32(popword(line)); }
 
 static inline std::string vformat(const char *format, va_list va) {
