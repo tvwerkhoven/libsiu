@@ -515,6 +515,7 @@ int ImgData::loadFITS(const Path &file) {
 		}
 		case SHORT_IMG: {
 			uint16_t nulval = 0;
+			//! @bug gives datatype conversion overflow
 			fits_read_img(fptr, TUSHORT, 1, data.nel, &nulval, \
 						  (uint16_t *) (data.data), &anynul, &stat);					
 			data.dt = UINT16;
