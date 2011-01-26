@@ -125,9 +125,13 @@ int ImgData::_setGSLdata(const T *mat, const bool copy) {
 
 			data.data = (void *) datatmp;
 		}
+		// 1 ref to this data, only us
+		data.refs = 1;
 	} else {
 		data.strides[1] = mat->tda;
 		data.data = (void *) mat->data;
+		// 2 refs to this data, this object + something else 
+		data.refs = 2;
 	}
 	
 	// New data, so stats are wrong now
@@ -323,6 +327,10 @@ int ImgData::setdata(void *newdata, int nd, size_t dims[], dtype_t dt, int bpp) 
 	
 	// New data, so stats are wrong now
 	stats.init = false;
+	
+	// This is only a reference, so somebody 
+	//! @todo Add references
+	data.refs = 1;
 	
 	return 0;
 }
