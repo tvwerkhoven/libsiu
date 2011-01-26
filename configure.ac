@@ -104,11 +104,17 @@ if test "$withui" = true; then
 
 	PKG_CHECK_MODULES(GLEXTMM, gtkglextmm-1.2, [],
 		[AC_MSG_WARN([*** gtkglextmm-1.2 not found, not compiling UI libraries.]);opengl=false;openglmissing+=' gtkglextmm-1.2'])
+
+	PKG_CHECK_MODULES(GTKMM, gtkmm-2.4, [],
+		[AC_MSG_WARN([*** gtkmm-2.4 not found, not compiling UI libraries.]);opengl=false;openglmissing+=' gtkmm-2.4'])		
+
+	PKG_CHECK_MODULES(GLIBMM, glibmm-2.4, [],
+		[AC_MSG_WARN([*** glibmm-2.4 not found, not compiling UI libraries.]);opengl=false;openglmissing+=' glibmm-2.4'])		
 	
 	if test "$opengl" = true ; then
 		AC_MSG_NOTICE([*** OpenGL found, UI libraries enabled.]);
-		OPENGL_CFLAGS+="$GL_CFLAGS $GLU_CFLAGS $GLUT_CFLAGS $GLEXTMM_CFLAGS"
-		OPENGL_LIBS+="$GL_LIBS $GLU_LIBS $GLUT_LIBS $GLEXTMM_LIBS"
+		OPENGL_CFLAGS+="$GL_CFLAGS $GLU_CFLAGS $GLUT_CFLAGS $GLEXTMM_CFLAGS $GTKMM_CFLAGS $GLIBMM_LIBS"
+		OPENGL_LIBS+="$GL_LIBS $GLU_LIBS $GLUT_LIBS $GLEXTMM_LIBS $GTKMM_LIBS $GLIBMM_LIBS"
 		AC_SUBST(OPENGL_LIBS)
 		AC_SUBST(OPENGL_CFLAGS)
 	else
