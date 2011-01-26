@@ -36,6 +36,8 @@ Path::Path(const string &p): path(p), sep("/"), extsep(".") { ; }
 Path::Path(const Path &p): path(p.str()), sep("/"), extsep(".") { ; }
 Path::Path(): path(""), sep("/"), extsep(".") { ; }
 
+Path::~Path() { ; }
+
 /* 
  * Operator overloading
  */

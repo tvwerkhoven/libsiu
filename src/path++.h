@@ -39,7 +39,7 @@ public:
 	Path(const string &p); //!< New Path from string
 	Path(const Path &p); //!< New Path from Path
 	Path();							//!< New empty Path
-	~Path() { ; }				//!< Nothing to destruct here
+	~Path();
 	
 	inline bool operator!=(const string &b) const { return (b != path); }
 	inline bool operator!=(const Path &b) const { return (b.str() != path); }
