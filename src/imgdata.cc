@@ -1,3 +1,22 @@
+/*
+ imgdata.cc -- abstraction class for reading/writing data 
+ Copyright (C) 2010--2011 Tim van Werkhoven <t.i.m.vanwerkhoven@xs4all.nl>
+ 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 #include <string>
 #include <string.h>
 #include <stdio.h>
@@ -27,8 +46,10 @@
 
 //! @todo handle errors better, set data to NULL on failure
 
+// Constructors from file
 ImgData::ImgData(Io &io, const std::string f, imgtype_t t): 
-io(io), finfo(Path(f), t), err(ERR_NO_ERROR)
+io(io), finfo(Path(f), t), err(ERR_NO_ERROR),
+havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
 {
 	io.msg(IO_DEB2, "ImgData::ImgData() new from file.");
 		
@@ -37,7 +58,8 @@ io(io), finfo(Path(f), t), err(ERR_NO_ERROR)
 }
 
 ImgData::ImgData(Io &io, const Path f, imgtype_t t): 
-io(io), finfo(Path(f), t), err(ERR_NO_ERROR)
+io(io), finfo(Path(f), t), err(ERR_NO_ERROR),
+havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
 {
 	io.msg(IO_DEB2, "ImgData::ImgData() new from file.");
 	
@@ -45,9 +67,11 @@ io(io), finfo(Path(f), t), err(ERR_NO_ERROR)
 		err = ERR_LOAD_FILE;
 }
 
+// Constructors from GSL data
 #ifdef HAVE_GSL
 ImgData::ImgData(Io &io, const gsl_matrix *m, const bool copy):
-io(io), err(ERR_NO_ERROR)
+io(io), err(ERR_NO_ERROR),
+havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
 {
 	io.msg(IO_DEB2, "ImgData::ImgData(gsl_matrix, cp=%d)", copy);
 	
@@ -57,9 +81,9 @@ io(io), err(ERR_NO_ERROR)
 	}
 }
 
-
 ImgData::ImgData(Io &io, const gsl_matrix_float *m, const bool copy):
-io(io), err(ERR_NO_ERROR)
+io(io), err(ERR_NO_ERROR),
+havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
 {
 	io.msg(IO_DEB2, "ImgData::ImgData(gsl_matrix_float, cp=%d)", copy);
 	
@@ -68,8 +92,6 @@ io(io), err(ERR_NO_ERROR)
 		io.msg(IO_ERR, "ImgData::ImgData(): error at init");
 	}
 }
-
-
 #endif
 
 
