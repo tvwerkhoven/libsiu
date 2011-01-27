@@ -45,9 +45,22 @@ int main(int argc, char *argv[]) {
 	printf("imgdata-test.cc: havepgm: %d\n", im1.havepgm);
 	
 	if (argc > 1) {
-		printf("imgdata-test.cc: using file '%s'\n", argv[0]);
+		printf("imgdata-test.cc: using file '%s'\n", argv[1]);
 		
 		// Try to read file
+		ImgData im2(io, argv[1]);
+		
+		// Save as different formats
+		im2.writedata("imgdata-test-out.fits", ImgData::FITS, true);
+		im2.writedata("imgdata-test-out.gsl", ImgData::GSL, true);
+		im2.writedata("imgdata-test-out.pgm", ImgData::PGM, true);
+		im2.writedata("imgdata-test-out.ics", ImgData::ICS, true);
+		
+		// Re-load files
+		ImgData im2a(io, "imgdata-test-out.fits");
+		ImgData im2b(io, "imgdata-test-out.gsl");
+		ImgData im2c(io, "imgdata-test-out.pgm");
+		ImgData im2d(io, "imgdata-test-out.ics");
 		
 	} else {
 		printf("imgdata-test.cc: making from data\n");
