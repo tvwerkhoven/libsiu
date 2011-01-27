@@ -33,6 +33,10 @@ int main(int argc, char *argv[]) {
 	// Init bare ImgData class, check for features
 	Io io(4);
 	ImgData im1(io);
+	
+	bool t(1);
+	bool f(0);
+	printf("imgdata-test.cc: bool: %d %d\n", t, f);
 
 	printf("imgdata-test.cc: imgdata features:\n");
 	printf("imgdata-test.cc: havegsl: %d\n", im1.havegsl);
