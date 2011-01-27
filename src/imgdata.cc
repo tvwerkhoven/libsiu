@@ -465,7 +465,6 @@ int ImgData::writedata(const Path &f, const imgtype_t t, const bool overwrite) {
 		case ImgData::FITS:
 			return writeFITS(f);
 			break;
-#if HAVE_ICS
 		case ImgData::ICS:
 			return writeICS(f);
 			break;
