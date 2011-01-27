@@ -7,10 +7,13 @@ AM_CXXFLAGS = -pipe -Wall -Wextra \
 
 AM_CXXFLAGS += -I${top_srcdir}/src/ -L${top_srcdir}/src/
 
-noinst_PROGRAMS = imgdata-test io-test io-test2 config-test path-test protocol-test pthread-test 
+noinst_PROGRAMS = imgdata-test io-test io-test2 config-test path-test parse-test protocol-test pthread-test 
 
 imgdata_test_SOURCES = imgdata-test.cc
-imgdata_test_LDADD = ${top_srcdir}/src/libimgdata.a
+imgdata_test_LDADD = ${top_srcdir}/src/libimgdata.a \
+		${top_srcdir}/src/libio.a \
+		$(GSL_LIBS)
+imgdata_test_CPPFLAGS = $(GSL_CFLAGS) $(AM_CPPFLAGS)
 
 io_test_SOURCES = io-test.cc
 io_test_LDADD = ${top_srcdir}/src/libio.a
@@ -23,6 +26,8 @@ config_test_LDADD = ${top_srcdir}/src/libconfig.a
 
 path_test_SOURCES = path-test.cc
 path_test_LDADD = ${top_srcdir}/src/libpath.a
+
+parse_test_SOURCES = parse-test.cc
 
 protocol_test_SOURCES = protocol-test.cc
 protocol_test_CPPFLAGS = $(SIGC_CFLAGS) $(AM_CPPFLAGS)
