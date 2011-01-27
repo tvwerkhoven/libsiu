@@ -425,24 +425,18 @@ int ImgData::loaddata(const Path &f, imgtype_t t) {
 		t = guesstype(f);
 		
 	switch (t) {
-#if HAVE_FITS
 		case ImgData::FITS:
 			return loadFITS(f);
 			break;
-#endif // HAVE_FITS
-#if HAVE_ICS
 		case ImgData::ICS:
 			return loadICS(f);
 			break;
-#endif // HAVE_ICS
 		case ImgData::PGM:
 			return loadPGM(f);
 			break;
-#if HAVE_GSL
 		case ImgData::GSL:
 			return loadGSL(f);
 			break;
-#endif // HAVE_GSL
 		default:
 			err = ERR_TYPE_UNKNOWN;
 			return io.msg(IO_ERR, "ImgData::loaddata(f=%s): Unknown datatype, cannot load file.", f.c_str());
@@ -468,24 +462,19 @@ int ImgData::writedata(const Path &f, const imgtype_t t, const bool overwrite) {
 	}
 	
 	switch (t) {
-#if HAVE_FITS
 		case ImgData::FITS:
 			return writeFITS(f);
 			break;
-#endif // HAVE_FITS
 #if HAVE_ICS
 		case ImgData::ICS:
 			return writeICS(f);
 			break;
-#endif // HAVE_ICS
 		case ImgData::PGM:
 			return writePGM(f);
 			break;
-#if HAVE_GSL
 		case ImgData::GSL:
 			return writeGSL(f);
 			break;
-#endif // HAVE_GSL
 		default:
 			err = ERR_TYPE_UNKNOWN;
 			return io.msg(IO_ERR, "ImgData::writedata(): Unknown datatype, cannot write data.");
