@@ -28,25 +28,25 @@
 #include "imgdata.h"
 
 int main(int argc, char *argv[]) {
-	fprintf("imgdata-test.cc\n");
+	printf("imgdata-test.cc\n");
 	
 	// Init bare ImgData class, check for features
 	Io io(4);
 	im1 = ImgData(io);
 
-	fprintf("imgdata-test.cc: imgdata features:\n");
-	fprintf("imgdata-test.cc: havegsl: %d\n", im1.havegsl);
-	fprintf("imgdata-test.cc: haveics: %d\n", im1.haveics);
-	fprintf("imgdata-test.cc: havefits: %d\n", im1.havefits);
-	fprintf("imgdata-test.cc: havepgm: %d\n", im1.havepgm);
+	printf("imgdata-test.cc: imgdata features:\n");
+	printf("imgdata-test.cc: havegsl: %d\n", im1.havegsl);
+	printf("imgdata-test.cc: haveics: %d\n", im1.haveics);
+	printf("imgdata-test.cc: havefits: %d\n", im1.havefits);
+	printf("imgdata-test.cc: havepgm: %d\n", im1.havepgm);
 	
 	if (argc > 1) {
-		fprintf("imgdata-test.cc: using file '%s'\n", argv[0]);
+		printf("imgdata-test.cc: using file '%s'\n", argv[0]);
 		
 		// Try to read file
 		
 	} else {
-		fprintf("imgdata-test.cc: making from data\n");
+		printf("imgdata-test.cc: making from data\n");
 		// Make random data
 	}
 	
