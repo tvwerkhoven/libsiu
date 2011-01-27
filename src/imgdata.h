@@ -150,7 +150,7 @@ public:
 	ImgData(Io &io, const std::string f, imgtype_t t = AUTO);
 	ImgData(Io &io, const Path f, imgtype_t t = AUTO);
 	// New from data
-#ifdef HAVE_GSL
+#if HAVE_GSL
 	ImgData(Io &io, const gsl_matrix *m, const bool copy=false);
 	ImgData(Io &io, const gsl_matrix_float *m, const bool copy=false);
 #endif

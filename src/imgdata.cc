@@ -30,13 +30,13 @@
 #include "autoconfig.h"
 
 #endif
-#ifdef HAVE_ICS
+#if HAVE_ICS
 #include <libics.h>
 #endif
-#ifdef HAVE_FITS
+#if HAVE_FITS
 #include <fitsio.h>
 #endif
-#ifdef HAVE_GSL
+#if HAVE_GSL
 #include <gsl/gsl_matrix.h>
 #endif
 
@@ -68,7 +68,7 @@ havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
 }
 
 // Constructors from GSL data
-#ifdef HAVE_GSL
+#if HAVE_GSL
 ImgData::ImgData(Io &io, const gsl_matrix *m, const bool copy):
 io(io), err(ERR_NO_ERROR),
 havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
@@ -102,7 +102,7 @@ ImgData::~ImgData() {
 		free(data.data);
 }
 
-#ifdef HAVE_GSL
+#if HAVE_GSL
 int ImgData::setGSLdata(const gsl_matrix *mat, const bool copy) {
 	io.msg(IO_DEB2, "ImgData::setGSLdata(gsl_matrix, cp=%d).", copy);
 	data.dt = FLOAT64;
@@ -420,12 +420,12 @@ int ImgData::loaddata(const Path &f, imgtype_t t) {
 		t = guesstype(f);
 		
 	switch (t) {
-#ifdef HAVE_FITS
+#if HAVE_FITS
 		case ImgData::FITS:
 			return loadFITS(f);
 			break;
 #endif // HAVE_FITS
-#ifdef HAVE_ICS
+#if HAVE_ICS
 		case ImgData::ICS:
 			return loadICS(f);
 			break;
@@ -433,7 +433,7 @@ int ImgData::loaddata(const Path &f, imgtype_t t) {
 		case ImgData::PGM:
 			return loadPGM(f);
 			break;
-#ifdef HAVE_GSL
+#if HAVE_GSL
 		case ImgData::GSL:
 			return loadGSL(f);
 			break;
@@ -463,12 +463,12 @@ int ImgData::writedata(const Path &f, const imgtype_t t, const bool overwrite) {
 	}
 	
 	switch (t) {
-#ifdef HAVE_FITS
+#if HAVE_FITS
 		case ImgData::FITS:
 			return writeFITS(f);
 			break;
 #endif // HAVE_FITS
-#ifdef HAVE_ICS
+#if HAVE_ICS
 		case ImgData::ICS:
 			return writeICS(f);
 			break;
@@ -476,7 +476,7 @@ int ImgData::writedata(const Path &f, const imgtype_t t, const bool overwrite) {
 		case ImgData::PGM:
 			return writePGM(f);
 			break;
-#ifdef HAVE_GSL
+#if HAVE_GSL
 		case ImgData::GSL:
 			return writeGSL(f);
 			break;
@@ -488,7 +488,7 @@ int ImgData::writedata(const Path &f, const imgtype_t t, const bool overwrite) {
 	}
 }
 
-#ifdef HAVE_FITS
+#if HAVE_FITS
 int ImgData::loadFITS(const Path &file) {
 	io.msg(IO_DEB2, "ImgData::loadFITS(): %s", file.c_str());
 	fitsfile *fptr;
@@ -601,7 +601,7 @@ int ImgData::loadFITS(const Path &file) {
 }
 #endif // HAVE_FITS
 
-#ifdef HAVE_ICS
+#if HAVE_ICS
 int ImgData::loadICS(const Path &file) {
 	io.msg(IO_DEB2, "ImgData::loadICS(): %s", file.c_str());
 
@@ -778,7 +778,7 @@ int ImgData::readNumber(FILE *fd) {
 }
 
 
-#ifdef HAVE_GSL
+#if HAVE_GSL
 int ImgData::loadGSL(const Path & /* file */) {
 	err = ERR_TYPE_UNSUPP;
 	return io.msg(IO_ERR, "ImgData::loadGSL(): Not implemented yet");
@@ -789,7 +789,7 @@ int ImgData::loadGSL(const Path & /* file */) {
 }
 #endif // HAVE_GSL
 
-#ifdef HAVE_FITS
+#if HAVE_FITS
 int ImgData::writeFITS(const Path &file) {
 	io.msg(IO_XNFO, "ImgData::writeFITS('%s')", file.c_str());
 	
@@ -850,7 +850,7 @@ int ImgData::writeFITS(const Path&) {
 }
 #endif // HAVE_FITS
 
-#ifdef HAVE_ICS
+#if HAVE_ICS
 int ImgData::writeICS(const Path& /* file */) {
 	err = ERR_TYPE_UNSUPP;
 	return io.msg(IO_ERR, "ImgData::writeICS(): Not implemented yet");
@@ -897,7 +897,7 @@ int ImgData::writePGM(const Path &file) {
 	return 0;	
 }
 
-#ifdef HAVE_GSL
+#if HAVE_GSL
 int ImgData::writeGSL(const Path& /* file */) {
 	err = ERR_TYPE_UNSUPP;
 	return io.msg(IO_ERR, "ImgData::writeGSL(): Not implemented yet");		
