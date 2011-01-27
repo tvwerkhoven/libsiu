@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 	
 	// Init bare ImgData class, check for features
 	Io io(4);
-	im1 = ImgData(io);
+	ImgData im1(io);
 
 	printf("imgdata-test.cc: imgdata features:\n");
 	printf("imgdata-test.cc: havegsl: %d\n", im1.havegsl);
