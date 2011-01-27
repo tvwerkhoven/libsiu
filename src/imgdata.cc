@@ -46,10 +46,15 @@
 
 //! @todo handle errors better, set data to NULL on failure
 
+ImgData::ImgData(Io &io): 
+havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS) 
+io(io), err(ERR_NO_ERROR),
+{ ; }
+	
 // Constructors from file
 ImgData::ImgData(Io &io, const std::string f, imgtype_t t): 
-io(io), finfo(Path(f), t), err(ERR_NO_ERROR),
 havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
+io(io), finfo(Path(f), t), err(ERR_NO_ERROR),
 {
 	io.msg(IO_DEB2, "ImgData::ImgData() new from file.");
 		
@@ -58,8 +63,8 @@ havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
 }
 
 ImgData::ImgData(Io &io, const Path f, imgtype_t t): 
-io(io), finfo(Path(f), t), err(ERR_NO_ERROR),
 havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
+io(io), finfo(Path(f), t), err(ERR_NO_ERROR),
 {
 	io.msg(IO_DEB2, "ImgData::ImgData() new from file.");
 	
@@ -70,8 +75,8 @@ havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
 // Constructors from GSL data
 #if HAVE_GSL
 ImgData::ImgData(Io &io, const gsl_matrix *m, const bool copy):
-io(io), err(ERR_NO_ERROR),
 havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
+io(io), err(ERR_NO_ERROR),
 {
 	io.msg(IO_DEB2, "ImgData::ImgData(gsl_matrix, cp=%d)", copy);
 	
@@ -82,8 +87,8 @@ havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
 }
 
 ImgData::ImgData(Io &io, const gsl_matrix_float *m, const bool copy):
-io(io), err(ERR_NO_ERROR),
 havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS)
+io(io), err(ERR_NO_ERROR),
 {
 	io.msg(IO_DEB2, "ImgData::ImgData(gsl_matrix_float, cp=%d)", copy);
 	

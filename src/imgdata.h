@@ -145,7 +145,7 @@ public:
 	error_t err;
 	
 	// New bare ImgData instance
-	ImgData(Io &io): io(io) { ; }
+	ImgData(Io &io);
 	// New from file & filetype
 	ImgData(Io &io, const std::string f, imgtype_t t = AUTO);
 	ImgData(Io &io, const Path f, imgtype_t t = AUTO);
