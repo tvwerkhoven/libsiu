@@ -38,6 +38,15 @@ protocol_test_LDADD = ${top_srcdir}/src/libprotocol.a \
 pthread_test_SOURCES = pthread-test.cc
 pthread_test_CPPFLAGS = $(SIGC_CFLAGS) $(AM_CPPFLAGS)
 
+if HAVE_OPENGL
+noinst_PROGRAMS += opengl-test
+
+opengl_test_SOURCES = opengl-test.cc
+opengl_test_CPPFLAGS = $(OPENGL_CFLAGS) $(AM_CPPFLAGS)
+opengl_test_CFLAGS = $(OPENGL_CFLAGS) 
+opengl_test_LDADD = ${top_srcdir}/src/libglviewer.a
+endif
+
 TESTS = $(noinst_PROGRAMS)
 
 endif TESTING
