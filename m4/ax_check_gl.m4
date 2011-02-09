@@ -37,7 +37,9 @@
 AC_DEFUN([AX_CHECK_GL],
 [AC_REQUIRE([AC_CANONICAL_HOST])dnl
 AC_REQUIRE([AC_PATH_X])dnl
-AC_REQUIRE([AC_PROG_SED])dnl
+# AC_REQUIRE([AC_PROG_SED])dnl
+dnl autoconf 2.59 appears not to support AC_PROG_SED
+AC_CHECK_PROG([SED],[sed],[sed],[/bin/false])
 AC_REQUIRE([AX_PTHREAD])dnl
 
 AC_LANG_PUSH([C])
