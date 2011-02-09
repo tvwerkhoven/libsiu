@@ -551,6 +551,13 @@ int ImgData::loadFITS(const Path &file) {
 			data.dt = UINT32;
 			break;
 		}
+		case LONGLONG_IMG: {
+			uint64_t nulval = 0;
+			fits_read_img(fptr, TULONG, 1, data.nel, &nulval, \
+										(uint32_t *) (data.data), &anynul, &stat);					
+			data.dt = UINT32;
+			break;
+		}
 		case FLOAT_IMG: {
 			float nulval = 0;
 			fits_read_img(fptr, TFLOAT, 1, data.nel, &nulval, \
