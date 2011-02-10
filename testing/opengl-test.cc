@@ -80,21 +80,21 @@ render("Re-render")
 	w = 100; h = 480; d = 8;
 	data = (uint8_t *) malloc(w*h*d/8);
 	
-	// Add line for demonstration
-	glarea.addbox(fdvector_t(0, 0, 0.1, 0.1));
-	
-	for (int i=0; i<10; i++)
-		glarea.addbox(fdvector_t(drand48()*2-1, drand48()*2-1, drand48()*.3, drand48()*.3));
-
-	glarea.addline(fdvector_t(0, 0.3, 0.1, 0.4));
-
 	on_render();
+  glarea.set_size_request(512, 512);
 	
+	// Add line for demonstration
+	glarea.addbox(fvector_t(0, 0, 0.1, 0.1));
+	
+	for (int i=0; i<10; i++) {
+		double x = drand48()*68, y=drand48()*448;
+		glarea.addbox(fvector_t(x, y, x+32, y+32), OpenGLImageViewer::DATATOGL);
+	}
+	
+	glarea.addline(fvector_t(0, 0.3, 0.1, 0.4));	
+
 	set_title("OpenGL Window");
-	
 	set_gravity(Gdk::GRAVITY_STATIC);
-	
-  glarea.set_size_request(256, 256);
 
 	render.signal_clicked().connect(sigc::mem_fun(*this, &Simple::on_render));
 	glarea.signal_motion_notify_event().connect(sigc::mem_fun(*this, &Simple::on_image_motion_event));
