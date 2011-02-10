@@ -43,7 +43,7 @@ typedef struct fcoord_t {
 } fcoord_t;
 
 /*!
- @brief float vector with begin and end
+ @brief float vector with absolute begin and end
  */
 typedef struct fvec {
 	fvec(float _lx=0.0, float _ly=0.0, float _tx=1.0, float _ty=1.0) :
@@ -53,6 +53,18 @@ typedef struct fvec {
 	float tx;
 	float ty;
 } fvector_t;
+
+/*!
+ @brief difference float vector with absolute begin and length
+ */
+typedef struct fdvec {
+	fdvec(float _lx=0.0, float _ly=0.0, float _sx=1.0, float _sy=1.0) :
+	lx(_lx), ly(_ly), sx(_sx), sy(_sy) { }
+	float lx;
+	float ly;
+	float sx;
+	float sy;
+} fdvector_t;
 
 /*!
  @brief We use this to store gain information for WFC's
