@@ -23,10 +23,32 @@
 #include <iostream>
 #include <cstdlib>
 
+#include "autoconfig.h"
+
+#ifdef HAVE_GL_GL_H
+#include "GL/gl.h"
+#elif HAVE_OPENGL_GL_H
+#include "OpenGL/gl.h"
+#endif
+
+#ifdef HAVE_GL_GLU_H
+#include "GL/glu.h"
+#elif HAVE_OPENGL_GLU_H 
+#include "OpenGL/glu.h"
+#endif
+
+#ifdef HAVE_GL_GLUT_H
+#include "GL/glut.h"
+#elif HAVE_GLUT_GLUT_H 
+#include "GLUT/glut.h"
+#endif
+
+
 #include <gtkmm.h>
 #include <gtkglmm.h>
 #include <gdkmm/pixbuf.h>
 
+#include "format.h"
 #include "glviewer.h"
 
 using namespace std;
@@ -37,7 +59,11 @@ using namespace Gtk;
 class Simple: public Gtk::Window {
 	Gtk::VBox vbox;
 	Gtk::Button render;
+	Gtk::Statusbar stbar;
 	OpenGLImageViewer glarea;
+	
+	bool on_image_motion_event(GdkEventMotion *event);
+	bool on_image_button_event(GdkEventButton *event);
 public:
 	void on_render();
 	int w, h, d;
@@ -53,6 +79,15 @@ render("Re-render")
 	fprintf(stderr, "Simple::Simple()\n");
 	w = 100; h = 480; d = 8;
 	data = (uint8_t *) malloc(w*h*d/8);
+	
+	// Add line for demonstration
+	glarea.addbox(fdvector_t(0, 0, 0.1, 0.1));
+	
+	for (int i=0; i<10; i++)
+		glarea.addbox(fdvector_t(drand48()*2-1, drand48()*2-1, drand48()*.3, drand48()*.3));
+
+	glarea.addline(fdvector_t(0, 0.3, 0.1, 0.4));
+
 	on_render();
 	
 	set_title("OpenGL Window");
@@ -62,12 +97,14 @@ render("Re-render")
   glarea.set_size_request(256, 256);
 
 	render.signal_clicked().connect(sigc::mem_fun(*this, &Simple::on_render));
+	glarea.signal_motion_notify_event().connect(sigc::mem_fun(*this, &Simple::on_image_motion_event));
+	glarea.signal_button_press_event().connect(sigc::mem_fun(*this, &Simple::on_image_button_event));
 
 	vbox.pack_start(glarea);
 	vbox.pack_start(render, PACK_SHRINK);
+	vbox.pack_start(stbar, PACK_SHRINK);
 	add(vbox);
 	
-
 	show_all_children();
 	
 }
@@ -79,16 +116,53 @@ Simple::~Simple() {
 void Simple::on_render() {
 	fprintf(stderr, "Simple::on_render()\n");
 	// fill data
-	for (int i=0; i<w*h; i++)
-		data[i] = drand48() * 255.0;
+	for (int i=0; i<h; i++)
+		for (int j=0; j<w; j++)
+			data[i*w + j] = 255 * 8 * sqrt(pow(i,2) + pow(j,2)) / sqrt(pow(w,2) + pow(h,2));
 	
 	glarea.linkData((void *) data, d, w, h);
 }
+
+bool Simple::on_image_button_event(GdkEventButton *event) {
+	fprintf(stderr, "Simple::on_image_button_event()\n");
+	if (event->button == 3) {
+		// Right-mouse click
+		fprintf(stderr, "Simple::on_image_button_event() right mouse\n");
+	}
+	return false;
+}
+
+bool Simple::on_image_motion_event(GdkEventMotion *event) {
+	// Get GL coordinates
+	double glx, gly;
+	if (glarea.map_coord(event->x, event->y, &glx, &gly, OpenGLImageViewer::GTKTOGL))
+		glx = gly = -1.0;
+	
+	// Get data coordinates + values
+	double datax, datay;
+	double pix;
+
+	if (!glarea.map_coord(event->x, event->y, &datax, &datay, OpenGLImageViewer::GTKTODATA))
+		pix = (double) data[w*(int) datay + (int) datax];
+	else
+		pix = datax = datay = -1.0;
+	
+	// Get image shift
+	float xx, yy;
+	glarea.getshift(&xx, &yy);
+	
+	// Set statusbar text
+	stbar.push(	(Glib::ustring) format("Position: (%d, %d), opengl: (%.2f, %.2f), data: (%d, %d), value: %g, offset (%.2f, %.2f)", (int) event->x, (int) event->y, glx, gly, (int) datax, (int) datay, pix, xx, yy));
+	return false;
+}
+
 
 int main(int argc, char** argv) {
 	fprintf(stderr, "::main()\n");
   Gtk::Main kit(argc, argv);
   Gtk::GL::init(argc, argv);
+
+	glutInit(&argc, argv);
 	
   int major, minor;
   Gdk::GL::query_version(major, minor);
