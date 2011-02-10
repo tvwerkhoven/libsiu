@@ -95,6 +95,6 @@ typedef enum {
 } dtype_t;
 
 
-template <class T> T clamp(T x, T min, T max) { if (x < min) x = min; if (x > max) x = max; return x; }
+template <class T> T clamp(const T x, const T min, const T max) { return x < min ? min : x > max ? max : x; }
 
 #endif // HAVE_TYPES_H
