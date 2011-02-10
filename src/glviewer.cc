@@ -127,14 +127,12 @@ bool OpenGLImageViewer::on_image_button_event(GdkEventButton *event) {
 			view_update();
 			sx = sy = 0;
 			do_update();
-			return true;
 		}
 		else if (event->type == GDK_3BUTTON_PRESS) {
 			// Triple-click: reset zoom (3 button implies 2 button)
 			view_update();
 			scale = 0;
 			do_update();		
-			return true;
 		}
 		else {
 			// Normal click: remember current translation, use in on_image_motion_event()
@@ -143,7 +141,6 @@ bool OpenGLImageViewer::on_image_button_event(GdkEventButton *event) {
 			systart = sy;
 			xstart = event->x;
 			ystart = event->y;
-			return true;
 		}
 	}
 	return false;
@@ -235,6 +232,23 @@ void OpenGLImageViewer::addbox(const fvector_t box, const map_dir_t conv) {
 //						box.lx, box.ly, box.tx, box.ty,
 //						tmp.lx, tmp.ly, tmp.tx, tmp.ty);
 	}
+}
+
+int OpenGLImageViewer::inbox(const double x, const double y) const {
+	// Convert input coordinates (GTK) to GL coordinates
+	double glx, gly;
+	map_coord(x, y, &glx, &gly, GTKTOGL);
+
+	// Loop over all boxes, return index when found
+	for (size_t i=0; i<boxes.size(); i++) { 
+		if (glx >= boxes[i].lx &&
+				glx <= boxes[i].tx &&
+				gly >= boxes[i].ly &&
+				gly <= boxes[i].ty)
+			return i;
+	}
+	// Not found
+	return -1;
 }
 
 void OpenGLImageViewer::addline(const fvector_t line, const map_dir_t conv) { 

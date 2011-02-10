@@ -132,11 +132,18 @@ public:
 	void scalestep(const double step) { setzoomfit(false); setscale(scale + step); }
 	double getscale() const { return scale; }
 	
+	//!< Add an overlay box
 	void addbox(const fvector_t box, const map_dir_t conv=UNITY);
+	//!< Remove an overlay box by index number
 	void delbox(const int idx) { boxes.erase (boxes.begin()+idx); }
+	//!< Check whether (x,y) is inside a box, return index. Must be GTK coordinates!
+	int inbox(const double x, const double y) const;
+	//!< Return box with index idx
+	fvector_t getbox(const int x) const { return boxes[x]; }
 	
 	void addline(const fvector_t line, const map_dir_t conv=UNITY);
 	void delline(const int idx) { lines.erase (lines.begin()+idx); }
+	fvector_t getline(const int x) const { return lines[x]; }
 	
 	void setscalerange(const double min, const double max) { scalemin = min; scalemax = max; }
 	void setscalerange(const double minmax) { scalemax = scalemin = minmax; }
