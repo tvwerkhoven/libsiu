@@ -68,12 +68,12 @@ int main(int argc, char *argv[]) {
 		
 		int w = 256;
 		int h = 128;
-		uint16_t data(w*h);
+		uint16_t *data = (uint16_t *) malloc(w*h);
 		for (int j=0; j<h; j++)
 			for (int i=0; i<w; i++)
 				data[j*w + i] = drand48()*j*10;
 		
-		for (int x=0; x<15 x++)
+		for (int x=0; x<15; x++)
 			data[x] = 0;
 		
 		
