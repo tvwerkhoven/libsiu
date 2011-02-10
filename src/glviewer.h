@@ -79,8 +79,8 @@ private:
 	bool zoomfit;						//!< Fit image to parent window
 	bool crosshair;					//!< Crosshair toggle
 	
-	std::vector<fdvector_t> boxes;				//!< Draw these extra boxes
-	std::vector<fdvector_t> lines;				//!< Draw these extra lines
+	std::vector<fvector_t> boxes;				//!< Draw these extra boxes
+	std::vector<fvector_t> lines;				//!< Draw these extra lines
 	
 	// OpenGL drawing-related events
 	void on_image_configure_event(GdkEventConfigure *event);
@@ -101,10 +101,12 @@ private:
 public:
 	typedef enum {
 		UNITY=1,		//!< Do not convert
-		GLTOGTK,		//!< Convert OpenGL to GTK coordinates
-		GLTODATA,		//!< Convert OpenGL to data coordinates
-		GTKTOGL,		//!< Convert GTK to OpenGL coordinates
-		GTKTODATA,	//!< Convert GTK to data coordinates
+		GLTOGTK,		//!< OpenGL to GTK coordinates
+		GLTODATA,		//!< OpenGL to data coordinates
+		GTKTOGL,		//!< GTK to OpenGL coordinates
+		GTKTODATA,	//!< GTK to data coordinates
+		DATATOGL,		//!< Data to OpenGL coordinates
+		DATATOGTK		//!< Data to GTK coordinates
 	} map_dir_t;												//!< Transform coordinates
 	
 	//!< Data wrapper
@@ -124,23 +126,24 @@ public:
 	
 	void do_update();
 
-	int map_coord(double inx, double iny, double *outx, double *outy, map_dir_t direction);
-	void setscale(double);
-	void scalestep(double step) { setzoomfit(false); setscale(scale + step); }
-	double getscale() { return scale; }
+	int map_coord(const float inx, const float iny, float * const outx, float * const outy, const map_dir_t direction) const;
+	int map_coord(const double inx, const double iny, double * const outx, double * const outy, const map_dir_t direction) const;
+	void setscale(const double);
+	void scalestep(const double step) { setzoomfit(false); setscale(scale + step); }
+	double getscale() const { return scale; }
 	
-	void addbox(const fdvector_t box, map_dir_t direction=UNITY) { boxes.push_back(box); }
+	void addbox(const fvector_t box, const map_dir_t conv=UNITY);
 	void delbox(const int idx) { boxes.erase (boxes.begin()+idx); }
 	
-	void addline(const fdvector_t line, map_dir_t direction=UNITY) { lines.push_back(line); }
+	void addline(const fvector_t line, const map_dir_t conv=UNITY);
 	void delline(const int idx) { lines.erase (lines.begin()+idx); }
 	
-	void setscalerange(double min, double max) { scalemin = min; scalemax = max; }
-	void setscalerange(double minmax) { scalemax = scalemin = minmax; }
+	void setscalerange(const double min, const double max) { scalemin = min; scalemax = max; }
+	void setscalerange(const double minmax) { scalemax = scalemin = minmax; }
 	
-	void setshift(float, float);
-	void setshift(float s) { setshift(s, s); }
-	void getshift(float *x, float *y) { *x = sx; *y = sy; }
+	void setshift(const float, const float);
+	void setshift(const float s) { setshift(s, s); }
+	void getshift(float * const x, float * const y) { *x = sx; *y = sy; }
 	
 	void setgrid(int, int);
 	void setgrid(int n) { setgrid(n, n); }

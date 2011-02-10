@@ -149,7 +149,15 @@ bool OpenGLImageViewer::on_image_button_event(GdkEventButton *event) {
 	return false;
 }
 
-int OpenGLImageViewer::map_coord(double inx, double iny, double *outx, double *outy, map_dir_t direction) {
+int OpenGLImageViewer::map_coord(const float inx, const float iny, float * const outx, float * const outy, const map_dir_t direction) const {
+	double tmpx, tmpy;
+	int ret = map_coord((double) inx, (double) iny, &tmpx, &tmpy, direction);
+	*outx = (float) tmpx;
+	*outy = (float) tmpy;
+	return ret;
+}
+
+int OpenGLImageViewer::map_coord(const double inx, const double iny, double * const outx, double * const outy, const map_dir_t direction) const {
 	// Translate coordinates from one frame to another
 	if (direction == GTKTOGL) {
 		double s = pow(2.0, scale);	
@@ -176,12 +184,21 @@ int OpenGLImageViewer::map_coord(double inx, double iny, double *outx, double *o
 	else if (direction == GLTODATA) {
 		// OpenGL runs from (-1, -1) to (1, 1) while the data runs from 
 		// (0, 0) to (gl_img.w, gl_img.h)
-		*outx = (inx+1.)/2. * gl_img.w;
-		*outy = (iny+1.)/2. * gl_img.h;
+		*outx = clamp((inx+1.)/2. * gl_img.w, 0.0, gl_img.w);
+		*outy = clamp((iny+1.)/2. * gl_img.h, 0.0, gl_img.h);
 	}
 	else if (direction == GLTOGTK) {
 		// center is at (sx, sy) * s * (gl_img.w, gl_img.h) / 2
 		// 1,1 is at (sx, sy) * s * (gl_img.w, gl_img.h) / 2
+		return -1;
+	}
+	else if (direction == DATATOGL) {
+		// OpenGL runs from (-1, -1) to (1, 1) while the data runs from 
+		// (0, 0) to (gl_img.w, gl_img.h)
+		*outx = inx*2/gl_img.w - 1;
+		*outy = iny*2/gl_img.h - 1;
+	}
+	else if (direction == DATATOGTK) {
 		return -1;
 	}
 	return -1;
@@ -205,6 +222,31 @@ bool OpenGLImageViewer::on_image_scroll_event(GdkEventScroll *event) {
 	
 	return true;
 }
+
+void OpenGLImageViewer::addbox(const fvector_t box, const map_dir_t conv) { 
+	if (conv == UNITY)
+		boxes.push_back(box); 
+	else {
+		fvector_t tmp;
+		map_coord(box.lx, box.ly, &(tmp.lx), &(tmp.ly), conv);
+		map_coord(box.tx, box.ty, &(tmp.tx), &(tmp.ty), conv);
+		boxes.push_back(tmp);
+//		fprintf(stderr, "OpenGLImageViewer::addbox(conv) (%f, %f, %f, %f) -> (%f, %f, %f, %f)\n",
+//						box.lx, box.ly, box.tx, box.ty,
+//						tmp.lx, tmp.ly, tmp.tx, tmp.ty);
+	}
+}
+
+void OpenGLImageViewer::addline(const fvector_t line, const map_dir_t conv) { 
+	if (conv == UNITY)
+		lines.push_back(line); 
+	else {
+		fvector_t tmp;
+		map_coord(line.lx, line.ly, &(tmp.lx), &(tmp.ly), conv);
+		map_coord(line.tx, line.ty, &(tmp.tx), &(tmp.ty), conv);
+		lines.push_back(tmp);
+	}
+}	
 
 void OpenGLImageViewer::setscale(double s) {
 	view_update();
@@ -342,10 +384,10 @@ void OpenGLImageViewer::do_update() {
 	glColor3f(0, 1, 0);
 	for (size_t i=0; i<boxes.size(); i++) { 
 		glBegin(GL_LINE_LOOP);
-		glVertex3f(boxes[i].lx,	              boxes[i].ly, 0.0f);
-		glVertex3f(boxes[i].lx + boxes[i].sx, boxes[i].ly, 0.0f);
-		glVertex3f(boxes[i].lx + boxes[i].sx, boxes[i].ly + boxes[i].sy, 0.0f);
-		glVertex3f(boxes[i].lx              , boxes[i].ly + boxes[i].sy, 0.0f);
+		glVertex3f(boxes[i].lx,	boxes[i].ly, 0.0f);
+		glVertex3f(boxes[i].tx, boxes[i].ly, 0.0f);
+		glVertex3f(boxes[i].tx, boxes[i].ty, 0.0f);
+		glVertex3f(boxes[i].lx, boxes[i].ty, 0.0f);
 		glEnd();
 	}
 	
@@ -353,7 +395,7 @@ void OpenGLImageViewer::do_update() {
 	char label[16];
 	for (size_t i=0; i<boxes.size(); i++) { 
 		glPushMatrix();
-		glTranslatef(boxes[i].lx, boxes[i].ly + boxes[i].sy, 0);
+		glTranslatef(boxes[i].lx, boxes[i].ty, 0);
 		glScalef(0.0001*ww / ((float)cw), 0.0001*wh/((float)ch), 1.0f);
 
 		// Render The Text
@@ -363,15 +405,15 @@ void OpenGLImageViewer::do_update() {
 			glutStrokeCharacter(GLUT_STROKE_ROMAN, *p++);
 		
 		glPopMatrix();
-		// glRasterPos2f(boxes[i].lx, boxes[i].ly + boxes[i].sy);
+		// glRasterPos2f(boxes[i].lx, boxes[i].ty);
 		// glutBitmapString(GLUT_STROKE_ROMAN, format("%d", i));
 	}
 	
 	glBegin(GL_LINES);
 	// Render lines
 	for (size_t i=0; i<lines.size(); i++) { 
-		glVertex3f(lines[i].lx,               lines[i].ly, 0.0f);
-		glVertex3f(lines[i].lx + lines[i].sx, lines[i].ly + lines[i].sy, 0.0f);
+		glVertex3f(lines[i].lx, lines[i].ly, 0.0f);
+		glVertex3f(lines[i].tx, lines[i].ty, 0.0f);
 	}
 	glEnd();
 	
