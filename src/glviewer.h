@@ -26,8 +26,9 @@
 #include <gtkmm.h>
 #include <gtkglmm.h>
 #include <gdkmm/pixbuf.h>
-
 #include <GL/glext.h>
+
+#include "types.h"
 
 // Default scaling steps and range
 const double SCALESTEP = 1.0/3.0;
@@ -40,24 +41,24 @@ const double SCALEMAX = 5.0;
  An OpenGL viewing area with scrolling and zooming implemented.
  
  Coordinates involved:
- gtkimage is the drawing area in the GTK application, with size get_width() 
- and get_height(). We set up a gl viewport with that size to use the whole
- area. The image stretches from (-1,-1) to (1,1) in OpenGL coordinates, 
- and is offset by (sx, sy). To convert from one coordinate system to 
- another, see map_coordinates().
+ - The outer frame is gtkimage, a Gtk::GL::DrawingArea. The size is get_width() by get_height(). Axes increase towards bottom-right
+ - We use a gl viewport matching the size of gtkimage, we map the texture to coordinates (-1, -1) to (1, 1). Axes increase towards top-right
+ - The image (data) is drawn with an offset of (sx, sy) (in OpenGL), data origin is at (-1, -1) (in OpenGL)
+ 
+ To convert from one coordinate system to another, see map_coordinates().
  
  Scale is used for image scaling, which is a logarithmic scale.
  
  Optional overlays include:
  - Crosshair through the middle of the image
  - Grid of lines over the image
- - A small overview of the image when zoomed in (pager)
  
  Other features:
  - Flip horizontal or vertical
  - Zoom in/out/fit to window
  */
 class OpenGLImageViewer: public Gtk::EventBox {
+private:
 	Glib::RefPtr<Gdk::GL::Config> glconfig;	//!< OpenGL configuration
 	Glib::RefPtr<Gdk::GL::Window> glwindow;	//!< OpenGL window
 	Gtk::GL::DrawingArea gtkimage;			//!< GTK drawingarea
@@ -70,22 +71,17 @@ class OpenGLImageViewer: public Gtk::EventBox {
 	float sxstart, systart;	//!< Tracks mouse dragging 
 	gdouble xstart, ystart;	//!< Tracks mouse dragging
 	
-	struct ngrid {
-		ngrid(int i, int j) {
-			x=i;
-			y=j;
-		}
-		int x;
-		int y;
-	} ngrid;								//!< Grid overlay (number of cells)
+	coord_t ngrid;					//!< Grid overlay (number of cells)
 	bool grid;							//!< Overlay grid toggle
 	
 	bool flipv;							//!< Vertical flip toggle
 	bool fliph;							//!< Horizontal flip toggle
 	bool zoomfit;						//!< Fit image to parent window
 	bool crosshair;					//!< Crosshair toggle
-	bool pager;							//!< Pager toggle	
-		
+	
+	std::vector<fdvector_t> boxes;				//!< Draw these extra boxes
+	std::vector<fdvector_t> lines;				//!< Draw these extra lines
+	
 	// OpenGL drawing-related events
 	void on_image_configure_event(GdkEventConfigure *event);
 	void on_image_expose_event(GdkEventExpose *event);
@@ -103,12 +99,13 @@ class OpenGLImageViewer: public Gtk::EventBox {
 	void on_update();
 	
 public:
-	// Transform coordinates direction
 	typedef enum {
-		GLTOGTK=1,
-		GTKTOGL,
-		GTKTODATA
-	} map_dir_t;
+		UNITY=1,		//!< Do not convert
+		GLTOGTK,		//!< Convert OpenGL to GTK coordinates
+		GLTODATA,		//!< Convert OpenGL to data coordinates
+		GTKTOGL,		//!< Convert GTK to OpenGL coordinates
+		GTKTODATA,	//!< Convert GTK to data coordinates
+	} map_dir_t;												//!< Transform coordinates
 	
 	//!< Data wrapper
 	typedef struct {
@@ -132,11 +129,18 @@ public:
 	void scalestep(double step) { setzoomfit(false); setscale(scale + step); }
 	double getscale() { return scale; }
 	
+	void addbox(const fdvector_t box, map_dir_t direction=UNITY) { boxes.push_back(box); }
+	void delbox(const int idx) { boxes.erase (boxes.begin()+idx); }
+	
+	void addline(const fdvector_t line, map_dir_t direction=UNITY) { lines.push_back(line); }
+	void delline(const int idx) { lines.erase (lines.begin()+idx); }
+	
 	void setscalerange(double min, double max) { scalemin = min; scalemax = max; }
 	void setscalerange(double minmax) { scalemax = scalemin = minmax; }
 	
 	void setshift(float, float);
 	void setshift(float s) { setshift(s, s); }
+	void getshift(float *x, float *y) { *x = sx; *y = sy; }
 	
 	void setgrid(int, int);
 	void setgrid(int n) { setgrid(n, n); }
@@ -155,8 +159,8 @@ public:
 	void setcrosshair(bool v = true) { crosshair = v; }
 	bool getcrosshair() { return crosshair; }
 
-	void setpager(bool v = true) { pager = v; }
-	bool getpager() { return pager; }
+//	void setpager(bool v = true) { pager = v; }
+//	bool getpager() { return pager; }
 	
 	void linkData(void *data, int depth, int w, int h);
 };

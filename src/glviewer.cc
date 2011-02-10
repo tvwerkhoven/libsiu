@@ -21,6 +21,8 @@
 #include <iostream>
 #include <cstdlib>
 
+#include "autoconfig.h"
+
 #ifdef HAVE_GL_GL_H
 #include "GL/gl.h"
 #elif HAVE_OPENGL_GL_H
@@ -33,10 +35,17 @@
 #include "OpenGL/glu.h"
 #endif
 
-#include "glviewer.h"
+#ifdef HAVE_GL_GLUT_H
+#include "GL/glut.h"
+#elif HAVE_GLUT_GLUT_H 
+#include "GLUT/glut.h"
+#endif
 
-// TODO: review coordinate systems in use and document
-// TODO: update image shift clamping
+
+#include "glviewer.h"
+#include "types.h"
+
+//! @todo Figure out realization / configure / on_update / do_update
 
 using namespace std;
 using namespace Gtk;
@@ -47,7 +56,7 @@ static double clamp(double val, double min, double max) {
 
 OpenGLImageViewer::OpenGLImageViewer():
 scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX),
-ngrid(8, 8), grid(false), flipv(false), fliph(false), zoomfit(false), crosshair(false), pager(false) 
+ngrid(8, 8), grid(false), flipv(false), fliph(false), zoomfit(false), crosshair(false)
 {
 	glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGBA | Gdk::GL::MODE_DOUBLE);
 	if(!glconfig) {
@@ -66,6 +75,10 @@ ngrid(8, 8), grid(false), flipv(false), fliph(false), zoomfit(false), crosshair(
 	
 	setshift(0.0);
 	setscale(0.0);
+	
+	// Reserve some space for boxes & lines
+	boxes.reserve(128);
+	lines.reserve(128);
 		
 	// Callbacks
 	gtkimage.signal_configure_event().connect_notify(sigc::mem_fun(*this, &OpenGLImageViewer::on_image_configure_event));
@@ -93,39 +106,47 @@ OpenGLImageViewer::~OpenGLImageViewer() {
 }
 
 bool OpenGLImageViewer::on_image_motion_event(GdkEventMotion *event) {
+	// Mouse was moved
 	if (event->type == GDK_MOTION_NOTIFY && (event->state & GDK_BUTTON1_MASK)) {
-		// When the mouse is moved and the mouse key is pressed, drag the image
+		// When the mouse was moved and a mouse key was pressed, drag the image (see on_image_button_event());
 		double s = pow(2.0, scale);	
-		sx = sxstart + 2 * (event->x - xstart) / s / gl_img.w;
-		sy = systart - 2 * (event->y - ystart) / s / gl_img.h;
+		sx = clamp(sxstart + 2 * (event->x - xstart) / s / gl_img.w, -2.0, 2.0);
+		// Use minus for y because OpenGL and GTK coordinate system difference
+		sy = clamp(systart - 2 * (event->y - ystart) / s / gl_img.h, -2.0, 2.0);
 		do_update();
-		return true;
 	}
+	
 	return false;
 }
 
 bool OpenGLImageViewer::on_image_button_event(GdkEventButton *event) {
-	if (event->type == GDK_2BUTTON_PRESS) {
-		// Double-click: reset translation
-		view_update();
-		sx = sy = 0;
-		do_update();
+	// Only works with left mouse button
+	if (event->button == 1) {
+		if (event->type == GDK_2BUTTON_PRESS) {
+			// Double-click: reset translation
+			view_update();
+			sx = sy = 0;
+			do_update();
+			return true;
+		}
+		else if (event->type == GDK_3BUTTON_PRESS) {
+			// Triple-click: reset zoom (3 button implies 2 button)
+			view_update();
+			scale = 0;
+			do_update();		
+			return true;
+		}
+		else {
+			// Normal click: remember current translation, use in on_image_motion_event()
+			view_update();
+			sxstart = sx;
+			systart = sy;
+			xstart = event->x;
+			ystart = event->y;
+			return true;
+		}
 	}
-	else if (event->type == GDK_3BUTTON_PRESS) {
-		// Triple-click: reset translation & zoom
-		view_update();
-		scale = 0;
-		do_update();		
-	}
-	else {
-		// Normal click: remember current translation, use in on_image_motion_event()
-		view_update();
-		sxstart = sx;
-		systart = sy;
-		xstart = event->x;
-		ystart = event->y;
-	}
-	return true;
+	return false;
 }
 
 int OpenGLImageViewer::map_coord(double inx, double iny, double *outx, double *outy, map_dir_t direction) {
@@ -151,6 +172,12 @@ int OpenGLImageViewer::map_coord(double inx, double iny, double *outx, double *o
 		*outx = (tmpx+1)/2. * gl_img.w;
 		*outy = (tmpy+1)/2. * gl_img.h;
 		return 0;
+	}
+	else if (direction == GLTODATA) {
+		// OpenGL runs from (-1, -1) to (1, 1) while the data runs from 
+		// (0, 0) to (gl_img.w, gl_img.h)
+		*outx = (inx+1.)/2. * gl_img.w;
+		*outy = (iny+1.)/2. * gl_img.h;
 	}
 	else if (direction == GLTOGTK) {
 		// center is at (sx, sy) * s * (gl_img.w, gl_img.h) / 2
@@ -190,6 +217,7 @@ void OpenGLImageViewer::setgrid(int nx, int ny) {
 	setgrid(true);
 	ngrid.x = nx;
 	ngrid.y = ny;
+	do_update();
 }
 
 void OpenGLImageViewer::setshift(float x, float y) {
@@ -266,15 +294,13 @@ void OpenGLImageViewer::do_update() {
 		s = pow(2.0, scale);
 	}
 	
+	// Load identity, scale, translate, flip
 	glLoadIdentity();
 	glScalef((float)s * cw / ww, (float)s * ch / wh, 1);
-	//glScalef((float)1, (float)1, 1);
 	
-	// Render image
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	glPushMatrix();
 	glTranslatef(sx, sy, 0);
 	
 	if (fliph)
@@ -282,23 +308,26 @@ void OpenGLImageViewer::do_update() {
 	if (flipv)
 		glScalef(1, -1, 1);
 	
+	// Render image
 	glEnable(GL_TEXTURE_2D);
-	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (s == 1 || s >= 2) ? GL_NEAREST : GL_LINEAR);
 	glBegin(GL_POLYGON);
-	glTexCoord2f(0, 1); glVertex2f(-1, -1);
-	glTexCoord2f(1, 1); glVertex2f(+1, -1);
-	glTexCoord2f(1, 0); glVertex2f(+1, +1);
-	glTexCoord2f(0, 0); glVertex2f(-1, +1);
+	// Old: flip texture coordinates with respect to OpenGL coordinats.
+//	glTexCoord2f(0, 1); glVertex2f(-1, -1);
+//	glTexCoord2f(1, 1); glVertex2f(+1, -1);
+//	glTexCoord2f(1, 0); glVertex2f(+1, +1);
+//	glTexCoord2f(0, 0); glVertex2f(-1, +1);
+
+	// New: Data in same direction as OpenGL (axes increase towards top-right)
+	glTexCoord2f(0, 0); glVertex2f(-1, -1);
+	glTexCoord2f(1, 0); glVertex2f(+1, -1);
+	glTexCoord2f(1, 1); glVertex2f(+1, +1);
+	glTexCoord2f(0, 1); glVertex2f(-1, +1);
 	glEnd();
-	glPopMatrix();
-	
 	glDisable(GL_TEXTURE_2D);
 	
 	// Render crosshair
 	if (crosshair) {
-		glPushMatrix();
-		glTranslatef(sx, sy, 0);
 		glDisable(GL_LINE_SMOOTH);
 		glBegin(GL_LINES);
 		glColor3f(0, 1, 0);
@@ -307,10 +336,48 @@ void OpenGLImageViewer::do_update() {
 		glVertex2f(0, -1);
 		glVertex2f(0, +1);
 		glEnd();
-		glPopMatrix();
 	}
 	
+	// Render boxes
+	glColor3f(0, 1, 0);
+	for (size_t i=0; i<boxes.size(); i++) { 
+		glBegin(GL_LINE_LOOP);
+		glVertex3f(boxes[i].lx,	              boxes[i].ly, 0.0f);
+		glVertex3f(boxes[i].lx + boxes[i].sx, boxes[i].ly, 0.0f);
+		glVertex3f(boxes[i].lx + boxes[i].sx, boxes[i].ly + boxes[i].sy, 0.0f);
+		glVertex3f(boxes[i].lx              , boxes[i].ly + boxes[i].sy, 0.0f);
+		glEnd();
+	}
+	
+	// Render box labels
+	char label[16];
+	for (size_t i=0; i<boxes.size(); i++) { 
+		glPushMatrix();
+		glTranslatef(boxes[i].lx, boxes[i].ly + boxes[i].sy, 0);
+		glScalef(0.0001*ww / ((float)cw), 0.0001*wh/((float)ch), 1.0f);
+
+		// Render The Text
+		snprintf(label, 16, "%zu", i);
+		char *p = label;
+		while (*p != '\0') 
+			glutStrokeCharacter(GLUT_STROKE_ROMAN, *p++);
+		
+		glPopMatrix();
+		// glRasterPos2f(boxes[i].lx, boxes[i].ly + boxes[i].sy);
+		// glutBitmapString(GLUT_STROKE_ROMAN, format("%d", i));
+	}
+	
+	glBegin(GL_LINES);
+	// Render lines
+	for (size_t i=0; i<lines.size(); i++) { 
+		glVertex3f(lines[i].lx,               lines[i].ly, 0.0f);
+		glVertex3f(lines[i].lx + lines[i].sx, lines[i].ly + lines[i].sy, 0.0f);
+	}
+	glEnd();
+	
+	
 	// Render pager, 10% size of original window, 5% from the lower-right corner
+#if 0
 	if (pager && (s * cw > ww || s * ch > wh)) {
 		glPushMatrix();
 		// Reset coordinate system
@@ -345,17 +412,10 @@ void OpenGLImageViewer::do_update() {
 		
 		glPopMatrix();
 	}
+#endif
 	
 	// Render grid overlay
 	if (grid) {
-		glPushMatrix();
-		glTranslatef(sx, sy, 0);
-
-		if (fliph)
-			glScalef(-1, 1, 1);
-		if (flipv)
-			glScalef(1, -1, 1);
-		
 		glDisable(GL_LINE_SMOOTH);
 		glBegin(GL_LINES);
 		glColor3f(0, 1, 0);
@@ -370,7 +430,6 @@ void OpenGLImageViewer::do_update() {
 			glVertex2f(2.0*n/ngrid.x - 1, +1);
 		}
 		glEnd();
-		glPopMatrix();
 	}
 	
 	// Swap buffers.
