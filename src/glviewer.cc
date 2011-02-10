@@ -50,13 +50,14 @@
 using namespace std;
 using namespace Gtk;
 
-static double clamp(double val, double min, double max) {
-	return val < min ? min : val > max ? max : val;
-}
+//static double clamp(const double val, const double min, const double max) {
+//	return val < min ? min : val > max ? max : val;
+//}
 
 OpenGLImageViewer::OpenGLImageViewer():
 scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX),
-ngrid(8, 8), grid(false), flipv(false), fliph(false), zoomfit(false), crosshair(false)
+ngrid(8, 8), grid(false), 
+flipv(false), fliph(false), zoomfit(false), crosshair(false)
 {
 	glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGBA | Gdk::GL::MODE_DOUBLE);
 	if(!glconfig) {
@@ -105,181 +106,15 @@ ngrid(8, 8), grid(false), flipv(false), fliph(false), zoomfit(false), crosshair(
 OpenGLImageViewer::~OpenGLImageViewer() {
 }
 
-bool OpenGLImageViewer::on_image_motion_event(GdkEventMotion *event) {
-	// Mouse was moved
-	if (event->type == GDK_MOTION_NOTIFY && (event->state & GDK_BUTTON1_MASK)) {
-		// When the mouse was moved and a mouse key was pressed, drag the image (see on_image_button_event());
-		double s = pow(2.0, scale);	
-		sx = clamp(sxstart + 2 * (event->x - xstart) / s / gl_img.w, -2.0, 2.0);
-		// Use minus for y because OpenGL and GTK coordinate system difference
-		sy = clamp(systart - 2 * (event->y - ystart) / s / gl_img.h, -2.0, 2.0);
-		do_update();
-	}
-	
-	return false;
-}
+// Draw-related functions
 
-bool OpenGLImageViewer::on_image_button_event(GdkEventButton *event) {
-	// Only works with left mouse button
-	if (event->button == 1) {
-		if (event->type == GDK_2BUTTON_PRESS) {
-			// Double-click: reset translation
-			view_update();
-			sx = sy = 0;
-			do_update();
-		}
-		else if (event->type == GDK_3BUTTON_PRESS) {
-			// Triple-click: reset zoom (3 button implies 2 button)
-			view_update();
-			scale = 0;
-			do_update();		
-		}
-		else {
-			// Normal click: remember current translation, use in on_image_motion_event()
-			view_update();
-			sxstart = sx;
-			systart = sy;
-			xstart = event->x;
-			ystart = event->y;
-		}
-	}
-	return false;
-}
-
-int OpenGLImageViewer::map_coord(const float inx, const float iny, float * const outx, float * const outy, const map_dir_t direction) const {
-	double tmpx, tmpy;
-	int ret = map_coord((double) inx, (double) iny, &tmpx, &tmpy, direction);
-	*outx = (float) tmpx;
-	*outy = (float) tmpy;
-	return ret;
-}
-
-int OpenGLImageViewer::map_coord(const double inx, const double iny, double * const outx, double * const outy, const map_dir_t direction) const {
-	// Translate coordinates from one frame to another
-	if (direction == GTKTOGL) {
-		double s = pow(2.0, scale);	
-		int xfac = (fliph) ? -1 : 1;
-		int yfac = (flipv) ? -1 : 1;
-		
-		*outx = xfac * 2 * (inx - gtkimage.get_width()/2) / s / gl_img.w;
-		*outy = yfac * -1 * 2 * (iny - gtkimage.get_height()/2) / s / gl_img.h;
-		*outx -= xfac * sx;
-		*outy -= yfac * sy;
-		return 0;
-	}
-	else if (direction == GTKTODATA) {
-		double tmpx, tmpy;
-		// First convert to OpenGL (-1 to 1)
-		map_coord(inx, iny, &tmpx, &tmpy, GTKTOGL);
-		if (fabs(tmpx) > 1.0 || fabs(tmpy) > 1.0)
-			return -1;
-		// Now multiply with data size
-		*outx = (tmpx+1)/2. * gl_img.w;
-		*outy = (tmpy+1)/2. * gl_img.h;
-		return 0;
-	}
-	else if (direction == GLTODATA) {
-		// OpenGL runs from (-1, -1) to (1, 1) while the data runs from 
-		// (0, 0) to (gl_img.w, gl_img.h)
-		*outx = clamp((inx+1.)/2. * gl_img.w, 0.0, gl_img.w);
-		*outy = clamp((iny+1.)/2. * gl_img.h, 0.0, gl_img.h);
-	}
-	else if (direction == GLTOGTK) {
-		// center is at (sx, sy) * s * (gl_img.w, gl_img.h) / 2
-		// 1,1 is at (sx, sy) * s * (gl_img.w, gl_img.h) / 2
-		return -1;
-	}
-	else if (direction == DATATOGL) {
-		// OpenGL runs from (-1, -1) to (1, 1) while the data runs from 
-		// (0, 0) to (gl_img.w, gl_img.h)
-		*outx = inx*2/gl_img.w - 1;
-		*outy = iny*2/gl_img.h - 1;
-	}
-	else if (direction == DATATOGTK) {
-		return -1;
-	}
-	return -1;
-}
-
-void OpenGLImageViewer::linkData(void *data, int depth, int w, int h) {
-	// Link to new data
-	gl_img.d = depth;
-	gl_img.w = w;
-	gl_img.h = h;
-	gl_img.data = data;
-	// Update frame
+void OpenGLImageViewer::on_image_configure_event(GdkEventConfigure *event) {
 	on_update();
-}
-
-bool OpenGLImageViewer::on_image_scroll_event(GdkEventScroll *event) {
-	if(event->direction == GDK_SCROLL_UP)
-		on_zoomin_activate();
-	else if(event->direction == GDK_SCROLL_DOWN)
-		on_zoomout_activate();
-	
-	return true;
-}
-
-void OpenGLImageViewer::addbox(const fvector_t box, const map_dir_t conv) { 
-	if (conv == UNITY)
-		boxes.push_back(box); 
-	else {
-		fvector_t tmp;
-		map_coord(box.lx, box.ly, &(tmp.lx), &(tmp.ly), conv);
-		map_coord(box.tx, box.ty, &(tmp.tx), &(tmp.ty), conv);
-		boxes.push_back(tmp);
-//		fprintf(stderr, "OpenGLImageViewer::addbox(conv) (%f, %f, %f, %f) -> (%f, %f, %f, %f)\n",
-//						box.lx, box.ly, box.tx, box.ty,
-//						tmp.lx, tmp.ly, tmp.tx, tmp.ty);
-	}
-}
-
-int OpenGLImageViewer::inbox(const double x, const double y) const {
-	// Convert input coordinates (GTK) to GL coordinates
-	double glx, gly;
-	map_coord(x, y, &glx, &gly, GTKTOGL);
-
-	// Loop over all boxes, return index when found
-	for (size_t i=0; i<boxes.size(); i++) { 
-		if (glx >= boxes[i].lx &&
-				glx <= boxes[i].tx &&
-				gly >= boxes[i].ly &&
-				gly <= boxes[i].ty)
-			return i;
-	}
-	// Not found
-	return -1;
-}
-
-void OpenGLImageViewer::addline(const fvector_t line, const map_dir_t conv) { 
-	if (conv == UNITY)
-		lines.push_back(line); 
-	else {
-		fvector_t tmp;
-		map_coord(line.lx, line.ly, &(tmp.lx), &(tmp.ly), conv);
-		map_coord(line.tx, line.ty, &(tmp.tx), &(tmp.ty), conv);
-		lines.push_back(tmp);
-	}
-}	
-
-void OpenGLImageViewer::setscale(double s) {
-	view_update();
-	scale = clamp(s, scalemin, scalemax);
 	do_update();
 }
 
-void OpenGLImageViewer::setgrid(int nx, int ny) {
-	// Overlay a grid of nx by ny cells over the image
-	setgrid(true);
-	ngrid.x = nx;
-	ngrid.y = ny;
-	do_update();
-}
-
-void OpenGLImageViewer::setshift(float x, float y) {
-	view_update();
-	sx = clamp(x, -1, 1);
-	sy = clamp(y, -1, 1);
+void OpenGLImageViewer::on_image_expose_event(GdkEventExpose *event) {
+	on_update();
 	do_update();
 }
 
@@ -301,15 +136,14 @@ void OpenGLImageViewer::on_image_realize() {
 	glwindow->gl_end();
 }
 
-
-void OpenGLImageViewer::on_image_configure_event(GdkEventConfigure *event) {
+void OpenGLImageViewer::link_data(const void *const data, const int depth, const int w, const int h) {
+	// Link to new data
+	gl_img.d = depth;
+	gl_img.w = w;
+	gl_img.h = h;
+	gl_img.data = data;
+	// Update frame
 	on_update();
-	do_update();
-}
-
-void OpenGLImageViewer::on_image_expose_event(GdkEventExpose *event) {
-	on_update();
-	do_update();
 }
 
 void OpenGLImageViewer::on_update() {
@@ -336,14 +170,14 @@ void OpenGLImageViewer::do_update() {
 	glViewport(0, 0, ww, wh);
 	
 	// Image scaling and centering
-	float cw = gl_img.w;
-	float ch = gl_img.h;
-	float mwh = min(ww, wh);
-
-	float s;
+	double cw = gl_img.w;
+	double ch = gl_img.h;
+	double mwh = min(ww, wh);
+	
+	double s;
 	
 	if (zoomfit) {
-		s = min((float)ww / cw, (float)wh / ch);
+		s = min((double)ww / cw, (double)wh / ch);
 		scale = log(s)/log(2.0);
 		sx = sy = 0;
 	} else {
@@ -352,7 +186,7 @@ void OpenGLImageViewer::do_update() {
 	
 	// Load identity, scale, translate, flip
 	glLoadIdentity();
-	glScalef((float)s * cw / ww, (float)s * ch / wh, 1);
+	glScalef((double)s * cw / ww, (double)s * ch / wh, 1);
 	
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -369,11 +203,11 @@ void OpenGLImageViewer::do_update() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (s == 1 || s >= 2) ? GL_NEAREST : GL_LINEAR);
 	glBegin(GL_POLYGON);
 	// Old: flip texture coordinates with respect to OpenGL coordinats.
-//	glTexCoord2f(0, 1); glVertex2f(-1, -1);
-//	glTexCoord2f(1, 1); glVertex2f(+1, -1);
-//	glTexCoord2f(1, 0); glVertex2f(+1, +1);
-//	glTexCoord2f(0, 0); glVertex2f(-1, +1);
-
+	//	glTexCoord2f(0, 1); glVertex2f(-1, -1);
+	//	glTexCoord2f(1, 1); glVertex2f(+1, -1);
+	//	glTexCoord2f(1, 0); glVertex2f(+1, +1);
+	//	glTexCoord2f(0, 0); glVertex2f(-1, +1);
+	
 	// New: Data in same direction as OpenGL (axes increase towards top-right)
 	glTexCoord2f(0, 0); glVertex2f(-1, -1);
 	glTexCoord2f(1, 0); glVertex2f(+1, -1);
@@ -410,8 +244,8 @@ void OpenGLImageViewer::do_update() {
 	for (size_t i=0; i<boxes.size(); i++) { 
 		glPushMatrix();
 		glTranslatef(boxes[i].lx, boxes[i].ty, 0);
-		glScalef(0.0001*ww / ((float)cw), 0.0001*wh/((float)ch), 1.0f);
-
+		glScalef(0.0001*ww / ((double)cw), 0.0001*wh/((double)ch), 1.0f);
+		
 		// Render The Text
 		snprintf(label, 16, "%zu", i);
 		char *p = label;
@@ -456,7 +290,7 @@ void OpenGLImageViewer::do_update() {
 		
 		// Draw image contour
 		glTranslatef(sx, sy, 0);
-		//glScalef((float)s * cw / ww, (float)s * ch / wh, 1);
+		//glScalef((double)s * cw / ww, (double)s * ch / wh, 1);
 		glScalef(ww / cw / s, wh / ch / s, 1);
 		glBegin(GL_POLYGON);
 		glColor3f(0, 1, 1);
@@ -496,3 +330,174 @@ void OpenGLImageViewer::do_update() {
 	
 	glwindow->gl_end();
 }
+
+// Mouse-related events
+
+bool OpenGLImageViewer::on_image_motion_event(GdkEventMotion *event) {
+	// Mouse was moved
+	if (event->type == GDK_MOTION_NOTIFY && (event->state & GDK_BUTTON1_MASK)) {
+		// When the mouse was moved and a mouse key was pressed, drag the image (see on_image_button_event());
+		double s = pow(2.0, scale);	
+		sx = clamp(sxstart + 2 * (event->x - xstart) / s / gl_img.w, -2.0, 2.0);
+		// Use minus for y because OpenGL and GTK coordinate system difference
+		sy = clamp(systart - 2 * (event->y - ystart) / s / gl_img.h, -2.0, 2.0);
+		do_update();
+	}
+	
+	return false;
+}
+
+bool OpenGLImageViewer::on_image_button_event(GdkEventButton *event) {
+	// Only works with left mouse button
+	if (event->button == 1) {
+		if (event->type == GDK_2BUTTON_PRESS) {
+			// Double-click: reset translation
+			view_update();
+			sx = sy = 0;
+			do_update();
+		}
+		else if (event->type == GDK_3BUTTON_PRESS) {
+			// Triple-click: reset zoom (3 button implies 2 button)
+			view_update();
+			scale = 0;
+			do_update();		
+		}
+		else {
+			// Normal click: remember current translation, use in on_image_motion_event()
+			view_update();
+			sxstart = sx;
+			systart = sy;
+			xstart = event->x;
+			ystart = event->y;
+		}
+	}
+	return false;
+}
+
+bool OpenGLImageViewer::on_image_scroll_event(GdkEventScroll *event) {
+	if(event->direction == GDK_SCROLL_UP)
+		on_zoomin_activate();
+	else if(event->direction == GDK_SCROLL_DOWN)
+		on_zoomout_activate();
+	
+	return true;
+}
+
+// Other functions
+// ==============
+
+int OpenGLImageViewer::map_coord(const float inx, const float iny, float * const outx, float * const outy, const map_dir_t direction) const {
+	double tmpx, tmpy;
+	int ret = map_coord((double) inx, (double) iny, &tmpx, &tmpy, direction);
+	*outx = (float) tmpx;
+	*outy = (float) tmpy;
+	return ret;
+}
+
+int OpenGLImageViewer::map_coord(const double inx, const double iny, double * const outx, double * const outy, const map_dir_t direction) const {
+	// Translate coordinates from one frame to another
+	if (direction == GTKTOGL) {
+		double s = pow(2.0, scale);	
+		int xfac = (fliph) ? -1 : 1;
+		int yfac = (flipv) ? -1 : 1;
+		
+		*outx = xfac * 2 * (inx - gtkimage.get_width()/2) / s / gl_img.w;
+		*outy = yfac * -1 * 2 * (iny - gtkimage.get_height()/2) / s / gl_img.h;
+		*outx -= xfac * sx;
+		*outy -= yfac * sy;
+		return 0;
+	}
+	else if (direction == GTKTODATA) {
+		double tmpx, tmpy;
+		// First convert to OpenGL (-1 to 1)
+		map_coord(inx, iny, &tmpx, &tmpy, GTKTOGL);
+		if (fabs(tmpx) > 1.0 || fabs(tmpy) > 1.0)
+			return -1;
+		// Now multiply with data size
+		*outx = (tmpx+1)/2. * gl_img.w;
+		*outy = (tmpy+1)/2. * gl_img.h;
+		return 0;
+	}
+	else if (direction == GLTODATA) {
+		// OpenGL runs from (-1, -1) to (1, 1) while the data runs from 
+		// (0, 0) to (gl_img.w, gl_img.h)
+		*outx = clamp((inx+1.)/2. * gl_img.w, 0.0, (double)gl_img.w);
+		*outy = clamp((iny+1.)/2. * gl_img.h, 0.0, (double)gl_img.h);
+	}
+	else if (direction == GLTOGTK) {
+		// center is at (sx, sy) * s * (gl_img.w, gl_img.h) / 2
+		// 1,1 is at (sx, sy) * s * (gl_img.w, gl_img.h) / 2
+		return -1;
+	}
+	else if (direction == DATATOGL) {
+		// OpenGL runs from (-1, -1) to (1, 1) while the data runs from 
+		// (0, 0) to (gl_img.w, gl_img.h)
+		*outx = inx*2/gl_img.w - 1;
+		*outy = iny*2/gl_img.h - 1;
+	}
+	else if (direction == DATATOGTK) {
+		return -1;
+	}
+	return -1;
+}
+
+void OpenGLImageViewer::addbox(const fvector_t box, const map_dir_t conv) { 
+	if (conv == UNITY)
+		boxes.push_back(box); 
+	else {
+		fvector_t tmp;
+		map_coord(box.lx, box.ly, &(tmp.lx), &(tmp.ly), conv);
+		map_coord(box.tx, box.ty, &(tmp.tx), &(tmp.ty), conv);
+		boxes.push_back(tmp);
+	}
+}
+
+int OpenGLImageViewer::inbox(const double x, const double y) const {
+	// Convert input coordinates (GTK) to GL coordinates
+	double glx, gly;
+	map_coord(x, y, &glx, &gly, GTKTOGL);
+
+	// Loop over all boxes, return index when found
+	for (size_t i=0; i<boxes.size(); i++) { 
+		if (glx >= boxes[i].lx &&
+				glx <= boxes[i].tx &&
+				gly >= boxes[i].ly &&
+				gly <= boxes[i].ty)
+			return i;
+	}
+	// Not found
+	return -1;
+}
+
+void OpenGLImageViewer::addline(const fvector_t line, const map_dir_t conv) { 
+	if (conv == UNITY)
+		lines.push_back(line); 
+	else {
+		fvector_t tmp;
+		map_coord(line.lx, line.ly, &(tmp.lx), &(tmp.ly), conv);
+		map_coord(line.tx, line.ty, &(tmp.tx), &(tmp.ty), conv);
+		lines.push_back(tmp);
+	}
+}	
+
+void OpenGLImageViewer::setscale(const double s) {
+	view_update();
+	scale = clamp(s, scalemin, scalemax);
+	do_update();
+}
+
+void OpenGLImageViewer::setgrid(const int nx, const int ny) {
+	// Overlay a grid of nx by ny cells over the image
+	setgrid(true);
+	ngrid.x = nx;
+	ngrid.y = ny;
+	do_update();
+}
+
+void OpenGLImageViewer::setshift(const double x, const double y) {
+	view_update();
+	sx = clamp(x, -1.0, 1.0);
+	sy = clamp(y, -1.0, 1.0);
+	do_update();
+}
+

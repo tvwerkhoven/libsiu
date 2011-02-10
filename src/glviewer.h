@@ -45,7 +45,7 @@ const double SCALEMAX = 5.0;
  - We use a gl viewport matching the size of gtkimage, we map the texture to coordinates (-1, -1) to (1, 1). Axes increase towards top-right
  - The image (data) is drawn with an offset of (sx, sy) (in OpenGL), data origin is at (-1, -1) (in OpenGL)
  
- To convert from one coordinate system to another, see map_coordinates().
+ To convert from one coordinate system to another, see map_coordinates() and map_dir_t.
  
  Scale is used for image scaling, which is a logarithmic scale.
  
@@ -56,6 +56,8 @@ const double SCALEMAX = 5.0;
  Other features:
  - Flip horizontal or vertical
  - Zoom in/out/fit to window
+ - Add boxes and/or lines with addbox(), addline() for overlays.
+ 
  */
 class OpenGLImageViewer: public Gtk::EventBox {
 private:
@@ -63,13 +65,13 @@ private:
 	Glib::RefPtr<Gdk::GL::Window> glwindow;	//!< OpenGL window
 	Gtk::GL::DrawingArea gtkimage;			//!< GTK drawingarea
 	
+	double sx, sy;						//!< Current image displacement
+	double sxstart, systart;	//!< Tracks mouse dragging 
+	gdouble xstart, ystart;	//!< Tracks mouse dragging
+	
 	double scale;						//!< Tracks image scaling (zooming)
 	double scalemin;				//!< Scale range min
 	double scalemax;				//!< Scale range max
-	
-	float sx, sy;						//!< Current image displacement
-	float sxstart, systart;	//!< Tracks mouse dragging 
-	gdouble xstart, ystart;	//!< Tracks mouse dragging
 	
 	coord_t ngrid;					//!< Grid overlay (number of cells)
 	bool grid;							//!< Overlay grid toggle
@@ -88,9 +90,9 @@ private:
 	void on_image_realize();
 	
 	// Scroll & zoom events
-	bool on_image_scroll_event(GdkEventScroll *event);
-	bool on_image_button_event(GdkEventButton *event);
 	bool on_image_motion_event(GdkEventMotion *event);
+	bool on_image_button_event(GdkEventButton *event);
+	bool on_image_scroll_event(GdkEventScroll *event);
 	
 	// Zoom step functions
 	void on_zoomin_activate() { scalestep(-SCALESTEP); }
@@ -114,7 +116,7 @@ public:
 		uint16_t d;	//!< Depth (8 or 16)
 		uint16_t w;	//!< Width in pixels
 		uint16_t h;	//!< Height in pixels
-		void *data;	//!< Pointer to data (should be contiguous)
+		const void *data;	//!< Pointer to data (should be contiguous)
 	} gl_img_t;
 	
 	gl_img_t gl_img;
@@ -125,54 +127,54 @@ public:
 	~OpenGLImageViewer();
 	
 	void do_update();
+	
+	void link_data(const void * const data, const int depth, const int w, const int h);
 
 	int map_coord(const float inx, const float iny, float * const outx, float * const outy, const map_dir_t direction) const;
 	int map_coord(const double inx, const double iny, double * const outx, double * const outy, const map_dir_t direction) const;
-	void setscale(const double);
-	void scalestep(const double step) { setzoomfit(false); setscale(scale + step); }
-	double getscale() const { return scale; }
-	
 	//!< Add an overlay box
 	void addbox(const fvector_t box, const map_dir_t conv=UNITY);
 	//!< Remove an overlay box by index number
-	void delbox(const int idx) { boxes.erase (boxes.begin()+idx); }
+	void delbox(const size_t idx) { boxes.erase (boxes.begin()+idx); }
 	//!< Check whether (x,y) is inside a box, return index. Must be GTK coordinates!
 	int inbox(const double x, const double y) const;
 	//!< Return box with index idx
-	fvector_t getbox(const int x) const { return boxes[x]; }
+	fvector_t getbox(const size_t idx) const { return boxes[idx]; }
 	
+	//!< Add an overlay line
 	void addline(const fvector_t line, const map_dir_t conv=UNITY);
-	void delline(const int idx) { lines.erase (lines.begin()+idx); }
-	fvector_t getline(const int x) const { return lines[x]; }
+	//!< Remove an overlay line by index number
+	void delline(const size_t idx) { lines.erase (lines.begin()+idx); }
+	//!< Return line with index idx 
+	fvector_t getline(const size_t idx) const { return lines[idx]; }
 	
+	void setscale(const double);
+	void scalestep(const double step) { setzoomfit(false); setscale(scale + step); }
+	double getscale() const { return scale; }
+		
 	void setscalerange(const double min, const double max) { scalemin = min; scalemax = max; }
 	void setscalerange(const double minmax) { scalemax = scalemin = minmax; }
 	
-	void setshift(const float, const float);
-	void setshift(const float s) { setshift(s, s); }
-	void getshift(float * const x, float * const y) { *x = sx; *y = sy; }
+	void setshift(const double, const double);
+	void setshift(const double s) { setshift(s, s); }
+	void getshift(double * const x, double * const y) { *x = sx; *y = sy; }
 	
-	void setgrid(int, int);
-	void setgrid(int n) { setgrid(n, n); }
-	void setgrid(bool v = true) { grid = v; }
-	bool getgrid() { return grid; }
+	void setgrid(const int, const int);
+	void setgrid(const int n) { setgrid(n, n); }
+	void setgrid(const bool v = true) { grid = v; }
+	bool getgrid() const { return grid; }
 	
-	void setflipv(bool v = true) { flipv = v; }
-	bool getflipv() { return flipv; }
+	void setflipv(const bool v = true) { flipv = v; }
+	bool getflipv() const { return flipv; }
 	
-	void setfliph(bool v = true) { fliph = v; }
-	bool getfliph() { return fliph; }
+	void setfliph(const bool v = true) { fliph = v; }
+	bool getfliph() const { return fliph; }
 	
-	void setzoomfit(bool v = true) { zoomfit = v; }
-	bool getzoomfit() { return zoomfit; }
+	void setzoomfit(const bool v = true) { zoomfit = v; }
+	bool getzoomfit() const { return zoomfit; }
 
-	void setcrosshair(bool v = true) { crosshair = v; }
-	bool getcrosshair() { return crosshair; }
-
-//	void setpager(bool v = true) { pager = v; }
-//	bool getpager() { return pager; }
-	
-	void linkData(void *data, int depth, int w, int h);
+	void setcrosshair(const bool v = true) { crosshair = v; }
+	bool getcrosshair() const { return crosshair; }
 };
 
 
