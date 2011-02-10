@@ -120,7 +120,7 @@ void Simple::on_render() {
 		for (int j=0; j<w; j++)
 			data[i*w + j] = 255 * 8 * sqrt(pow(i,2) + pow(j,2)) / sqrt(pow(w,2) + pow(h,2));
 	
-	glarea.linkData((void *) data, d, w, h);
+	glarea.link_data((void *) data, d, w, h);
 }
 
 bool Simple::on_image_button_event(GdkEventButton *event) {
@@ -149,7 +149,7 @@ bool Simple::on_image_motion_event(GdkEventMotion *event) {
 		pix = datax = datay = -1.0;
 	
 	// Get image shift
-	float xx, yy;
+	double xx, yy;
 	glarea.getshift(&xx, &yy);
 	
 	// Set statusbar text
