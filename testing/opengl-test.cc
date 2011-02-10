@@ -127,7 +127,8 @@ bool Simple::on_image_button_event(GdkEventButton *event) {
 	fprintf(stderr, "Simple::on_image_button_event()\n");
 	if (event->button == 3) {
 		// Right-mouse click
-		fprintf(stderr, "Simple::on_image_button_event() right mouse\n");
+		int boxidx = glarea.inbox(event->x, event->y);
+		fprintf(stderr, "Simple::on_image_button_event() right mouse in box %d\n", boxidx);
 	}
 	return false;
 }
