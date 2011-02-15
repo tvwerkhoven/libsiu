@@ -50,10 +50,6 @@
 using namespace std;
 using namespace Gtk;
 
-//static double clamp(const double val, const double min, const double max) {
-//	return val < min ? min : val > max ? max : val;
-//}
-
 OpenGLImageViewer::OpenGLImageViewer():
 scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX),
 ngrid(8, 8), grid(false), 

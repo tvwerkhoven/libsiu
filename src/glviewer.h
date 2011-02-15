@@ -28,6 +28,26 @@
 #include <gdkmm/pixbuf.h>
 #include <GL/glext.h>
 
+#include "autoconfig.h"
+
+#ifdef HAVE_GL_GL_H
+#include "GL/gl.h"
+#elif HAVE_OPENGL_GL_H
+#include "OpenGL/gl.h"
+#endif
+
+#ifdef HAVE_GL_GLU_H
+#include "GL/glu.h"
+#elif HAVE_OPENGL_GLU_H 
+#include "OpenGL/glu.h"
+#endif
+
+#ifdef HAVE_GL_GLUT_H
+#include "GL/glut.h"
+#elif HAVE_GLUT_GLUT_H 
+#include "GLUT/glut.h"
+#endif
+
 #include "types.h"
 
 // Default scaling steps and range

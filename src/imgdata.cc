@@ -33,7 +33,7 @@
 #if HAVE_ICS
 #include <libics.h>
 #endif
-#if HAVE_FITS
+#if HAVE_CFITSIO
 #include <fitsio.h>
 #endif
 #if HAVE_GSL
@@ -47,13 +47,13 @@
 //! @todo handle errors better, set data to NULL on failure
 
 ImgData::ImgData(Io &io): 
-havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS),
+havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS),
 io(io), err(ERR_NO_ERROR)
 { ; }
 	
 // Constructors from file
 ImgData::ImgData(Io &io, const std::string f, imgtype_t t): 
-havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS),
+havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS),
 io(io), finfo(Path(f), t), err(ERR_NO_ERROR)
 {
 	io.msg(IO_DEB2, "ImgData::ImgData() new from file.");
@@ -63,7 +63,7 @@ io(io), finfo(Path(f), t), err(ERR_NO_ERROR)
 }
 
 ImgData::ImgData(Io &io, const Path f, imgtype_t t): 
-havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS),
+havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS),
 io(io), finfo(Path(f), t), err(ERR_NO_ERROR)
 {
 	io.msg(IO_DEB2, "ImgData::ImgData() new from file.");
@@ -75,7 +75,7 @@ io(io), finfo(Path(f), t), err(ERR_NO_ERROR)
 // Constructors from GSL data
 #if HAVE_GSL
 ImgData::ImgData(Io &io, const gsl_matrix *m, const bool copy):
-havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS),
+havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS),
 io(io), err(ERR_NO_ERROR)
 {
 	io.msg(IO_DEB2, "ImgData::ImgData(gsl_matrix, cp=%d)", copy);
@@ -87,7 +87,7 @@ io(io), err(ERR_NO_ERROR)
 }
 
 ImgData::ImgData(Io &io, const gsl_matrix_float *m, const bool copy):
-havegsl(HAVE_GSL), havefits(HAVE_FITS), havepgm(true), haveics(HAVE_ICS),
+havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS),
 io(io), err(ERR_NO_ERROR)
 {
 	io.msg(IO_DEB2, "ImgData::ImgData(gsl_matrix_float, cp=%d)", copy);
@@ -481,7 +481,7 @@ int ImgData::writedata(const Path &f, const imgtype_t t, const bool overwrite) {
 	}
 }
 
-#if HAVE_FITS
+#if HAVE_CFITSIO
 int ImgData::loadFITS(const Path &file) {
 	io.msg(IO_DEB2, "ImgData::loadFITS(): %s", file.c_str());
 	fitsfile *fptr;
@@ -599,7 +599,7 @@ int ImgData::loadFITS(const Path &file) {
 int ImgData::loadFITS(const Path &file) {
 	return io.msg(IO_ERR, "ImgData::loadFITS(): not supported, library was not available during compilation.");
 }
-#endif // HAVE_FITS
+#endif // HAVE_CFITSIO
 
 #if HAVE_ICS
 int ImgData::loadICS(const Path &file) {
@@ -789,7 +789,7 @@ int ImgData::loadGSL(const Path & /* file */) {
 }
 #endif // HAVE_GSL
 
-#if HAVE_FITS
+#if HAVE_CFITSIO
 int ImgData::writeFITS(const Path &file) {
 	io.msg(IO_XNFO, "ImgData::writeFITS('%s')", file.c_str());
 	
@@ -848,7 +848,7 @@ int ImgData::writeFITS(const Path&) {
 	return io.msg(IO_ERR, "ImgData::writeFITS() not supported, library was not available during compilation.");
 	
 }
-#endif // HAVE_FITS
+#endif // HAVE_CFITSIO
 
 #if HAVE_ICS
 int ImgData::writeICS(const Path& /* file */) {

@@ -54,8 +54,8 @@ PKG_CHECK_MODULES(GSL, [gsl],
 	[have_gsl=false; AC_DEFINE([HAVE_GSL], [0], [ImgData does not supports GSL data.])])
 
 AC_SEARCH_LIBS([ffopen], [cfitsio], 
-	[have_fitsio=true; imgdata_types+="fits "; AC_DEFINE([HAVE_FITS], [1], [ImgData supports FITS data.])],
-	[have_fitsio=false; AC_DEFINE([HAVE_FITS], [0], [ImgData does not supports FITS data.])])
+	[have_cfitsio=true; imgdata_types+="fits "; AC_DEFINE([HAVE_CFITSIO], [1], [ImgData supports FITS data.])],
+	[have_cfitsio=false; AC_DEFINE([HAVE_CFITSIO], [0], [ImgData does not supports FITS data.])])
 
 AC_SEARCH_LIBS([deflate], [z],
 		[have_z=true],
