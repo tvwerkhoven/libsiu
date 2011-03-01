@@ -43,6 +43,7 @@
 
 
 #include "glviewer.h"
+#include "pthread++.h"
 #include "types.h"
 
 //! @todo Figure out realization / configure / on_update / do_update
@@ -53,7 +54,8 @@ using namespace Gtk;
 OpenGLImageViewer::OpenGLImageViewer():
 scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX),
 ngrid(8, 8), grid(false), 
-flipv(false), fliph(false), zoomfit(false), crosshair(false)
+flipv(false), fliph(false), zoomfit(false), crosshair(false),
+gl_img()
 {
 	glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGBA | Gdk::GL::MODE_DOUBLE);
 	if(!glconfig) {
@@ -65,10 +67,6 @@ flipv(false), fliph(false), zoomfit(false), crosshair(false)
 	
 	gtkimage.set_gl_capability(glconfig);
 	gtkimage.set_double_buffered(false);
-	
-	// Init with empty image
-	gl_img.d = gl_img.w = gl_img.h = 0;
-	gl_img.data = NULL;
 	
 	setshift(0.0);
 	setscale(0.0);
@@ -224,42 +222,47 @@ void OpenGLImageViewer::do_update() {
 		glEnd();
 	}
 	
-	// Render boxes
-	glColor3f(0, 1, 0);
-	for (size_t i=0; i<boxes.size(); i++) { 
-		glBegin(GL_LINE_LOOP);
-		glVertex3f(boxes[i].lx,	boxes[i].ly, 0.0f);
-		glVertex3f(boxes[i].tx, boxes[i].ly, 0.0f);
-		glVertex3f(boxes[i].tx, boxes[i].ty, 0.0f);
-		glVertex3f(boxes[i].lx, boxes[i].ty, 0.0f);
+	{
+		pthread::mutexholder h(&gui_mutex); 
+
+		// Render boxes (in DATA coordinates, convert to GL!)
+		glColor3f(0, 1, 0);
+		for (size_t i=0; i<boxes.size(); i++) { 
+			glBegin(GL_LINE_LOOP);
+			glVertex3f(boxes[i].lx*2.0/cw-1.0, boxes[i].ly*2.0/ch-1.0, 0.0f);
+			glVertex3f(boxes[i].tx*2.0/cw-1.0, boxes[i].ly*2.0/ch-1.0, 0.0f);
+			glVertex3f(boxes[i].tx*2.0/cw-1.0, boxes[i].ty*2.0/ch-1.0, 0.0f);
+			glVertex3f(boxes[i].lx*2.0/cw-1.0, boxes[i].ty*2.0/ch-1.0, 0.0f);
+			glEnd();
+		}
+		
+		// Render box labels
+		char label[16];
+		for (size_t i=0; i<boxes.size(); i++) { 
+			glPushMatrix();
+			glTranslatef(boxes[i].lx*2.0/cw-1.0, boxes[i].ty*2.0/ch-1.0, 0);
+			glScalef(0.0001*ww / ((double)cw), 0.0001*wh/((double)ch), 1.0f);
+			
+			// Render The Text
+			snprintf(label, 16, "%zu", i);
+			char *p = label;
+			while (*p != '\0') 
+				glutStrokeCharacter(GLUT_STROKE_ROMAN, *p++);
+			
+			glPopMatrix();
+			// glRasterPos2f(boxes[i].lx, boxes[i].ty);
+			// glutBitmapString(GLUT_STROKE_ROMAN, format("%d", i));
+		}
+		
+		glBegin(GL_LINES);
+		// Render lines (in DATA coordinates, convert to GL!)
+		for (size_t i=0; i<lines.size(); i++) { 
+			glVertex3f(lines[i].lx*2.0/cw-1.0, lines[i].ly*2.0/ch-1.0, 0.0f);
+			glVertex3f(lines[i].tx*2.0/cw-1.0, lines[i].ty*2.0/ch-1.0, 0.0f);
+		}
 		glEnd();
-	}
-	
-	// Render box labels
-	char label[16];
-	for (size_t i=0; i<boxes.size(); i++) { 
-		glPushMatrix();
-		glTranslatef(boxes[i].lx, boxes[i].ty, 0);
-		glScalef(0.0001*ww / ((double)cw), 0.0001*wh/((double)ch), 1.0f);
 		
-		// Render The Text
-		snprintf(label, 16, "%zu", i);
-		char *p = label;
-		while (*p != '\0') 
-			glutStrokeCharacter(GLUT_STROKE_ROMAN, *p++);
-		
-		glPopMatrix();
-		// glRasterPos2f(boxes[i].lx, boxes[i].ty);
-		// glutBitmapString(GLUT_STROKE_ROMAN, format("%d", i));
-	}
-	
-	glBegin(GL_LINES);
-	// Render lines
-	for (size_t i=0; i<lines.size(); i++) { 
-		glVertex3f(lines[i].lx, lines[i].ly, 0.0f);
-		glVertex3f(lines[i].tx, lines[i].ty, 0.0f);
-	}
-	glEnd();
+	} // end of gui_mutex;
 	
 	
 	// Render pager, 10% size of original window, 5% from the lower-right corner
@@ -402,8 +405,7 @@ int OpenGLImageViewer::map_coord(const double inx, const double iny, double * co
 		*outx -= xfac * sx;
 		*outy -= yfac * sy;
 		return 0;
-	}
-	else if (direction == GTKTODATA) {
+	} else if (direction == GTKTODATA) {
 		double tmpx, tmpy;
 		// First convert to OpenGL (-1 to 1)
 		map_coord(inx, iny, &tmpx, &tmpy, GTKTOGL);
@@ -413,45 +415,30 @@ int OpenGLImageViewer::map_coord(const double inx, const double iny, double * co
 		*outx = (tmpx+1)/2. * gl_img.w;
 		*outy = (tmpy+1)/2. * gl_img.h;
 		return 0;
-	}
-	else if (direction == GLTODATA) {
+	} else if (direction == GLTODATA) {
 		// OpenGL runs from (-1, -1) to (1, 1) while the data runs from 
 		// (0, 0) to (gl_img.w, gl_img.h)
 		*outx = clamp((inx+1.)/2. * gl_img.w, 0.0, (double)gl_img.w);
 		*outy = clamp((iny+1.)/2. * gl_img.h, 0.0, (double)gl_img.h);
-	}
-	else if (direction == GLTOGTK) {
+	} else if (direction == GLTOGTK) {
 		// center is at (sx, sy) * s * (gl_img.w, gl_img.h) / 2
 		// 1,1 is at (sx, sy) * s * (gl_img.w, gl_img.h) / 2
 		return -1;
-	}
-	else if (direction == DATATOGL) {
+	} else if (direction == DATATOGL) {
 		// OpenGL runs from (-1, -1) to (1, 1) while the data runs from 
 		// (0, 0) to (gl_img.w, gl_img.h)
-		*outx = inx*2/gl_img.w - 1;
-		*outy = iny*2/gl_img.h - 1;
-	}
-	else if (direction == DATATOGTK) {
+		*outx = inx*2.0/gl_img.w - 1.0;
+		*outy = iny*2.0/gl_img.h - 1.0;
+	} else if (direction == DATATOGTK) {
 		return -1;
 	}
 	return -1;
 }
 
-void OpenGLImageViewer::addbox(const fvector_t box, const map_dir_t conv) { 
-	if (conv == UNITY)
-		boxes.push_back(box); 
-	else {
-		fvector_t tmp;
-		map_coord(box.lx, box.ly, &(tmp.lx), &(tmp.ly), conv);
-		map_coord(box.tx, box.ty, &(tmp.tx), &(tmp.ty), conv);
-		boxes.push_back(tmp);
-	}
-}
-
 int OpenGLImageViewer::inbox(const double x, const double y) const {
-	// Convert input coordinates (GTK) to GL coordinates
+	// Convert input coordinates (GTK) to box (DATA) coordinates
 	double glx, gly;
-	map_coord(x, y, &glx, &gly, GTKTOGL);
+	map_coord(x, y, &glx, &gly, GTKTODATA);
 
 	// Loop over all boxes, return index when found
 	for (size_t i=0; i<boxes.size(); i++) { 
@@ -464,17 +451,6 @@ int OpenGLImageViewer::inbox(const double x, const double y) const {
 	// Not found
 	return -1;
 }
-
-void OpenGLImageViewer::addline(const fvector_t line, const map_dir_t conv) { 
-	if (conv == UNITY)
-		lines.push_back(line); 
-	else {
-		fvector_t tmp;
-		map_coord(line.lx, line.ly, &(tmp.lx), &(tmp.ly), conv);
-		map_coord(line.tx, line.ty, &(tmp.tx), &(tmp.ty), conv);
-		lines.push_back(tmp);
-	}
-}	
 
 void OpenGLImageViewer::setscale(const double s) {
 	view_update();

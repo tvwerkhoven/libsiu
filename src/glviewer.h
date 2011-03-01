@@ -48,6 +48,7 @@
 #include "GLUT/glut.h"
 #endif
 
+#include "pthread++.h"
 #include "types.h"
 
 // Default scaling steps and range
@@ -100,9 +101,11 @@ private:
 	bool fliph;							//!< Horizontal flip toggle
 	bool zoomfit;						//!< Fit image to parent window
 	bool crosshair;					//!< Crosshair toggle
-	
+		
 	std::vector<fvector_t> boxes;				//!< Draw these extra boxes
 	std::vector<fvector_t> lines;				//!< Draw these extra lines
+	
+	pthread::mutex gui_mutex;	//!< Mutex for overlay read/writes
 	
 	// OpenGL drawing-related events
 	void on_image_configure_event(GdkEventConfigure *event);
@@ -132,11 +135,12 @@ public:
 	} map_dir_t;												//!< Transform coordinates
 	
 	//!< Data wrapper
-	typedef struct {
-		uint16_t d;	//!< Depth (8 or 16)
-		uint16_t w;	//!< Width in pixels
-		uint16_t h;	//!< Height in pixels
+	typedef struct _gl_img_t {
+		int d;	//!< Depth (8 or 16)
+		int w;	//!< Width in pixels
+		int h;	//!< Height in pixels
 		const void *data;	//!< Pointer to data (should be contiguous)
+		_gl_img_t(): d(8), w(-1), h(-1), data(NULL) { }
 	} gl_img_t;
 	
 	gl_img_t gl_img;
@@ -149,22 +153,27 @@ public:
 	void do_update();
 	
 	void link_data(const void * const data, const int depth, const int w, const int h);
+	void set_data(const int d, const int w, const int h) { gl_img.d = d; gl_img.w = w; gl_img.h = h; }
 
 	int map_coord(const float inx, const float iny, float * const outx, float * const outy, const map_dir_t direction) const;
 	int map_coord(const double inx, const double iny, double * const outx, double * const outy, const map_dir_t direction) const;
-	//!< Add an overlay box
-	void addbox(const fvector_t box, const map_dir_t conv=UNITY);
+	//!< Add an overlay box, should be in DATA coordinates
+	void addbox(const fvector_t box) { pthread::mutexholder h(&gui_mutex); boxes.push_back(box); }
 	//!< Remove an overlay box by index number
-	void delbox(const size_t idx) { boxes.erase (boxes.begin()+idx); }
+	void delbox(const size_t idx) { pthread::mutexholder h(&gui_mutex); boxes.erase (boxes.begin()+idx); }
+	//!< Clear all overlay boxes
+	void clearboxes() { pthread::mutexholder h(&gui_mutex); boxes.clear(); }
 	//!< Check whether (x,y) is inside a box, return index. Must be GTK coordinates!
 	int inbox(const double x, const double y) const;
 	//!< Return box with index idx
 	fvector_t getbox(const size_t idx) const { return boxes[idx]; }
 	
-	//!< Add an overlay line
-	void addline(const fvector_t line, const map_dir_t conv=UNITY);
+	//!< Add an overlay line, should be in DATA coordinates
+	void addline(const fvector_t line) { pthread::mutexholder h(&gui_mutex); lines.push_back(line); }
 	//!< Remove an overlay line by index number
-	void delline(const size_t idx) { lines.erase (lines.begin()+idx); }
+	void delline(const size_t idx) { pthread::mutexholder h(&gui_mutex); lines.erase (lines.begin()+idx); }
+	//!< Remove all overlay lines
+	void clearlines() { pthread::mutexholder h(&gui_mutex); lines.clear(); }
 	//!< Return line with index idx 
 	fvector_t getline(const size_t idx) const { return lines[idx]; }
 	
