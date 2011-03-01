@@ -84,14 +84,14 @@ render("Re-render")
   glarea.set_size_request(512, 512);
 	
 	// Add line for demonstration
-	glarea.addbox(fvector_t(0, 0, 0.1, 0.1));
+	glarea.addbox(fvector_t(0, 0, 64, 64));
 	
 	for (int i=0; i<10; i++) {
 		double x = drand48()*68, y=drand48()*448;
-		glarea.addbox(fvector_t(x, y, x+32, y+32), OpenGLImageViewer::DATATOGL);
+		glarea.addbox(fvector_t(x, y, x+32, y+32));
 	}
 	
-	glarea.addline(fvector_t(0, 0.3, 0.1, 0.4));	
+	glarea.addline(fvector_t(0, 128, 64, 256));	
 
 	set_title("OpenGL Window");
 	set_gravity(Gdk::GRAVITY_STATIC);
