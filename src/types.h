@@ -55,6 +55,18 @@ typedef struct fvec {
 } fvector_t;
 
 /*!
+ @brief int vector with absolute begin and end
+ */
+typedef struct vec {
+	vec(int _lx=0, int _ly=0, int _tx=1, int _ty=1) :
+	lx(_lx), ly(_ly), tx(_tx), ty(_ty) { }
+	int lx;
+	int ly;
+	int tx;
+	int ty;
+} vector_t;
+
+/*!
  @brief difference float vector with absolute begin and length
  */
 typedef struct fdvec {
