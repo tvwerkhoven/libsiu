@@ -7,7 +7,7 @@ AM_CXXFLAGS = -pipe -Wall -Wextra \
 
 AM_CXXFLAGS += -I${top_srcdir}/src/ -L${top_srcdir}/src/
 
-noinst_PROGRAMS = imgdata-test io-test io-test2 config-test path-test parse-test protocol-test pthread-test 
+noinst_PROGRAMS = imgdata-test io-test io-test2 config-test path-test parse-test protocol-test pthread-test time-test
 
 imgdata_test_SOURCES = imgdata-test.cc
 imgdata_test_LDADD = ${top_srcdir}/src/libimgdata.a \
@@ -37,6 +37,9 @@ protocol_test_LDADD = ${top_srcdir}/src/libprotocol.a \
 
 pthread_test_SOURCES = pthread-test.cc
 pthread_test_CPPFLAGS = $(SIGC_CFLAGS) $(AM_CPPFLAGS)
+
+time_test_SOURCES = time-test.cc
+time_test_LDADD = ${top_srcdir}/src/libtime.a
 
 if HAVE_OPENGL
 noinst_PROGRAMS += opengl-test
