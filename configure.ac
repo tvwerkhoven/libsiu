@@ -22,13 +22,17 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 
 # Check command line options
-
-# Check command line options
 withtests=true
 AC_ARG_WITH([tests],
 		AC_HELP_STRING([--without-tests], [build test programs]),
 		[test "$withval" = yes && withtests=false])
 AM_CONDITIONAL([TESTING], [test "$withtests" = true])
+
+AC_ARG_ENABLE([debug],
+		AC_HELP_STRING([--enabe-debug], [enable debug output]),
+		AC_DEFINE([LIBSIU_DEBUG], [1], [Enable debugging.]),
+		AC_DEFINE([LIBSIU_DEBUG], [0], [Enable debugging.]))
+
 
 # These libraries are crucial for all targets
 AC_SEARCH_LIBS([sin],
