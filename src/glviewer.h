@@ -53,8 +53,8 @@
 
 // Default scaling steps and range
 const double SCALESTEP = 1.0/3.0;
-const double SCALEMIN = -5.0;
-const double SCALEMAX = 5.0;
+const double SCALEMIN = -8.0;
+const double SCALEMAX = 8.0;
 
 /*! 
  @brief OpenGL scrolled area
@@ -63,8 +63,8 @@ const double SCALEMAX = 5.0;
  
  Coordinates involved:
  - The outer frame is gtkimage, a Gtk::GL::DrawingArea. The size is get_width() by get_height(). Axes increase towards bottom-right
- - We use a gl viewport matching the size of gtkimage, we map the texture to coordinates (-1, -1) to (1, 1). Axes increase towards top-right
- - The image (data) is drawn with an offset of (sx, sy) (in OpenGL), data origin is at (-1, -1) (in OpenGL)
+ - We use a gl viewport matching the size of gtkimage, we map the texture to coordinates (-1, -1) to (1, 1). gl viewport coordinate axes increase towards top-right
+ - The image (data) is drawn with an offset of (sx, sy) (in OpenGL), data origin is at (-1, -1) (in OpenGL). Data coordinates increase towards top-right
  
  To convert from one coordinate system to another, see map_coordinates() and map_dir_t.
  
@@ -73,11 +73,13 @@ const double SCALEMAX = 5.0;
  Optional overlays include:
  - Crosshair through the middle of the image
  - Grid of lines over the image
- 
+ - Boxes and/or lines with addbox(), addline() for overlays (in DATA coordinates)
+
  Other features:
  - Flip horizontal or vertical
- - Zoom in/out/fit to window
- - Add boxes and/or lines with addbox(), addline() for overlays.
+ - Zoom in/out/fit to window (with scrolling)
+ - Connect to view_update which is signalled when view settings change (zoom, pan)
+ -
  
  */
 class OpenGLImageViewer: public Gtk::EventBox {
@@ -121,7 +123,8 @@ private:
 	void on_zoomin_activate() { scalestep(-SCALESTEP); }
 	void on_zoomout_activate() { scalestep(SCALESTEP); }
 	
-	void on_update();
+	//!< Do full update of screen, including image
+	void do_full_update();
 	
 public:
 	typedef enum {
@@ -145,11 +148,13 @@ public:
 	
 	gl_img_t gl_img;
 	
+	//!< Dispatcher called when view settings are changed
 	Glib::Dispatcher view_update;
 	
 	OpenGLImageViewer();
 	~OpenGLImageViewer();
 	
+	//!< Redraw OpenGl area, use previously initialized texture.
 	void do_update();
 	
 	void link_data(const void * const data, const int depth, const int w, const int h);

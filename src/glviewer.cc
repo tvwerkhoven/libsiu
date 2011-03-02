@@ -23,6 +23,15 @@
 
 #include "autoconfig.h"
 
+#ifdef LIBSIU_DEBUG
+#define LIBSIU_DEBUG2 1
+#else
+#define LIBSIU_DEBUG2 0
+#endif // LIBSIU_DEBUG
+#define DEBUGPRINT(fmt, ...) \
+	do { if (LIBSIU_DEBUG2) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
+	__LINE__, __func__, __VA_ARGS__); } while (0)
+
 #ifdef HAVE_GL_GL_H
 #include "GL/gl.h"
 #elif HAVE_OPENGL_GL_H
@@ -46,7 +55,7 @@
 #include "pthread++.h"
 #include "types.h"
 
-//! @todo Figure out realization / configure / on_update / do_update
+//! @todo Figure out realization / configure / on_update / do_update -> http://www.yorba.org/blog/jim/2010/10/those-realize-map-widget-signals.html
 
 using namespace std;
 using namespace Gtk;
@@ -57,6 +66,8 @@ ngrid(8, 8), grid(false),
 flipv(false), fliph(false), zoomfit(false), crosshair(false),
 gl_img()
 {
+	DEBUGPRINT("%s", "+\n");
+	
 	glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGBA | Gdk::GL::MODE_DOUBLE);
 	if(!glconfig) {
 		fprintf(stderr, "OpenGLImageViewer(): Not double-buffered!\n");
@@ -103,16 +114,17 @@ OpenGLImageViewer::~OpenGLImageViewer() {
 // Draw-related functions
 
 void OpenGLImageViewer::on_image_configure_event(GdkEventConfigure *event) {
-	on_update();
+	DEBUGPRINT("%s", "+\n");
 	do_update();
 }
 
 void OpenGLImageViewer::on_image_expose_event(GdkEventExpose *event) {
-	on_update();
+	DEBUGPRINT("%s", "+\n");
 	do_update();
 }
 
 void OpenGLImageViewer::on_image_realize() {
+	DEBUGPRINT("%s", "+\n");
 	glwindow = gtkimage.get_gl_window();
 	if (!glwindow || !glwindow->gl_begin(gtkimage.get_gl_context()))
 		return;
@@ -128,19 +140,23 @@ void OpenGLImageViewer::on_image_realize() {
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	
 	glwindow->gl_end();
+	
+	do_full_update();
 }
 
 void OpenGLImageViewer::link_data(const void *const data, const int depth, const int w, const int h) {
+	DEBUGPRINT("%s", "+\n");
 	// Link to new data
 	gl_img.d = depth;
 	gl_img.w = w;
 	gl_img.h = h;
 	gl_img.data = data;
 	// Update frame
-	on_update();
+	do_full_update();
 }
 
-void OpenGLImageViewer::on_update() {
+void OpenGLImageViewer::do_full_update() {
+	DEBUGPRINT("%s", "+\n");
 	const int depth = gl_img.d;
 	
 	if(!glwindow || !glwindow->gl_begin(gtkimage.get_gl_context()))
@@ -154,6 +170,8 @@ void OpenGLImageViewer::on_update() {
 }
 
 void OpenGLImageViewer::do_update() {
+	DEBUGPRINT("%s", "+\n");
+	
 	if(!glwindow || !glwindow->gl_begin(gtkimage.get_gl_context()))
 		return;
 	

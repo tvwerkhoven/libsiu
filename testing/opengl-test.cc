@@ -66,6 +66,10 @@ class Simple: public Gtk::Window {
 	bool on_image_button_event(GdkEventButton *event);
 public:
 	void on_render();
+	void add_random();
+	void update();
+	bool on_timeout();
+	
 	int w, h, d;
 	uint8_t *data;
 	Simple();
@@ -107,6 +111,7 @@ render("Re-render")
 	
 	show_all_children();
 	
+	//Glib::signal_timeout().connect(sigc::mem_fun(*this, &Simple::on_timeout), 1000.0/2.0);
 }
 
 Simple::~Simple() {
@@ -121,6 +126,28 @@ void Simple::on_render() {
 			data[i*w + j] = 255 * 8 * sqrt(pow(i,2) + pow(j,2)) / sqrt(pow(w,2) + pow(h,2));
 	
 	glarea.link_data((void *) data, d, w, h);
+}
+
+void Simple::add_random() {
+	int w = drand48() * 100 - 50;
+	int h = drand48() * 400 - 200;
+	glarea.addline(fvector_t(50, 200, 50+w, 200+h));	
+}
+
+void Simple::update() {
+	glarea.do_update();
+}
+
+bool Simple::on_timeout() {
+	fprintf(stderr, "Simple::on_timeout(0)\n");
+	add_random();
+	sleep(1);
+
+	fprintf(stderr, "Simple::on_timeout(1)\n");
+	update();
+	sleep(1);
+	
+	return true;
 }
 
 bool Simple::on_image_button_event(GdkEventButton *event) {
@@ -172,7 +199,8 @@ int main(int argc, char** argv) {
 	
   Simple simple;
 	
-  kit.run(simple);
+	kit.run(simple);
+	
 	
   return 0;
 }
