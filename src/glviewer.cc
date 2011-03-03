@@ -23,13 +23,8 @@
 
 #include "autoconfig.h"
 
-#ifdef LIBSIU_DEBUG
-#define LIBSIU_DEBUG2 1
-#else
-#define LIBSIU_DEBUG2 0
-#endif // LIBSIU_DEBUG
 #define DEBUGPRINT(fmt, ...) \
-	do { if (LIBSIU_DEBUG2) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
+	do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
 	__LINE__, __func__, __VA_ARGS__); } while (0)
 
 #ifdef HAVE_GL_GL_H

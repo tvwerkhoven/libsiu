@@ -110,9 +110,9 @@ private:
 	pthread::mutex gui_mutex;	//!< Mutex for overlay read/writes
 	
 	// OpenGL drawing-related events
-	void on_image_configure_event(GdkEventConfigure *event);
-	void on_image_expose_event(GdkEventExpose *event);
-	void on_image_realize();
+	void on_image_configure_event(GdkEventConfigure *event);	//!< When widget changes sie
+	void on_image_expose_event(GdkEventExpose *event); //!< When widgets need to be redrawn
+	void on_image_realize();						//!< When widget is first shown on a screen
 	
 	// Scroll & zoom events
 	bool on_image_motion_event(GdkEventMotion *event);
@@ -123,7 +123,7 @@ private:
 	void on_zoomin_activate() { scalestep(-SCALESTEP); }
 	void on_zoomout_activate() { scalestep(SCALESTEP); }
 	
-	//!< Do full update of screen, including image
+	//!< Do full update of screen, including (camera) image
 	void do_full_update();
 	
 public:
