@@ -212,6 +212,8 @@ void OpenGLImageViewer::do_update() {
 	
 	// Render image
 	glEnable(GL_TEXTURE_2D);
+	// Black in case Texture is not loaded yet.
+	glColor3f(0, 0, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (s == 1 || s >= 2) ? GL_NEAREST : GL_LINEAR);
 	glBegin(GL_POLYGON);
 	// Old: flip texture coordinates with respect to OpenGL coordinats.
