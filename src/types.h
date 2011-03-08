@@ -48,6 +48,7 @@ typedef struct fcoord_t {
 typedef struct fvec {
 	fvec(float _lx=0.0, float _ly=0.0, float _tx=1.0, float _ty=1.0) :
 		lx(_lx), ly(_ly), tx(_tx), ty(_ty) { }
+	void add(float dlx, float dly, float dtx, float dty) { lx += dlx; ly += dly; tx += dtx; ty += dty; }
 	float lx;
 	float ly;
 	float tx;
@@ -55,28 +56,19 @@ typedef struct fvec {
 } fvector_t;
 
 /*!
- @brief int vector with absolute begin and end
+ @brief Integer vector with absolute begin and end
+ 
+ Use this datatype to store 2D vectors with beginning and end.
  */
 typedef struct vec {
 	vec(int _lx=0, int _ly=0, int _tx=1, int _ty=1) :
 	lx(_lx), ly(_ly), tx(_tx), ty(_ty) { }
+	void add(int dlx, int dly, int dtx, int dty) { lx += dlx; ly += dly; tx += dtx; ty += dty; }
 	int lx;
 	int ly;
 	int tx;
 	int ty;
 } vector_t;
-
-/*!
- @brief difference float vector with absolute begin and length
- */
-typedef struct fdvec {
-	fdvec(float _lx=0.0, float _ly=0.0, float _sx=1.0, float _sy=1.0) :
-	lx(_lx), ly(_ly), sx(_sx), sy(_sy) { }
-	float lx;
-	float ly;
-	float sx;
-	float sy;
-} fdvector_t;
 
 /*!
  @brief We use this to store gain information for WFC's
