@@ -29,7 +29,7 @@ AC_ARG_WITH([tests],
 AM_CONDITIONAL([TESTING], [test "$withtests" = true])
 
 AC_ARG_ENABLE([debug],
-		AC_HELP_STRING([--enabe-debug], [enable debug output]),
+		AC_HELP_STRING([--enable-debug], [enable debug output]),
 		AC_DEFINE([LIBSIU_DEBUG], [1], [Enable debugging.]),
 		AC_DEFINE([LIBSIU_DEBUG], [0], [Enable debugging.]))
 
