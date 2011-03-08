@@ -1,7 +1,7 @@
 AM_CXXFLAGS = -pthread -g -Wall
 AM_CPPFLAGS = $(SIGC_CFLAGS) -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
 
-noinst_LIBRARIES = libconfig.a libmessages.a libpidfile.a libserial.a libsocket.a libprotocol.a libio.a libimgdata.a libpath.a libtime.a
+noinst_LIBRARIES = libconfig.a libcsv.a libmessages.a libpidfile.a libserial.a libsocket.a libprotocol.a libio.a libimgdata.a libpath.a libtime.a
 
 if HAVE_OPENGL
 noinst_LIBRARIES += libglviewer.a
@@ -9,6 +9,7 @@ endif
 
 libpath_a_SOURCES = path++.cc
 libconfig_a_SOURCES = config.cc path++.cc
+libcsv_a_SOURCES = csv.cc path++.cc
 libmessages_a_SOURCES = messages.cc
 libpidfile_a_SOURCES = pidfile.cc
 libserial_a_SOURCES = serial.cc
@@ -28,7 +29,7 @@ libglviewer_a_CPPFLAGS = $(OPENGL_CFLAGS) $(AM_CPPFLAGS)
 libglviewer_a_CFLAGS = $(OPENGL_CFLAGS) 
 endif
 
-noinst_HEADERS = config.h format.h messages.h pidfile.h protocol.h pthread++.h serial.h socket.h io.h glviewer.h imgdata.h path++.h time++.h
+noinst_HEADERS = config.h csv.h format.h messages.h pidfile.h protocol.h pthread++.h serial.h socket.h io.h glviewer.h imgdata.h path++.h time++.h
 
 
 

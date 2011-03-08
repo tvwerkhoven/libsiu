@@ -7,7 +7,7 @@ AM_CXXFLAGS = -pipe -Wall -Wextra \
 
 AM_CXXFLAGS += -I${top_srcdir}/src/ -L${top_srcdir}/src/
 
-noinst_PROGRAMS = imgdata-test io-test io-test2 config-test path-test parse-test protocol-test pthread-test time-test
+noinst_PROGRAMS = imgdata-test io-test io-test2 config-test csv-test path-test parse-test protocol-test pthread-test time-test
 
 imgdata_test_SOURCES = imgdata-test.cc
 imgdata_test_LDADD = ${top_srcdir}/src/libimgdata.a \
@@ -23,6 +23,9 @@ io_test2_LDADD = ${top_srcdir}/src/libio.a
 
 config_test_SOURCES = config-test.cc
 config_test_LDADD = ${top_srcdir}/src/libconfig.a
+
+csv_test_SOURCES = csv-test.cc
+csv_test_LDADD = ${top_srcdir}/src/libcsv.a
 
 path_test_SOURCES = path-test.cc
 path_test_LDADD = ${top_srcdir}/src/libpath.a
