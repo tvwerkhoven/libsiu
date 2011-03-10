@@ -17,6 +17,12 @@
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "autoconfig.h"
+
+#define DEBUGPRINT(fmt, ...) \
+	do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
+	__LINE__, __func__, __VA_ARGS__); } while (0)
+
 #include <time.h>
 #include <sys/time.h>
 #ifndef __STDC_FORMAT_MACROS
@@ -30,8 +36,6 @@
 #include "time++.h"
 
 using namespace std;
-
-const int USEC_PER_SEC = 1000000;
 
 /* 
  * Constructors / destructor
@@ -80,7 +84,7 @@ Time::Time(const struct timeval stamp) {
 	t_timeval = stamp;
 	
 	t_epoch.i = t_timeval.tv_sec;
-	t_epoch.f = t_timeval.tv_usec * 1.0 / USEC_PER_SEC;
+	t_epoch.f = (long double) t_timeval.tv_usec / USEC_PER_SEC;
 	
 	t_str_tm = gmtime(&(t_timeval.tv_sec));
 }
@@ -99,21 +103,38 @@ void Time::update() {
 	
 	t_epoch.i = t_timeval.tv_sec;
 	t_epoch.f = t_timeval.tv_usec * 1.0 / USEC_PER_SEC;
+	
+	DEBUGPRINT("%lld, %Lg\n", t_epoch.i, t_epoch.f);
 }
 
 Time Time::add(const Time &extra, int fac) {
+	DEBUGPRINT("%lld, %Lg\n", t_epoch.i, t_epoch.f);
 	epoch_t tmp = extra.as_epoch_t();
-	t_epoch.i += fac*tmp.i;
-	t_epoch.f += fac*tmp.f;
+
+	// Calculate new time
+	t_epoch.i += tmp.i * fac;
+	t_epoch.f += tmp.f * fac;
+	
+	// Check overflow of fractional seconds & correct
+	if (t_epoch.f >= 1) {
+		t_epoch.i += 1;
+		t_epoch.f -= 1;
+	} else if (t_epoch.f < 0) {
+		t_epoch.i -= 1;
+		t_epoch.f += 1;
+	}
 	
 	sync();
 	
+	DEBUGPRINT("%lld, %Lg\n", t_epoch.i, t_epoch.f);
 	return *this;
 }
 
 void Time::sync() {
+	DEBUGPRINT("%lld, %Lg\n", t_epoch.i, t_epoch.f);
+	
 	t_timeval.tv_sec = t_epoch.i;
-	t_timeval.tv_usec = (suseconds_t) t_epoch.f * USEC_PER_SEC;
+	t_timeval.tv_usec = (suseconds_t) (t_epoch.f * USEC_PER_SEC);
 	
 	t_str_tm = gmtime(&(t_timeval.tv_sec));
 }
@@ -149,9 +170,13 @@ time_t Time::as_time_t() const { return t_timeval.tv_sec; }
 Time::epoch_t Time::as_epoch_t() const { return t_epoch; }
 struct tm* Time::as_str_tm() const { return t_str_tm; }
 struct timeval Time::as_str_tv() const { return t_timeval; }
-string Time::str() const { return format("%d.%09d", t_epoch.i, (int) t_epoch.f * 1000000000); }
+string Time::str() const { 
+	DEBUGPRINT("%lld, %Lg\n", t_epoch.i, t_epoch.f);
+	return format("%d.%09d", t_epoch.i, (int) (t_epoch.f * 1E9)); 
+}
 const char *Time::c_str() const { 
-	return format("%d.%09d", t_epoch.i, (int) t_epoch.f * 1000000000).c_str();
+	DEBUGPRINT("%lld, %Lg\n", t_epoch.i, t_epoch.f);
+	return format("%d.%09d", t_epoch.i, (int) (t_epoch.f * 1E9)).c_str();
 }
 
 string Time::strftime(string fmt) const {

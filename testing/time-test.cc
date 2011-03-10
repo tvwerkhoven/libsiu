@@ -27,18 +27,18 @@
 
 int main(int argc, char *argv[]) {
 	DEBUGPRINT("testing %s\n", argv[0]);
-	
-	Time t0(0);
-	Time t1(123);
 
-	Time t2(123456789,0.12345678);
-	Time t3(123456789+3600,0.12345678);
-	
-	// Regular time
+	// Init times
+	Time t0(0);
 	DEBUGPRINT("t0: %s\n", t0.c_str());
+	Time t1(123);
 	DEBUGPRINT("t1: %s\n", t1.c_str());
+
+	Time t2(123456789, 0.12345678);
 	DEBUGPRINT("t2: %s\n", t2.c_str());
+	Time t3(123456789+3600, 0.12345678);
 	DEBUGPRINT("t3: %s\n", t3.c_str());
+	
 	
 	// Difference
 	DEBUGPRINT("t1 - t0 = %s\n", (t1 - t0).c_str());

@@ -29,6 +29,7 @@
 #include <string>
 
 using namespace std;
+const double USEC_PER_SEC = 1000000.0; //!< Conversion factor
 
 /*!
  @brief Implements easier time-handling. The goal is convenience, not absolute accuracy.
@@ -43,6 +44,7 @@ public:
 	
 	
 private:
+	
 	// Raw time containers
 	struct timeval t_timeval;
 	struct tm *t_str_tm;
