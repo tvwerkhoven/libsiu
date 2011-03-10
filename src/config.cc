@@ -57,6 +57,17 @@ void config::write() {
 		file << i->first << " = " << i->second << "\n";
 }
 
+void config::update(config *cfg) {
+	map<string, string> other_vars = cfg->getall();
+	string pref = cfg->prefix;
+	
+	// Loop over other variables (with prefix), update here
+	for(map<string, string>::const_iterator i = other_vars.begin(); i != other_vars.end(); ++i)
+		if (i->first.compare(0, pref.length(), pref) == 0)
+			variables[i->first] = i->second;
+	
+}
+
 int config::getchoice(const string &var, const map<string, int> &choices) {
 	require(var);
 	map<string, int>::const_iterator i = choices.find(variables[pvar(var)]);

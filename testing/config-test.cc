@@ -24,6 +24,8 @@
 #include <stdint.h>
 #include <string>
 
+#include "libsiu-testing.h"
+
 #include "config.h"
 
 #define TMPFILE "/tmp/config-test"
@@ -33,8 +35,8 @@ void error(string what) {
 	exit(-1);
 }
 
-int main() {
-	fprintf(stderr, "config-test.cc\n");
+int main(int argc, char *argv[]) {
+	DEBUGPRINT("testing %s\n", argv[0]);
 	
 	config *cfg = new config;
 	
@@ -89,6 +91,32 @@ int main() {
 	delete cfg;
 	delete cfgr;
 	
-	fprintf(stderr, "config-test.cc: everything works!\n");
+	// Test multiple writes to one file:
+	DEBUGPRINT("%s", "Test multiple writes to one file...\n");
+	
+	config *cfga = new config(TMPFILE);
+	config *cfg1 = new config(TMPFILE, "cfg1");
+	config *cfg2 = new config(TMPFILE, "cfg2");
+	
+	cfga->set("name", (std::string)"cfga");
+	cfga->set("size", 1);
+
+	cfg1->set("name", (std::string)"cfg1");
+	cfg1->set("size", 2);
+
+	cfg2->set("name", (std::string)"cfg2");
+	cfg2->set("size", 3);
+	
+	cfga->update(cfg1);
+	cfga->update(cfg2);
+	cfga->write();
+	
+	config *cfgre = new config(TMPFILE);
+	map<string, string> all = cfgre->getall();
+
+	for(map<string, string>::const_iterator i = all.begin(); i != all.end(); ++i)
+		DEBUGPRINT("%s = %s\n", i->first.c_str(), i->second.c_str());
+
+	DEBUGPRINT("everything %s\n", "ok");
 	return 0;
 }

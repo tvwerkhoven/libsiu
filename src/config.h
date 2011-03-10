@@ -58,12 +58,32 @@ public:
 	config(): prefix(""), autosave(false) {};
 	~config() { if(autosave) write(); }
 
+	/*! @brief Parse configuration from disk
+	 
+	 @param [in] &path Path to read file from.
+	 @param [in] &prefix Only parse variables starting with this prefix.
+	 */
 	void parse(const Path &path, const std::string &prefix = "") { this->filename = path.str(); this->prefix = prefix; parse(); }
 	void parse(const std::string &filename, const std::string &prefix = "") { this->filename = filename; this->prefix = prefix; parse(); }
 	void parse();
+	
+	/*! @brief Write configuration to disk
+	 
+	 @param [in] &path Path to write file to (if not already specified)
+	 @param [in] &prefix Prefix to prepend (if not already specified)
+	 */
 	void write(const Path &path, const std::string &prefix = "") { this->filename = path.str(); this->prefix = prefix; write(); }
 	void write(const std::string &filename, const std::string &prefix = "") { this->filename = filename; this->prefix = prefix; write(); }
 	void write();
+	
+	/*! @brief Update this configuration with values from &cfg
+	 
+	 Update values that are different in cfg. If cfg has a prefix, only update 
+	 variables with this prefix.
+	 
+	 @param [in] *cfg Other configuration to update with
+	 */
+	void update(config *cfg);
 
 	class exception: public std::runtime_error {
 		public:
@@ -84,6 +104,8 @@ public:
 	std::string getstring(const std::string &var) { require(var); return variables[pvar(var)]; }
 
 	bool exists(const std::string &var) { return variables.find(pvar(var)) != variables.end(); }
+	std::map<std::string, std::string> getall() const { return variables; }
+	
 	bool getbool(const std::string &var, bool def) { if(!exists(var)) return def; else return variables[pvar(var)] == "yes" || variables[pvar(var)] == "true"; }
 	int getchoice(const std::string &var, const std::map<std::string, int> &choices, int def);
 	int getint(const std::string &var, int def) { if(!exists(var)) return def; else return strtoll(variables[pvar(var)].c_str(),0, 0); }
