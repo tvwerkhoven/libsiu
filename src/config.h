@@ -58,7 +58,7 @@ public:
 	config(): prefix(""), autosave(false) {};
 	~config() { if(autosave) write(); }
 
-	/*! @brief Parse configuration from disk
+	/*! @brief Parse configuration from disk.
 	 
 	 @param [in] &path Path to read file from.
 	 @param [in] &prefix Only parse variables starting with this prefix.
@@ -67,7 +67,9 @@ public:
 	void parse(const std::string &filename, const std::string &prefix = "") { this->filename = filename; this->prefix = prefix; parse(); }
 	void parse();
 	
-	/*! @brief Write configuration to disk
+	/*! @brief Write configuration to disk. 
+	 
+	 N.B. This method overwrites the file, and does not retain variable order.
 	 
 	 @param [in] &path Path to write file to (if not already specified)
 	 @param [in] &prefix Prefix to prepend (if not already specified)
@@ -80,6 +82,13 @@ public:
 	 
 	 Update values that are different in cfg. If cfg has a prefix, only update 
 	 variables with this prefix.
+	 
+	 This can be useful when using multiple configuration objects linked to one 
+	 file and one wants to write the changed variables back to file. Simply
+	 writing each configuration object will not work as because they each 
+	 overwrite the previous file. This method can be used to update a master 
+	 configuration object with the changes in the other objects which can then 
+	 be saved to disk.
 	 
 	 @param [in] *cfg Other configuration to update with
 	 */
