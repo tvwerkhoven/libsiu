@@ -26,8 +26,8 @@
 		
 */
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#ifndef HAVE_CONFIGCLASS_H
+#define HAVE_CONFIGCLASS_H
 
 #ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
@@ -93,6 +93,7 @@ public:
 	 @param [in] *cfg Other configuration to update with
 	 */
 	void update(config *cfg);
+	void update(config &cfg) { update(&cfg); }
 
 	class exception: public std::runtime_error {
 		public:
@@ -139,4 +140,4 @@ public:
 	void setchoice(const std::string &var, const std::map<std::string, int> &choices, int value);
 };
 
-#endif
+#endif // HAVE_CONFIGCLASS_H
