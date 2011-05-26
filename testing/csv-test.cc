@@ -38,10 +38,15 @@ int main(int argc, char *argv[]) {
 	empty.csvdata.push_back(line);
 	empty.csvdata.push_back(line);
 	empty.csvdata.push_back(line);
+	
+	DEBUGPRINT("writing %s\n", "csv-test-empty.csv");
 	if (!empty.write("csv-test-empty.csv", "testing Csv."))
 		DEBUGPRINT("error writing %s\n", "csv-test-empty.csv");
 	
+	DEBUGPRINT("reading %s\n", "csv-test-empty.csv");
 	Csv reempty("csv-test-empty.csv");
+	
+	DEBUGPRINT("writing %s\n", "csv-test-reempty.csv");
 	if (!reempty.write("csv-test-reempty.csv", "testing Csv 2."))
 		DEBUGPRINT("error writing %s\n", "csv-test-reempty.csv");
 		
