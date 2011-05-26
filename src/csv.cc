@@ -62,9 +62,11 @@ csvdata(newdata) {
 Csv::Csv(gsl_vector_float *newdata, const char cpref, const char wsep, const char lsep):
 commpref(cpref), wordsep(wsep), linesep(lsep) {
 	DEBUGPRINT("DATA:..., '%c', '%c', '%c')\n", commpref, wordsep, linesep);
-	for (size_t i=0; i<newdata->size; i++)
-		csvdata.push_back( vector<double>(gsl_vector_float_get(newdata, i)) );
-	
+	for (size_t i=0; i<newdata->size; i++) {
+		vector<double> line(1, gsl_vector_float_get(newdata, i));
+		csvdata.push_back(line);
+	}
+
 }
 #endif
 
