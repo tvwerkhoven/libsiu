@@ -22,12 +22,15 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <stdexcept>
+
 
 #include "autoconfig.h"
 #define DEBUGPRINT(fmt, ...) \
 	do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
 	__LINE__, __func__, __VA_ARGS__); } while (0)
 
+#include "format.h"
 #include "path++.h"
 #include "csv.h"
 
@@ -64,6 +67,9 @@ bool Csv::read(string file) {
 	DEBUGPRINT("%s\n", file.c_str());
 	
 	ifstream dataio(file.c_str());
+	if (!dataio.good())
+		throw(std::runtime_error("Csv::read(): Error opening " + file));
+		
 	string buf, cell;
 	vector<double> dataline;
 	size_t linewidth = 0;
@@ -94,7 +100,7 @@ bool Csv::read(string file) {
 		dataline.clear();
 	}
 	
-	DEBUGPRINT("read %d lines, each %d elems", csvdata.size(), csvdata[0].size());
+	DEBUGPRINT("read %d lines, each %d elems", (int) csvdata.size(), (int) csvdata[0].size());
 	return true;
 }
 
@@ -104,6 +110,9 @@ bool Csv::write(string file, const string &comment, const bool app) {
 		return false;
 
 	ofstream filestr;
+	if (!filestr.good())
+		throw(std::runtime_error("Csv::write(): Error opening " + file));
+
 	if (app)
 		filestr.open(file.c_str(), ios::out | ios::app); 
 	else
@@ -127,7 +136,7 @@ bool Csv::write(string file, const string &comment, const bool app) {
 	
   filestr.close();
 	
-	DEBUGPRINT("wrote %d lines, each %d elems", csvdata.size(), csvdata[0].size());
+	DEBUGPRINT("wrote %d lines, each %d elems", (int) csvdata.size(), (int) csvdata[0].size());
 	return true;
 }
 

@@ -46,12 +46,14 @@ public:
 	 @param [in] file Path to CSV file
 	 */
 	Csv(const string file, const char cpref='#', const char wsep=',', const char lsep='\n');
+	
 	/*! @brief Init new object based on data
 	 
 	 @param [in] *newdata Data for CSV object
 	 @param [in] copy Copy *newdata or not
 	 */
 	Csv(vector< vector<double> > &newdata, const char cpref='#', const char wsep=',', const char lsep='\n', bool copy=false);
+	
 	/*! @brief Init new empy object
 
 	 @param [in] cpref Comment prefix (default "#")
@@ -63,8 +65,24 @@ public:
 	
 	vector< vector<double> > csvdata;			//!< CSV data is stored here
 	
-	bool read(string f);									//!< Read 'file', store data in *data
-	bool write(string f, const string &comment="", const bool app=true); //!< Write data to 'file', optionally with a comment line (prefix/header/other)
+	/*!
+	 @brief Read 'f', store data in csvdata member
+	 
+	 If file cannot be opened, throw std::runtime_error()
+	 
+	 @param [in] f File to read
+	 */
+	bool read(string f);
+	/*! 
+	 @brief Write csvdata member to 'file', optionally with a comment line (prefix/header/other)
+	 
+	 If file cannot be opened, throw std::runtime_error()
+
+	 @param [in] f File to write to
+	 @param [in] comment string to prefix file with
+	 @param [in] app Append data instead of overwriting (default)
+	 */
+	bool write(string f, const string &comment="", const bool app=true); 
 };
 
 
