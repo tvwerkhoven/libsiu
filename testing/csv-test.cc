@@ -22,7 +22,12 @@
 #include <stdio.h>
 #include <vector>
 
+#ifdef HAVE_GSL
+#include <gsl/gsl_vector.h>
+#endif
+
 #include "csv.h"
+
 
 #include "libsiu-testing.h"
 
@@ -49,7 +54,20 @@ int main(int argc, char *argv[]) {
 	DEBUGPRINT("writing %s\n", "csv-test-reempty.csv");
 	if (!reempty.write("csv-test-reempty.csv", "testing Csv 2."))
 		DEBUGPRINT("error writing %s\n", "csv-test-reempty.csv");
-		
+
+#ifdef HAVE_GSL
+	DEBUGPRINT("testing GSL constructor%s\n", "");
+	gsl_vector_float *data;
+	data = gsl_vector_float_calloc(20);
+	
+	for (size_t i=0; i<data->size; i++)
+		gsl_vector_float_set(data, i, drand48());
+	
+	Csv gslcsv(data);
+	if (!gslcsv.write("csv-test-gsl.csv"))
+		DEBUGPRINT("error writing %s\n", "csv-test-gsl.csv");
+
+#endif
 	
 	DEBUGPRINT("%s", "Done\n");
 }
