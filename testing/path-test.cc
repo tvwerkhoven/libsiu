@@ -20,7 +20,7 @@
 #include <string>
 #include "path++.h"
 
-int main(int argc, char *argv[]) {
+int main(int /* argc */, char *argv[]) {
 	printf("path-test.cc:: testing: %s\n", argv[0]);
 	
 	Path p1("/absolute/path/file1");

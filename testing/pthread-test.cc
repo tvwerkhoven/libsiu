@@ -32,32 +32,47 @@ pthread::mutex mut;
 pthread::cond cond;
 
 void sub_worker_prog() {
-	fprintf(stderr, "pthread-test.cc::worker(%X) subworker waiting...\n", pthread_self());
+	pthread_t pt = pthread_self();
+	unsigned char *ptc = (unsigned char*)(void*)(&pt);
+	char thrid[2+2*sizeof(pt)+1];
+	sprintf(thrid, "0x");
+	for (size_t i=0; i<sizeof(pt); i++)
+		sprintf(thrid, "%s%02x", thrid, (unsigned)(ptc[i]));
+
+	fprintf(stderr, "pthread-test.cc::worker(%s) subworker waiting...\n", thrid);
+	
 	cond.wait(mut);
 }
 
-void *worker_prog(void *args) {
-	fprintf(stderr, "pthread-test.cc::worker(%X) 1 init, sleeping\n", pthread_self());
+void *worker_prog(void */*args*/) {
+	pthread_t pt = pthread_self();
+	unsigned char *ptc = (unsigned char*)(void*)(&pt);
+	char thrid[2+2*sizeof(pt)+1];
+	sprintf(thrid, "0x");
+	for (size_t i=0; i<sizeof(pt); i++)
+		sprintf(thrid, "%s%02x", thrid, (unsigned)(ptc[i]));
+
+	fprintf(stderr, "pthread-test.cc::worker(%s) 1 init, sleeping\n", thrid);
 
 	{
 		pthread::mutexholder h(&mut);
 		sub_worker_prog();
 	}
 
-	fprintf(stderr, "pthread-test.cc::worker(%X) 2 awake! waiting for rw.lock()\n", pthread_self());
+	fprintf(stderr, "pthread-test.cc::worker(%s) 2 awake! waiting for rw.lock()\n", thrid);
 
 	{
 		pthread::mutexholder h(&rw);
-		fprintf(stderr, "pthread-test.cc::worker(%X) 3 got lock! got %g\n", pthread_self(), work);
+		fprintf(stderr, "pthread-test.cc::worker(%s) 3 got lock! got %g\n", thrid, work);
 		sum++;
 		usleep(work * 1000000);
 	}
 	
-	fprintf(stderr, "pthread-test.cc::worker(%X) 4 done\n", pthread_self());
+	fprintf(stderr, "pthread-test.cc::worker(%s) 4 done\n", thrid);
 	return NULL;
 }
 
-void *server_prog(void *args) {
+void *server_prog(void */*args*/) {
 	fprintf(stderr, "pthread-test.cc::server() 1 init\n");
 	
 	for (int i=0; i<nworker; i++) {

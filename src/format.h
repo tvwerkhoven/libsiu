@@ -60,7 +60,7 @@ static inline size_t popsize(std::string &line) { return (size_t) str2imax(popwo
 static inline int32_t popint32(std::string &line) { return str2int32(popword(line)); }
 
 static inline std::string vformat(const char *format, va_list va) {
-	char buf[4096];
+	char buf[4096] = "";
 	vsnprintf(buf, sizeof buf, format, va);
 	return std::string(buf);
 }

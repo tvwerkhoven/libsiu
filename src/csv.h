@@ -20,9 +20,14 @@
 #ifndef HAVE_CSV_H
 #define HAVE_CSV_H
 
+#include "autoconfig.h"
+
 #include <string>
 #include <vector>
-#include <gsl/gsl_matrix.h>
+
+#ifdef HAVE_GSL
+#include <gsl/gsl_vector.h>
+#endif
 
 #include "path++.h"
 
@@ -53,6 +58,9 @@ public:
 	 @param [in] copy Copy *newdata or not
 	 */
 	Csv(vector< vector<double> > &newdata, const char cpref='#', const char wsep=',', const char lsep='\n', bool copy=false);
+#ifdef HAVE_GSL
+	Csv(gsl_vector_float *newdata, const char cpref='#', const char wsep=',', const char lsep='\n');
+#endif
 	
 	/*! @brief Init new empy object
 
@@ -81,8 +89,9 @@ public:
 	 @param [in] f File to write to
 	 @param [in] comment string to prefix file with
 	 @param [in] app Append data instead of overwriting (default)
+	 @param [in] date Write date in comment prefix
 	 */
-	bool write(string f, const string &comment="", const bool app=true); 
+	bool write(string f, const string &comment="", const bool app=false, const bool date=true); 
 };
 
 

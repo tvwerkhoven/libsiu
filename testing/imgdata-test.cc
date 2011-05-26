@@ -39,10 +39,10 @@ int main(int argc, char *argv[]) {
 	printf("imgdata-test.cc: bool: %d %d\n", t, f);
 
 	printf("imgdata-test.cc: imgdata features:\n");
-	printf("imgdata-test.cc: havegsl: %d\n", im1.havegsl);
-	printf("imgdata-test.cc: haveics: %d\n", im1.haveics);
-	printf("imgdata-test.cc: havefits: %d\n", im1.havefits);
-	printf("imgdata-test.cc: havepgm: %d\n", im1.havepgm);
+	printf("imgdata-test.cc: havegsl: %d\n", im1.have_gsl());
+	printf("imgdata-test.cc: haveics: %d\n", im1.have_ics());
+	printf("imgdata-test.cc: havefits: %d\n", im1.have_fits());
+	printf("imgdata-test.cc: havepgm: %d\n", im1.have_pgm());
 	
 	if (argc > 1) {
 		printf("imgdata-test.cc: using file '%s'\n", argv[1]);

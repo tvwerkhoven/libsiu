@@ -56,11 +56,6 @@ public:
 		IMG_UNDEF
 	} imgtype_t;
 	
-	bool havegsl;
-	bool havefits;
-	bool havepgm;
-	bool haveics;
-	
 	typedef enum {
 		ERR_NO_ERROR=0,
 		ERR_OPEN_FILE,
@@ -99,7 +94,7 @@ public:
 		size_t minidx;
 		size_t maxidx;
 		bool init;
-		stats_t() : init(false) { }
+		stats_t() : min(0), max(0), sum(0), minidx(0), maxidx(0), init(false) { }
 	} stats_t;
 	
 	// File info
@@ -111,7 +106,8 @@ public:
 	
 private:
 	Io &io;
-	std::string strerr;
+	error_t err;
+	data_t data;
 	
 	int loadFITS(const Path&);					//!< Load FITS Files (cfitsio)
 	int loadICS(const Path&);						//!< Load ICS Files (libics)
@@ -137,13 +133,17 @@ private:
 	
 	template <typename T>
 	void _swapaxes(const int *order, T data);	//!< Swap axes of data (transpose etc.)
-	
-public:	
-	data_t data;
+
 	file_t finfo;
 	stats_t stats;
-	error_t err;
-	
+
+	bool havegsl;
+	bool havefits;
+	bool havepgm;
+	bool haveics;
+
+public:	
+		
 	// New bare ImgData instance
 	ImgData(Io &io);
 	// New from file & filetype
@@ -176,27 +176,43 @@ public:
 	// Swap axis & transpose data
 	int swapaxes(const int *order);
 	
-	// Calculate stats
+	// Calculate & print stats
 	void calcstats();
-	// Print file metadata
 	void printmeta();
 	
 	// Public handlers
 	gsl_matrix *as_GSL(bool copy=true);
 	data_t as_datat() { data.refs++; return data; }
 	
-	error_t geterr() { return err; }
-	dtype_t getdtype() { return data.dt; }
-	int getbitpix() { return data.bpp; }
-	int getbpp() { return data.bpp; }
-	void *getdata() { return data.data; }
-	imgtype_t getimgtype() { return finfo.itype; }
-	int getndims() { return data.ndims; }
-	size_t getdim(int d) { if (d < data.ndims) return data.dims[d]; return 0; }
-	size_t getwidth() { return getdim(0); }
-	size_t getheight() { return getdim(1); }
-	size_t getsize() { return data.size; }
-	size_t getnel() { return data.nel; }
+	// Get properties
+	bool have_gsl() const { return havegsl; }
+	bool have_fits() const { return havefits; }
+	bool have_pgm() const { return havepgm; }
+	bool have_ics() const { return haveics; }
+	
+	error_t geterr() const { return err; }
+	
+	// Get data stuff
+	dtype_t getdtype() const { return data.dt; }
+	int getbitpix() const { return data.bpp; }
+	int getbpp() const { return data.bpp; }
+	void *getdata() const { return data.data; }
+	imgtype_t getimgtype() const { return finfo.itype; }
+	int getndims() const { return data.ndims; }
+	size_t getdim(const int d) const { if (d < data.ndims) return data.dims[d]; return 0; }
+	size_t getwidth() const { return getdim(0); }
+	size_t getheight() const { return getdim(1); }
+	size_t getsize() const { return data.size; }
+	size_t getnel() const { return data.nel; }
+	
+	// Get statistics data
+	bool have_stats() const { return stats.init; }
+	double get_minval() const { return stats.min; }
+	size_t get_minidx() const { return stats.minidx; }
+	double get_maxval() const { return stats.max; }
+	size_t get_maxidx() const { return stats.maxidx; }
+	double get_sum() const { return stats.sum; }
+	
 
 };
 

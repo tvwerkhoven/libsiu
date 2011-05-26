@@ -104,11 +104,11 @@ void Time::update() {
 	t_epoch.i = t_timeval.tv_sec;
 	t_epoch.f = t_timeval.tv_usec * 1.0 / USEC_PER_SEC;
 	
-	DEBUGPRINT("%lld, %Lg\n", t_epoch.i, t_epoch.f);
+	DEBUGPRINT("%ju, %Lg\n", t_epoch.i, t_epoch.f);
 }
 
 Time Time::add(const Time &extra, int fac) {
-	DEBUGPRINT("%lld, %Lg\n", t_epoch.i, t_epoch.f);
+	DEBUGPRINT("%ju, %Lg\n", t_epoch.i, t_epoch.f);
 	epoch_t tmp = extra.as_epoch_t();
 
 	// Calculate new time
@@ -126,12 +126,12 @@ Time Time::add(const Time &extra, int fac) {
 	
 	sync();
 	
-	DEBUGPRINT("%lld, %Lg\n", t_epoch.i, t_epoch.f);
+	DEBUGPRINT("%ju, %Lg\n", t_epoch.i, t_epoch.f);
 	return *this;
 }
 
 void Time::sync() {
-	DEBUGPRINT("%lld, %Lg\n", t_epoch.i, t_epoch.f);
+	DEBUGPRINT("%ju, %Lg\n", t_epoch.i, t_epoch.f);
 	
 	t_timeval.tv_sec = t_epoch.i;
 	t_timeval.tv_usec = (suseconds_t) (t_epoch.f * USEC_PER_SEC);
@@ -171,11 +171,11 @@ Time::epoch_t Time::as_epoch_t() const { return t_epoch; }
 struct tm* Time::as_str_tm() const { return t_str_tm; }
 struct timeval Time::as_str_tv() const { return t_timeval; }
 string Time::str() const { 
-	DEBUGPRINT("%lld, %Lg\n", t_epoch.i, t_epoch.f);
+	DEBUGPRINT("%ju, %Lg\n", t_epoch.i, t_epoch.f);
 	return format("%d.%09d", t_epoch.i, (int) (t_epoch.f * 1E9)); 
 }
 const char *Time::c_str() const { 
-	DEBUGPRINT("%lld, %Lg\n", t_epoch.i, t_epoch.f);
+	DEBUGPRINT("%ju, %Lg\n", t_epoch.i, t_epoch.f);
 	return format("%d.%09d", t_epoch.i, (int) (t_epoch.f * 1E9)).c_str();
 }
 

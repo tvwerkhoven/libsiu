@@ -1,5 +1,5 @@
 /*
- time-test.cc -- Test time++ library
+ sighandle-test.cc -- Test Sighandle class
  Copyright (C) 2011 Tim van Werkhoven <t.i.m.vanwerkhoven@xs4all.nl>
  
  This program is free software; you can redistribute it and/or modify
@@ -17,30 +17,22 @@
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <sigc++/signal.h>
+#include "sighandle.h"
 
-#include <string>
-#include <stdio.h>
+void quit_func() {
+	printf("quit_func()\n");
+}
 
-#include "time++.h"
+void ign_func() {
+	printf("ign_func()\n");
+}
 
-#include "libsiu-testing.h"
-
-int main(int /* argc */, char *argv[]) {
-	DEBUGPRINT("testing %s\n", argv[0]);
-
-	// Init times
-	Time t0(0);
-	DEBUGPRINT("t0: %s\n", t0.c_str());
-	Time t1(123);
-	DEBUGPRINT("t1: %s\n", t1.c_str());
-
-	Time t2(123456789, 0.12345678);
-	DEBUGPRINT("t2: %s\n", t2.c_str());
-	Time t3(123456789+3600, 0.12345678);
-	DEBUGPRINT("t3: %s\n", t3.c_str());
+int main() {
+	SigHandle sig;
+	sig.quit_func = sigc::ptr_fun(&quit_func);
+	sig.ign_func = sigc::ptr_fun(&ign_func);
 	
-	
-	// Difference
-	DEBUGPRINT("t1 - t0 = %s\n", (t1 - t0).c_str());
-	DEBUGPRINT("t4 - t3 = %s\n", (t3 - t2).c_str());
+	while (1)
+		sleep(1);
 }

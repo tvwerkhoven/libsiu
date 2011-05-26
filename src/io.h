@@ -18,8 +18,8 @@
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __IO_H__
-#define __IO_H__
+#ifndef HAVE_IO_H
+#define HAVE_IO_H
 
 #include <string>
 #include <cstdio>
@@ -61,10 +61,10 @@ public:
 	
 	void init(const int);
 
-	int msg(int, const char*, ...) const;
-	int msg(int, const std::string) const;
+	int msg(const int, const char*, ...) const;
+	int msg(const int, const std::string) const;
 	
-	int setLogfile(Path&);
+	int setLogfile(const Path&);
 	Path getLogfile() const { return logfile; }
 	
 	int getVerb() const { return verb; }
@@ -79,4 +79,4 @@ public:
 	int decVerb() { return setVerb(verb-1); }
 };
 
-#endif
+#endif // HAVE_IO_H

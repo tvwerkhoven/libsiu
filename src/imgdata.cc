@@ -47,36 +47,34 @@
 //! @todo handle errors better, set data to NULL on failure
 
 ImgData::ImgData(Io &io): 
-havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS),
-io(io), err(ERR_NO_ERROR)
+io(io), err(ERR_NO_ERROR),
+havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS)
 { ; }
 	
 // Constructors from file
 ImgData::ImgData(Io &io, const std::string f, imgtype_t t): 
-havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS),
-io(io), finfo(Path(f), t), err(ERR_NO_ERROR)
+io(io), err(ERR_NO_ERROR), finfo(Path(f), t),
+havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS)
 {
 	io.msg(IO_DEB2, "ImgData::ImgData() new from file.");
 		
-	if (loaddata(finfo.path, finfo.itype))
-		err = ERR_LOAD_FILE;
+	loaddata(finfo.path, finfo.itype);
 }
 
 ImgData::ImgData(Io &io, const Path f, imgtype_t t): 
-havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS),
-io(io), finfo(Path(f), t), err(ERR_NO_ERROR)
+io(io), err(ERR_NO_ERROR), finfo(f, t),
+havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS)
 {
 	io.msg(IO_DEB2, "ImgData::ImgData() new from file.");
 	
-	if (loaddata(finfo.path, finfo.itype))
-		err = ERR_LOAD_FILE;
+	loaddata(finfo.path, finfo.itype);
 }
 
 // Constructors from GSL data
 #if HAVE_GSL
 ImgData::ImgData(Io &io, const gsl_matrix *m, const bool copy):
-havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS),
-io(io), err(ERR_NO_ERROR)
+io(io), err(ERR_NO_ERROR),
+havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS)
 {
 	io.msg(IO_DEB2, "ImgData::ImgData(gsl_matrix, cp=%d)", copy);
 	
@@ -87,8 +85,8 @@ io(io), err(ERR_NO_ERROR)
 }
 
 ImgData::ImgData(Io &io, const gsl_matrix_float *m, const bool copy):
-havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS),
-io(io), err(ERR_NO_ERROR)
+io(io), err(ERR_NO_ERROR),
+havegsl(HAVE_GSL), havefits(HAVE_CFITSIO), havepgm(true), haveics(HAVE_ICS)
 {
 	io.msg(IO_DEB2, "ImgData::ImgData(gsl_matrix_float, cp=%d)", copy);
 	

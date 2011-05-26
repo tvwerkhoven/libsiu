@@ -42,7 +42,7 @@ pid_t pidfile::getpid() {
 	if(len == -1)
 		throw exception("Cannot read from pidfile '" + filename + "': " + strerror(errno));
 
-	if(len == 0 || len >= sizeof buf)
+	if(len == 0 || len >= (ssize_t) sizeof buf)
 		throw exception("Error parsing pid from '" + filename + "'");
 
 	return atoll(buf);
@@ -58,7 +58,7 @@ void pidfile::setpid() {
 	int len;
 	
 	len = snprintf(buf, sizeof buf, "%lli\n", (long long int)::getpid());
-	if(len <= 0 || len >= sizeof buf)
+	if(len <= 0 || len >= (ssize_t) sizeof buf)
 		throw exception("Error formatting pid");
 	
 	if(write(fd, buf, len) == -1)

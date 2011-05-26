@@ -187,9 +187,12 @@ bool Simple::on_image_motion_event(GdkEventMotion *event) {
 
 int main(int argc, char** argv) {
 	fprintf(stderr, "::main()\n");
+	fprintf(stderr, "Gtk::Main kit(...)\n");
   Gtk::Main kit(argc, argv);
+	fprintf(stderr, "Gtk::GL::init(...)\n");
   Gtk::GL::init(argc, argv);
 
+	fprintf(stderr, "glutInit(...)\n");
 	glutInit(&argc, argv);
 	
   int major, minor;

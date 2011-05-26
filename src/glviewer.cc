@@ -48,7 +48,7 @@
 
 #include "glviewer.h"
 #include "pthread++.h"
-#include "types.h"
+#include "utils.h"
 
 //! @todo Figure out realization / configure / on_update / do_update -> http://www.yorba.org/blog/jim/2010/10/those-realize-map-widget-signals.html
 
@@ -179,7 +179,7 @@ void OpenGLImageViewer::do_update() {
 	// Image scaling and centering
 	double cw = gl_img.w;
 	double ch = gl_img.h;
-	double mwh = min(ww, wh);
+	//double mwh = min(ww, wh);
 	
 	double s;
 	
