@@ -17,6 +17,8 @@
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "autoconfig.h"
+
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -24,8 +26,12 @@
 #include <vector>
 #include <stdexcept>
 
+#ifdef HAVE_GSL
+#include <gsl/gsl_vector.h>
+#endif
 
-#include "autoconfig.h"
+#include <time.h>
+
 #define DEBUGPRINT(fmt, ...) \
 	do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
 	__LINE__, __func__, __VA_ARGS__); } while (0)
@@ -51,6 +57,16 @@ commpref(cpref), wordsep(wsep), linesep(lsep),
 csvdata(newdata) {
 	DEBUGPRINT("DATA:..., '%c', '%c', '%c')\n", commpref, wordsep, linesep);
 }
+
+#ifdef HAVE_GSL
+Csv::Csv(gsl_vector_float *newdata, const char cpref, const char wsep, const char lsep):
+commpref(cpref), wordsep(wsep), linesep(lsep) {
+	DEBUGPRINT("DATA:..., '%c', '%c', '%c')\n", commpref, wordsep, linesep);
+	for (size_t i=0; i<newdata->size; i++)
+		csvdata.push_back( vector<double>(gsl_vector_float_get(newdata, i)) );
+	
+}
+#endif
 
 Csv::Csv(const char cpref, const char wsep, const char lsep):
 commpref(cpref), wordsep(wsep), linesep(lsep),
@@ -83,6 +99,10 @@ bool Csv::read(string file) {
 		if (buf[0] == commpref)
 			continue;
 		
+		// Empty line, continue
+		if (buf.find_first_not_of(" \t", 0) == string::npos)
+			continue;
+		
 		// Read rest of the line, store in 
 		stringstream bufstrm(buf);
 		while(std::getline(bufstrm, cell, wordsep)) {
@@ -96,6 +116,8 @@ bool Csv::read(string file) {
 		else if (linewidth != dataline.size())
 			return false;
 		
+		DEBUGPRINT("read %d elements on this line\n", (int) linewidth);
+
 		csvdata.push_back(dataline);
 		dataline.clear();
 	}
@@ -104,7 +126,7 @@ bool Csv::read(string file) {
 	return true;
 }
 
-bool Csv::write(string file, const string &comment, const bool app) {
+bool Csv::write(string file, const string &comment, const bool app, const bool date) {
 	DEBUGPRINT("%s, %s, %d\n", file.c_str(), comment.c_str(), app);
 	if (csvdata.size() == 0)
 		return false;
@@ -123,7 +145,13 @@ bool Csv::write(string file, const string &comment, const bool app) {
 
 	if (comment != "")
 		filestr << commpref << comment << linesep;
-	
+
+	if (date) {
+		time_t rawtime = time(NULL);
+		struct tm * timeinfo = gmtime(&rawtime);
+		filestr << commpref << asctime(timeinfo) << linesep;
+	}
+
 	for (size_t i=0; i<csvdata.size(); i++) {
 		vector<double> dataline = csvdata[i];
 		
