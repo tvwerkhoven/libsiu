@@ -24,7 +24,7 @@ AC_PROG_RANLIB
 # Check command line options
 withtests=true
 AC_ARG_WITH([tests],
-		AC_HELP_STRING([--without-tests], [build test programs]),
+		AC_HELP_STRING([--without-tests], [do not build test programs]),
 		[test "$withval" = yes && withtests=false])
 AM_CONDITIONAL([TESTING], [test "$withtests" = true])
 
