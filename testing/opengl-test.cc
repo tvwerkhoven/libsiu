@@ -123,7 +123,7 @@ void Simple::on_render() {
 	// fill data
 	for (int i=0; i<h; i++)
 		for (int j=0; j<w; j++)
-			data[i*w + j] = 255 * 8 * sqrt(pow(i,2) + pow(j,2)) / sqrt(pow(w,2) + pow(h,2));
+			data[i*w + j] = 255 * 8 * sqrt(pow(i,2.0) + pow(j,2.0)) / sqrt(pow(w,2.0) + pow(h,2.0));
 	
 	glarea.link_data((void *) data, d, w, h);
 }

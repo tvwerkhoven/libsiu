@@ -10,6 +10,7 @@ endif
 libpath_a_SOURCES = path++.cc
 libconfig_a_SOURCES = config.cc path++.cc
 libcsv_a_SOURCES = csv.cc path++.cc
+libcsv_a_CFLAGS = $(GSL_CFLAGS)
 libmessages_a_SOURCES = messages.cc
 libpidfile_a_SOURCES = pidfile.cc
 libserial_a_SOURCES = serial.cc
