@@ -23,6 +23,7 @@
 // STRUCTS AND TYPES //
 /*********************/
 
+#include <stdlib.h>
 
 /*!
  @brief We use this to define integer 2-vectors (resolutions etc)
@@ -101,4 +102,8 @@ typedef enum {
 
 template <class T> T clamp(const T x, const T min, const T max) { return x < min ? min : x > max ? max : x; }
 
+static double simple_rand() { 
+	static unsigned int seed = 1;
+	return rand_r(&seed)*1.0/RAND_MAX;
+}
 #endif // HAVE_TYPES_H
