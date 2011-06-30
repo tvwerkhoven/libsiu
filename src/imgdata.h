@@ -56,11 +56,6 @@ public:
 		IMG_UNDEF
 	} imgtype_t;
 	
-	bool havegsl;
-	bool havefits;
-	bool havepgm;
-	bool haveics;
-	
 	typedef enum {
 		ERR_NO_ERROR=0,
 		ERR_OPEN_FILE,
@@ -111,7 +106,8 @@ public:
 	
 private:
 	Io &io;
-	std::string strerr;
+	error_t err;
+	data_t data;
 	
 	int loadFITS(const Path&);					//!< Load FITS Files (cfitsio)
 	int loadICS(const Path&);						//!< Load ICS Files (libics)
@@ -139,11 +135,14 @@ private:
 	void _swapaxes(const int *order, T data);	//!< Swap axes of data (transpose etc.)
 	
 public:	
-	data_t data;
 	file_t finfo;
 	stats_t stats;
-	error_t err;
 	
+	bool havegsl;
+	bool havefits;
+	bool havepgm;
+	bool haveics;
+		
 	// New bare ImgData instance
 	ImgData(Io &io);
 	// New from file & filetype
