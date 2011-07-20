@@ -62,46 +62,6 @@ flipv(false), fliph(false), zoomfit(false), crosshair(false),
 gl_img()
 {
 	DEBUGPRINT("%s", "+\n");
-	//! @bug This generates a SIGSEGV on Debian 6.0 but not on OS X 10.6?
-	/*
-	 stack trace:
-	 #0  0x00007ffff2e8092e in XF86DRIQueryVersion () from /usr/lib/libGL.so.1
-	 #1  0x00007ffff2e80ac9 in XF86DRIQueryExtension () from /usr/lib/libGL.so.1
-	 #2  0x00007ffff2e803dc in ?? () from /usr/lib/libGL.so.1
-	 #3  0x00007ffff2e5d99f in ?? () from /usr/lib/libGL.so.1
-	 #4  0x00007ffff2e59d51 in ?? () from /usr/lib/libGL.so.1
-	 #5  0x00007ffff2e59f2e in glXChooseVisual () from /usr/lib/libGL.so.1
-	 #6  0x00007ffff18df0cd in ?? () from /usr/lib/libgdkglext-x11-1.0.so.0
-	 #7  0x00007ffff18c2ec6 in ?? () from /usr/lib/libgdkglext-x11-1.0.so.0
-	 #8  0x00007ffff18c2f2d in ?? () from /usr/lib/libgdkglext-x11-1.0.so.0
-	 #9  0x00007ffff1d0d75b in Gdk::GL::Config::create(Gdk::GL::ConfigMode) ()
-   from /usr/lib/libgdkglextmm-x11-1.2.so.0
-	 #10 0x000000000048a202 in OpenGLImageViewer (this=0x865c20, 
-	 __in_chrg=<value optimized out>, __vtt_parm=<value optimized out>)
-	 at glviewer.cc:66
-	 #11 0x0000000000468bbe in CamView (this=0x864ad0, camctrl=0x862400, log=..., 
-	 foamctrl=..., n=..., __in_chrg=<value optimized out>, 
-	 __vtt_parm=<value optimized out>) at camview.cc:55
-	 #12 0x00000000004467d4 in MainWindow::on_ctrl_device_update (
-	 this=<value optimized out>) at fgui.cc:256
-	 #13 0x0000000000449a4c in sigc::bound_mem_functor0<void, MainWindow>::operator() (this=0x82e328) at /usr/include/sigc++-2.0/sigc++/functors/mem_fun.h:1787
-	 #14 0x0000000000449a5b in sigc::adaptor_functor<sigc::bound_mem_functor0<void, MainWindow> >::operator() (this=<value optimized out>)
-	 ---Type <return> to continue, or q <return> to quit--- 
-	 at /usr/include/sigc++-2.0/sigc++/adaptors/adaptor_trait.h:251
-	 #15 0x0000000000449a6d in sigc::internal::slot_call0<sigc::bound_mem_functor0<void, MainWindow>, void>::call_it (rep=<value optimized out>)
-	 at /usr/include/sigc++-2.0/sigc++/functors/slot.h:103
-	 #16 0x00007ffff4e18bba in Glib::DispatchNotifier::pipe_io_handler(Glib::IOCondition) () from /usr/lib/libglibmm-2.4.so.1
-	 #17 0x00007ffff4e1a93e in Glib::IOSource::dispatch(sigc::slot_base*) ()
-   from /usr/lib/libglibmm-2.4.so.1
-	 #18 0x00007ffff4e1aa8f in Glib::Source::dispatch_vfunc(_GSource*, int (*)(void*), void*) () from /usr/lib/libglibmm-2.4.so.1
-	 #19 0x00007ffff66896f2 in g_main_context_dispatch () from /lib/libglib-2.0.so.0
-	 #20 0x00007ffff668d568 in ?? () from /lib/libglib-2.0.so.0
-	 #21 0x00007ffff668da75 in g_main_loop_run () from /lib/libglib-2.0.so.0
-	 #22 0x00007ffff51756b7 in gtk_main () from /usr/lib/libgtk-x11-2.0.so.0
-	 #23 0x00007ffff62b212b in Gtk::Main::run(Gtk::Window&) ()
-   from /usr/lib/libgtkmm-2.4.so.1
-	 #24 0x00000000004485e1 in main (argc=1, argv=0x7fffffffe418) at fgui.cc:316
-	 */
 	
 	glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGBA | Gdk::GL::MODE_DOUBLE);
 	if(!glconfig) {
