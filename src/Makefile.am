@@ -30,7 +30,7 @@ libglviewer_a_CPPFLAGS = $(OPENGL_CFLAGS) $(AM_CPPFLAGS)
 libglviewer_a_CFLAGS = $(OPENGL_CFLAGS) 
 endif
 
-noinst_HEADERS = config.h csv.h format.h messages.h pidfile.h protocol.h pthread++.h serial.h socket.h io.h glviewer.h imgdata.h path++.h time++.h
+noinst_HEADERS = config.h csv.h format.h messages.h pidfile.h protocol.h pthread++.h serial.h socket.h io.h glviewer.h imgdata.h path++.h time++.h types.h utils.h 
 
 
 
