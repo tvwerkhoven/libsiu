@@ -95,7 +95,6 @@ bool Csv::read(string file) {
 	csvdata.clear();
 	
 	while (getline (dataio, buf, linesep)) {
-		const char c = '#';
 		DEBUGPRINT("line = %s, comp = %d\n", buf.c_str(), buf[0] == commpref);
 		// Line starts with 'commpref', skip it
 		if (buf[0] == commpref)
