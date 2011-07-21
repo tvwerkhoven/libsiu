@@ -66,8 +66,15 @@ int Io::msg(int type, const std::string message) const {
 		// Build prefix
 		if (!(type & IO_NOID))
 			tmpmsg += "[" + PREFIX[level] + "] ";
-		if (type & IO_THR)
-			tmpmsg += format("(%x) ", (int) pthread_self());
+		if (type & IO_THR) {
+			// From: http://stackoverflow.com/questions/1759794/how-to-print-pthread-t
+			pthread_t pt = pthread_self();
+			unsigned char *ptc = (unsigned char*)(void*)(&pt);
+			tmpmsg += "(0x";
+			for (size_t i=0; i<sizeof(pt); i++)
+				tmpmsg += format("%02x", (unsigned)(ptc[i]));
+			tmpmsg += ")";
+		}
 		
 		// Add message
 		tmpmsg = tmpmsg + message;
