@@ -61,7 +61,7 @@ int Io::msg(int type, const std::string message) const {
 	int level = type & IO_LEVEL_MASK;
 
 	if (level <= verb) {
-		string tmpmsg;
+		std::string tmpmsg;
 
 		// Build prefix
 		if (!(type & IO_NOID))
