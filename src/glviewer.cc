@@ -179,7 +179,7 @@ void OpenGLImageViewer::do_update() {
 	// Image scaling and centering
 	double cw = gl_img.w;
 	double ch = gl_img.h;
-	double mwh = min(ww, wh);
+	//double mwh = min(ww, wh);
 	
 	double s;
 	
