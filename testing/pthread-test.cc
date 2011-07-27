@@ -44,7 +44,7 @@ void sub_worker_prog() {
 	cond.wait(mut);
 }
 
-void *worker_prog(void *args) {
+void *worker_prog(void */*args*/) {
 	pthread_t pt = pthread_self();
 	unsigned char *ptc = (unsigned char*)(void*)(&pt);
 	char thrid[2+2*sizeof(pt)+1];
@@ -72,7 +72,7 @@ void *worker_prog(void *args) {
 	return NULL;
 }
 
-void *server_prog(void *args) {
+void *server_prog(void */*args*/) {
 	fprintf(stderr, "pthread-test.cc::server() 1 init\n");
 	
 	for (int i=0; i<nworker; i++) {

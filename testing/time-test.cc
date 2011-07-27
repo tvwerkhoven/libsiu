@@ -25,7 +25,7 @@
 
 #include "libsiu-testing.h"
 
-int main(int argc, char *argv[]) {
+int main(int /* argc */, char *argv[]) {
 	DEBUGPRINT("testing %s\n", argv[0]);
 
 	// Init times
