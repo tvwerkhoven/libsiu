@@ -152,6 +152,15 @@ namespace pthread {
 		mutexholder(mutex *m): m(m) { m->lock(); }
 		~mutexholder() { m->unlock(); }
 	};
+	
+	class mutexholdertry {
+		mutex *m;
+		bool locked;
+		public:
+		mutexholdertry(mutex *m): m(m), locked(false) { if (!(m->trylock())) locked = true; }
+		~mutexholdertry() { if (locked) m->unlock(); }
+		bool havelock() const { return locked; }
+	};
 
 	static const pthread_cond_t COND_INITIALIZER = PTHREAD_COND_INITIALIZER;
 	
