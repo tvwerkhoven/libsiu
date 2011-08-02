@@ -22,12 +22,15 @@
 #ifndef HAVE_PERFLOGGER_H
 #define HAVE_PERFLOGGER_H
 
+#include "autoconfig.h"
+
 #include <time.h>
 #include <sys/time.h>
 #include <stdio.h>
 
 #include <vector>
 
+#include <sigc++/signal.h>
 #include <pthread++.h>
 
 using namespace std;
@@ -60,8 +63,15 @@ public:
   PerfLog(size_t nstages, double i=1.0, size_t nh=100);
 	~PerfLog();
 	
+	bool do_print;							//!< Whether or not to print performance every interval seconds.
+	bool do_callback;						//!< Whether or not to callback slot_report() every interval seconds.
+	
 	bool addlog(size_t stage);		//!< Add log entry for specific stage
 	bool setinterval(double i=1.0); //!< Set new update interval (in seconds)
+	
+	void print_report(FILE *stream=stdout, int whichreport=0); //!< Print last report to terminal
+	
+	sigc::slot<void, double, vector< struct timeval >, vector< struct timeval >, vector< struct timeval >, vector< size_t > > slot_report; //!< Slot for performance reporting, will be called as slot_report(interval, last, minlat, maxlat, sumlat, avgcount);
 };
 
 #endif // HAVE_PERFLOGGER_H

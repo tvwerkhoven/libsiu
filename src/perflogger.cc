@@ -20,6 +20,12 @@
  along with FOAM.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "autoconfig.h"
+
+#define DEBUGPRINT(fmt, ...) \
+do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
+__LINE__, __func__, __VA_ARGS__); } while (0)
+
 
 #include <time.h>
 #include <sys/time.h>
@@ -27,16 +33,15 @@
 
 #include <vector>
 
+#include <format.h>
 #include <pthread++.h>
 
-#define DEBUGPRINT(fmt, ...) \
-do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " (fmt), __FILE__, \
-__LINE__, __func__, __VA_ARGS__); } while (0)
+#include "perflogger.h"
 
 using namespace std;
 
 PerfLog::PerfLog(const size_t ns, const double i, const size_t nh):
-nhist(nh), interval(i), totaliter(0), nstages(ns), init(false)
+nhist(nh), interval(i), totaliter(0), nstages(ns), init(false), do_print(false), do_callback(true)
 {
 	// Reserve memory in vectors
 	last.resize(nstages);
@@ -45,8 +50,7 @@ nhist(nh), interval(i), totaliter(0), nstages(ns), init(false)
 	sumlat.resize(nstages);
 	avgcount.resize(nstages);
 
-DEBUGPRINT("sizes %zu, %zu, %zu and %zu\n",
-				 last.size(), minlat.size(), maxlat.size(), sumlat.size())
+	DEBUGPRINT("sizes %zu, %zu, %zu and %zu\n", last.size(), minlat.size(), maxlat.size(), sumlat.size());
 	
 	// Clear struct timeval's
 	for (size_t i=0; i < last.size(); i++)
@@ -79,7 +83,7 @@ bool PerfLog::addlog(size_t stage) {
 	// Try to get mutex, otherwise abort
 	pthread::mutexholdertry htry(&mutex);
 	if (!htry.havelock()) {
-		DEBUGPRINT("stage=%zu lockfail\n", stage)
+		DEBUGPRINT("stage=%zu lockfail\n", stage);
 		return false;
 	}
 	
@@ -88,7 +92,7 @@ bool PerfLog::addlog(size_t stage) {
 		if (stage == 0) {
 			gettimeofday(&(last[0]), 0);
 			init = true;
-			DEBUGPRINT("stage=%zu init\n", stage)
+			DEBUGPRINT("stage=%zu init\n", stage);
 			return true;
 		} else {
 			return false;
@@ -126,6 +130,24 @@ bool PerfLog::addlog(size_t stage) {
 	return true;
 }
 
+void PerfLog::print_report(FILE *stream, int whichreport) {
+	fprintf(stream, "PerfLog: In the last %g seconds, we got these latencies:\n", interval);
+	
+	for (size_t i=0; i < sumlat.size(); i++) {
+		string rep = "";
+		rep += format("PerfLog: Stage[%zu]: #=%zu", i, avgcount.at(i));
+		rep += format(", min: %ld.%06ld", 
+							 (long int) minlat.at(i).tv_sec, (long int) minlat.at(i).tv_usec);
+		rep += format(", max: %ld.%06ld", 
+							 (long int) maxlat.at(i).tv_sec, (long int) maxlat.at(i).tv_usec);
+		rep += format(", sum: %ld.%06ld", 
+							 (long int) sumlat.at(i).tv_sec, (long int) sumlat.at(i).tv_usec);
+		double sum = sumlat.at(i).tv_sec*1E6 + sumlat.at(i).tv_usec;
+		rep += format(", avg: %.6f\n", sum/avgcount.at(i)/1e6);
+		fprintf(stream, "%s", rep.c_str());
+	}
+}
+
 void PerfLog::logger() {
 	struct timeval now, next, diff;
 
@@ -134,19 +156,10 @@ void PerfLog::logger() {
 		{
 			// Get mutex to work with data
 			pthread::mutexholder h(&mutex);
-			DEBUGPRINT("In the last %g seconds, we got these latencies:\n", interval)
-
-			for (size_t i=0; i < last.size(); i++) {
-				DEBUGPRINT("Stage[%zu]: #=%zu", i, avgcount.at(i))
-				DEBUGPRINT(", min: %ld.%06ld", 
-							 (long int) minlat.at(i).tv_sec, (long int) minlat.at(i).tv_usec)
-				DEBUGPRINT(", max: %ld.%06ld", 
-							 (long int) maxlat.at(i).tv_sec, (long int) maxlat.at(i).tv_usec)
-				DEBUGPRINT(", sum: %ld.%06ld", 
-							 (long int) sumlat.at(i).tv_sec, (long int) sumlat.at(i).tv_usec)
-				double sum = sumlat.at(i).tv_sec*1E6 + sumlat.at(i).tv_usec;
-				DEBUGPRINT(", avg: %.6f\n", sum/avgcount.at(i)/1e6)
-			}
+			if (do_print)
+				print_report();
+			if (do_callback)
+				slot_report(interval, minlat, maxlat, sumlat, avgcount);
 			
 			// Reset latencies
 			reset_logs();
@@ -166,5 +179,3 @@ void PerfLog::logger() {
 		}
 	}
 }
-
-#endif // HAVE_PERFLOGGER_H
