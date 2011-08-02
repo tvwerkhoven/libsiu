@@ -5,7 +5,7 @@
 #*.[oa]
 #*~
 #*autoconfig*
-testing/*-test
+testing/*-test*
 autom4te.cache/
 aclocal.m4
 build-aux/
