@@ -39,7 +39,7 @@ class PerfLog {
 private:
 	const size_t nhist;					//!< Length of history to remember (default 100)
 	
-	struct timeval lastlog;			//!< Last log entry (to measure interval)
+	struct timeval lastlog;			//!< Last log entry (to measure interval in logthr)
 	double interval;						//!< Performance averaging interval
 
 	size_t totaliter;						//!< Total number of iterations done
@@ -47,10 +47,9 @@ private:
 	pthread::thread logthr;			//!< Logger thread
 	pthread::mutex mutex;				//!< Data access mutex
 	
-	const size_t nstages;				//!< Number of stages to log for (size for lastlat etc.)
+	size_t nstages;							//!< Number of stages to log for (does not have to be equal to last.size()!)
 	bool init;									//!< Have we initialized in this interval?
 	
-	size_t nstage;							//!< Number of stages we are actively monitoring
 	vector< size_t > avgcount;		//!< Counter for the number of measurements we have
 	vector< struct timeval > last;	//!< Last measured timestamp (previous iteration)
 	vector< struct timeval > minlat; //!< Min latency for each stage in the last interval
@@ -73,7 +72,7 @@ public:
 	
 	void print_report(FILE *stream=stdout); //!< Print last report to terminal
 	
-	sigc::slot<void, double, vector< struct timeval >, vector< struct timeval >, vector< struct timeval >, vector< size_t > > slot_report; //!< Slot for performance reporting, will be called as slot_report(interval, last, minlat, maxlat, sumlat, avgcount);
+	sigc::slot<void, double, size_t, vector< struct timeval >, vector< struct timeval >, vector< struct timeval >, vector< size_t > > slot_report; //!< Slot for performance reporting, will be called as slot_report(interval, last, minlat, maxlat, sumlat, avgcount);
 };
 
 #endif // HAVE_PERFLOGGER_H
