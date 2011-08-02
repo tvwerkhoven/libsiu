@@ -18,16 +18,52 @@
  */
 
 #include <string>
+#include <vector>
+
+#include <sigc++/signal.h>
+
+#include <format.h>
+
 #include "perflogger.h"
 
-int main(int argc, char **argv) {
-	// Start new logger with 5 log stages, updating every 1.0 seconds and 100 entries in history
-	PerfLog logger(6, 2.5, 100);
+using namespace std;
+
+void log_callback(double interval, 
+									vector< struct timeval > minlat,
+									vector< struct timeval > maxlat,
+									vector< struct timeval > sumlat, 
+									vector< size_t > avgcount) {
+	printf("log_callback!\n");
+	
+	FILE *stream = stdout;
+	
+	fprintf(stream, "log_callback: In the last %g seconds, we got these latencies:\n", interval);
+	
+	for (size_t i=0; i < sumlat.size(); i++) {
+		string rep = "";
+		rep += format("log_callback: Stage[%zu]: #=%zu", i, avgcount.at(i));
+		rep += format(", min: %ld.%06ld", 
+									(long int) minlat.at(i).tv_sec, (long int) minlat.at(i).tv_usec);
+		rep += format(", max: %ld.%06ld", 
+									(long int) maxlat.at(i).tv_sec, (long int) maxlat.at(i).tv_usec);
+		rep += format(", sum: %ld.%06ld", 
+									(long int) sumlat.at(i).tv_sec, (long int) sumlat.at(i).tv_usec);
+		double sum = sumlat.at(i).tv_sec*1E6 + sumlat.at(i).tv_usec;
+		rep += format(", avg: %.6f\n", sum/avgcount.at(i)/1e6);
+		fprintf(stream, "%s", rep.c_str());
+	}
+}
+
+int main(int, char **) {
+	// Start new logger with 6 log stages, updating every 1.5 seconds and 100 entries in history
+	PerfLog logger(6, 1.5, 100);
+	logger.slot_report = sigc::ptr_fun(log_callback);
+	logger.do_print = true;
 	
 	usleep(0.5 * 1E6);
 	
 	// Start 'work'
-	while (true) {
+	for (int i=0; i<5; i++) {
 		printf("work1\n");
 		logger.addlog(0);
 		usleep(0.3 * 1E6);
@@ -54,3 +90,4 @@ int main(int argc, char **argv) {
 	
   return 0;
 }
+
