@@ -29,6 +29,7 @@
 using namespace std;
 
 void log_callback(double interval, 
+									size_t nstages,
 									vector< struct timeval > minlat,
 									vector< struct timeval > maxlat,
 									vector< struct timeval > sumlat, 
@@ -39,7 +40,7 @@ void log_callback(double interval,
 	
 	fprintf(stream, "log_callback: In the last %g seconds, we got these latencies:\n", interval);
 	
-	for (size_t i=0; i < sumlat.size(); i++) {
+	for (size_t i=0; i < nstages; i++) {
 		string rep = "";
 		rep += format("log_callback: Stage[%zu]: #=%zu", i, avgcount.at(i));
 		rep += format(", min: %ld.%06ld", 
@@ -55,8 +56,8 @@ void log_callback(double interval,
 }
 
 int main(int, char **) {
-	// Start new logger with 6 log stages, updating every 1.5 seconds and 100 entries in history
-	PerfLog logger(6, 1.5, 100);
+	// Start new logger updating every 1.5 seconds and 100 entries in history
+	PerfLog logger(1.5, 100);
 	logger.slot_report = sigc::ptr_fun(log_callback);
 	logger.do_print = true;
 	
