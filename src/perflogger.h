@@ -63,8 +63,9 @@ public:
   PerfLog(size_t nstages, double i=1.0, size_t nh=100);
 	~PerfLog();
 	
-	bool do_print;							//!< Whether or not to print performance every interval seconds.
-	bool do_callback;						//!< Whether or not to callback slot_report() every interval seconds.
+	bool do_print;							//!< Whether or not to print performance every interval seconds [false]
+	bool do_callback;						//!< Whether or not to callback slot_report() every interval seconds [true]
+	bool do_alwaysupdate;				//!< Always update, even if no iterations were logged since last update [false]
 	
 	bool addlog(size_t stage);		//!< Add log entry for specific stage
 	bool setinterval(double i=1.0); //!< Set new update interval (in seconds)

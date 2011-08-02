@@ -41,7 +41,7 @@ __LINE__, __func__, __VA_ARGS__); } while (0)
 using namespace std;
 
 PerfLog::PerfLog(const size_t ns, const double i, const size_t nh):
-nhist(nh), interval(i), totaliter(0), nstages(ns), init(false), do_print(false), do_callback(true)
+nhist(nh), interval(i), totaliter(0), nstages(ns), init(false), do_print(false), do_callback(true), do_alwaysupdate(false)
 {
 	// Reserve memory in vectors
 	last.resize(nstages);
@@ -150,19 +150,24 @@ void PerfLog::print_report(FILE *stream, int whichreport) {
 
 void PerfLog::logger() {
 	struct timeval now, next, diff;
+	size_t lastiter=0;
 
 	while (1) {
 		gettimeofday(&lastlog, 0);
 		{
 			// Get mutex to work with data
 			pthread::mutexholder h(&mutex);
-			if (do_print)
-				print_report();
-			if (do_callback)
-				slot_report(interval, minlat, maxlat, sumlat, avgcount);
+			if (totaliter > lastiter || do_alwaysupdate) {
+				if (do_print)
+					print_report();
+				if (do_callback)
+					slot_report(interval, nstages, minlat, maxlat, sumlat, avgcount);
+			}
 			
 			// Reset latencies
 			reset_logs();
+			// Last iteration that we updated is this one
+			lastiter = totaliter;
 		}
 		
 		// Sleep until next iteration
