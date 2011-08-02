@@ -7,7 +7,7 @@ AM_CXXFLAGS = -pipe -Wall -Wextra \
 
 AM_CXXFLAGS += -I${top_srcdir}/src/ -L${top_srcdir}/src/
 
-noinst_PROGRAMS = imgdata-test io-test io-test2 config-test csv-test path-test parse-test protocol-test pthread-test time-test
+noinst_PROGRAMS = imgdata-test io-test io-test2 config-test csv-test path-test parse-test perflogger-test protocol-test pthread-test time-test
 
 imgdata_test_SOURCES = imgdata-test.cc
 imgdata_test_LDADD = ${top_srcdir}/src/libimgdata.a \
@@ -33,6 +33,11 @@ path_test_SOURCES = path-test.cc
 path_test_LDADD = ${top_srcdir}/src/libpath.a
 
 parse_test_SOURCES = parse-test.cc
+
+perflogger_test_SOURCES = perflogger-test.cc
+perflogger_test_CPPFLAGS = $(SIGC_CFLAGS) $(AM_CPPFLAGS)
+perflogger_test_LDADD = ${top_srcdir}/src/libperflogger.a \
+		$(SIGC_LIBS)
 
 protocol_test_SOURCES = protocol-test.cc
 protocol_test_CPPFLAGS = $(SIGC_CFLAGS) $(AM_CPPFLAGS)
