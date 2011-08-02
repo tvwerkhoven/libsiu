@@ -10,7 +10,7 @@ endif
 libpath_a_SOURCES = path++.cc
 libconfig_a_SOURCES = config.cc path++.cc
 libcsv_a_SOURCES = csv.cc path++.cc
-libcsv_a_CFLAGS = $(GSL_CFLAGS)
+libcsv_a_CPPFLAGS = $(GSL_CFLAGS)
 libmessages_a_SOURCES = messages.cc
 libpidfile_a_SOURCES = pidfile.cc
 libserial_a_SOURCES = serial.cc
@@ -20,7 +20,7 @@ libio_a_SOURCES = io.cc path++.cc
 libtime_a_SOURCES = time++.cc
 
 libimgdata_a_SOURCES = imgdata.cc path++.cc
-libimgdata_a_CFLAGS = $(IMGDATA_CFLAGS)
+libimgdata_a_CPPFLAGS = $(IMGDATA_CFLAGS)
 #libimgdata_a_LIBADD = $(IMGDATA_LIBS)
 
 
