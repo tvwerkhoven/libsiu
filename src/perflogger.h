@@ -50,6 +50,7 @@ private:
 	const size_t nstages;				//!< Number of stages to log for (size for lastlat etc.)
 	bool init;									//!< Have we initialized in this interval?
 	
+	size_t nstage;							//!< Number of stages we are actively monitoring
 	vector< size_t > avgcount;		//!< Counter for the number of measurements we have
 	vector< struct timeval > last;	//!< Last measured timestamp (previous iteration)
 	vector< struct timeval > minlat; //!< Min latency for each stage in the last interval
@@ -58,9 +59,10 @@ private:
 	
 	void logger();							//!< Performance logger thread
 	void reset_logs();					//!< Reset logs
+	void allocate(size_t size);	//!< (re-)allocate memory for logging
 	
 public:
-  PerfLog(size_t nstages, double i=1.0, size_t nh=100);
+  PerfLog(double i=1.0, size_t nh=100);
 	~PerfLog();
 	
 	bool do_print;							//!< Whether or not to print performance every interval seconds.
@@ -69,7 +71,7 @@ public:
 	bool addlog(size_t stage);		//!< Add log entry for specific stage
 	bool setinterval(double i=1.0); //!< Set new update interval (in seconds)
 	
-	void print_report(FILE *stream=stdout, int whichreport=0); //!< Print last report to terminal
+	void print_report(FILE *stream=stdout); //!< Print last report to terminal
 	
 	sigc::slot<void, double, vector< struct timeval >, vector< struct timeval >, vector< struct timeval >, vector< size_t > > slot_report; //!< Slot for performance reporting, will be called as slot_report(interval, last, minlat, maxlat, sumlat, avgcount);
 };
