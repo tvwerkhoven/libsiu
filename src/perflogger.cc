@@ -171,7 +171,7 @@ void PerfLog::logger() {
 			if (do_print)
 				print_report();
 			if (do_callback)
-				slot_report(interval, minlat, maxlat, sumlat, avgcount);
+				slot_report(interval, nstages, minlat, maxlat, sumlat, avgcount);
 			
 			// Reset latencies
 			reset_logs();
