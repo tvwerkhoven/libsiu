@@ -40,15 +40,11 @@ __LINE__, __func__, __VA_ARGS__); } while (0)
 
 using namespace std;
 
-PerfLog::PerfLog(const size_t ns, const double i, const size_t nh):
-nhist(nh), interval(i), totaliter(0), nstages(ns), init(false), do_print(false), do_callback(true), do_alwaysupdate(false)
+PerfLog::PerfLog(const double i, const size_t nh):
+nhist(nh), interval(i), totaliter(0), nstages(0), init(false), do_print(false), do_callback(true), do_alwaysupdate(false)
 {
-	// Reserve memory in vectors
-	last.resize(nstages);
-	minlat.resize(nstages);
-	maxlat.resize(nstages);
-	sumlat.resize(nstages);
-	avgcount.resize(nstages);
+	// Pre-allocate memory in vectors (10 stages should be enough for most purposes, will be dynamically added if necessary)
+	allocate(10);
 
 	DEBUGPRINT("sizes %zu, %zu, %zu and %zu\n", last.size(), minlat.size(), maxlat.size(), sumlat.size());
 	
@@ -67,6 +63,15 @@ PerfLog::~PerfLog() {
 	logthr.join();
 }
 
+void PerfLog::allocate(const size_t size) {
+	DEBUGPRINT("allocate(size=%zu)\n", size);
+	last.resize(size);
+	minlat.resize(size);
+	maxlat.resize(size);
+	sumlat.resize(size);
+	avgcount.resize(size);
+}
+
 void PerfLog::reset_logs() {
 	for (size_t i=0; i < sumlat.size(); i++) {
 		timerclear(&(minlat.at(i)));
@@ -76,7 +81,7 @@ void PerfLog::reset_logs() {
 	}
 }
 
-bool PerfLog::addlog(size_t stage) {
+bool PerfLog::addlog(const size_t stage) {
 	if (stage == 0)
 		totaliter++;
 	
@@ -86,6 +91,13 @@ bool PerfLog::addlog(size_t stage) {
 		DEBUGPRINT("stage=%zu lockfail\n", stage);
 		return false;
 	}
+	
+	// Check if we've monitored this stage before
+	if (stage > nstages)
+		nstages = stage;
+	// Check if memory is sufficient
+	if (nstages > sumlat.size())
+		allocate(nstages+5);
 	
 	// Initialize here, but only in stage 0 (otherwise wait)
 	if (!init) {
@@ -130,10 +142,10 @@ bool PerfLog::addlog(size_t stage) {
 	return true;
 }
 
-void PerfLog::print_report(FILE *stream, int whichreport) {
+void PerfLog::print_report(FILE *stream) {
 	fprintf(stream, "PerfLog: In the last %g seconds, we got these latencies:\n", interval);
 	
-	for (size_t i=0; i < sumlat.size(); i++) {
+	for (size_t i=0; i < nstages; i++) {
 		string rep = "";
 		rep += format("PerfLog: Stage[%zu]: #=%zu", i, avgcount.at(i));
 		rep += format(", min: %ld.%06ld", 
