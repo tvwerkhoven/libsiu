@@ -27,6 +27,7 @@ __LINE__, __func__, __VA_ARGS__); } while (0)
 #include "pthread++.h"
 #include "sighandle.h"
 
+#include <stdlib.h>
 #include <signal.h>
 #include <sigc++/signal.h>
 
