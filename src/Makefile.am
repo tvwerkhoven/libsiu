@@ -1,7 +1,7 @@
 AM_CXXFLAGS = -pthread -g -Wall
 AM_CPPFLAGS = $(SIGC_CFLAGS) -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
 
-noinst_LIBRARIES = libconfig.a libcsv.a libmessages.a libperflogger.a libpidfile.a libserial.a libsocket.a libprotocol.a libio.a libimgdata.a libpath.a libtime.a
+noinst_LIBRARIES = libconfig.a libcsv.a libmessages.a libperflogger.a libpidfile.a libserial.a libsighandle.a libsocket.a libprotocol.a libio.a libimgdata.a libpath.a libtime.a
 
 if HAVE_OPENGL
 noinst_LIBRARIES += libglviewer.a
@@ -14,6 +14,7 @@ libcsv_a_CPPFLAGS = $(GSL_CFLAGS)
 libmessages_a_SOURCES = messages.cc
 libperflogger_a_SOURCES = perflogger.cc
 libpidfile_a_SOURCES = pidfile.cc
+libsighandle_a_SOURCES = sighandle.cc
 libserial_a_SOURCES = serial.cc
 libsocket_a_SOURCES = socket.cc
 libprotocol_a_SOURCES = protocol.cc socket.cc
@@ -31,7 +32,7 @@ libglviewer_a_CPPFLAGS = $(OPENGL_CFLAGS) $(AM_CPPFLAGS)
 libglviewer_a_CFLAGS = $(OPENGL_CFLAGS) 
 endif
 
-noinst_HEADERS = config.h csv.h format.h messages.h pidfile.h protocol.h pthread++.h serial.h socket.h io.h glviewer.h imgdata.h path++.h perflogger.h time++.h types.h utils.h 
+noinst_HEADERS = config.h csv.h format.h messages.h pidfile.h protocol.h pthread++.h serial.h sighandle.h socket.h io.h glviewer.h imgdata.h path++.h perflogger.h time++.h types.h utils.h 
 
 
 
