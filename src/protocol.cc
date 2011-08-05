@@ -17,6 +17,12 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "autoconfig.h"
+
+#define DEBUGPRINT(fmt, ...) \
+do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
+__LINE__, __func__, __VA_ARGS__); } while (0)
+
 #include <sys/time.h>
 #include <time.h>
 
@@ -30,46 +36,57 @@ using namespace std;
 
 namespace Protocol {
 	void Client::handler() {
-		pthread::setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS);
+		//pthread::setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS);
 
-		while(running) {
-			socket.connect(host, port);
+		try {
+			while(running) {
+				socket.connect(host, port);
 
-			if(!socket.is_connected()) {
-				sleep(1);
-				continue;
-			}
-
-			slot_connected(true);
-
-			string line;
-
-			while(running && socket.readline(line)) {
-				if(!name.empty() && popword(line) != name)
+				if(!socket.is_connected()) {
+					//usleep(10 * 1E6);
+					sleep(1);
 					continue;
+				}
 
-				slot_message(line);
+				slot_connected(true);
+
+				string line;
+
+				while(running && socket.readline(line)) {
+					if(!name.empty() && popword(line) != name)
+						continue;
+
+					slot_message(line);
+				}
+
+				slot_connected(false);
+
+				socket.close();
 			}
-
-			slot_connected(false);
-
-			socket.close();
+		}
+		catch (...) {
+			DEBUGPRINT("%s\n", "caught exception in handler()!");
+			throw;
 		}
 	}
 
 	Client::Client() {
+		DEBUGPRINT("%s", "\n");
 		setup_flag = false;
 		running = false;
 	};
 
 	Client::Client(const std::string &h, const std::string &p, const std::string &n) {
+		DEBUGPRINT("%s", "\n");
 		setup_flag = false;
 		running = false;
 		setup(h, p, n);
 	};
 
 	Client::~Client() {
+		DEBUGPRINT("%s", "\n");
 		if(running) {
+			DEBUGPRINT("%s\n", "running");
 			close();
 			thread.cancel();
 			thread.join();
@@ -146,14 +163,16 @@ namespace Protocol {
 	pthread::mutex Server::Port::globalmutex;
 
 	Server::Port::Port(const std::string &port): port(port) {
+		DEBUGPRINT("%s", "\n");
 		attr.setstacksize(65536);
 		thread.create(&attr, sigc::mem_fun(this, &Server::Port::handler));
 	}
 
 	Server::Port::~Port() {
+		DEBUGPRINT("%s", "\n");
 		thread.cancel();
 		//For some reason this doesn't work
-		//thread.join();
+		thread.join();
 	}
 
 	Server::Port::Port *Server::Port::get(Server *server) {
@@ -202,7 +221,7 @@ namespace Protocol {
 	}
 
 	void Server::Port::handler() {	
-		pthread::setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS);
+		//pthread::setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS);
 
 		try {
 			socket.listen(port);
@@ -224,15 +243,23 @@ namespace Protocol {
 	}
 
 	Server::Connection::Connection(Port *port, Socket *socket, const void *data): port(port), socket(socket), data(data) {
-		server = 0;
-		running = true;
-		pthread::mutexholder h(&port->mutex);
-		port->connections.insert(this);
-		attr.setstacksize(65536);
-		thread.create(&attr, sigc::mem_fun(this, &Server::Connection::handler));
+		try {
+			DEBUGPRINT("%s", "\n");
+			server = 0;
+			running = true;
+			pthread::mutexholder h(&port->mutex);
+			port->connections.insert(this);
+			attr.setstacksize(65536);
+			thread.create(&attr, sigc::mem_fun(this, &Server::Connection::handler));
+		}
+		catch (...) {
+			DEBUGPRINT("%s\n", "caught exception in handler()!");
+			throw;
+		}
 	}
 
 	Server::Connection::~Connection() {
+		DEBUGPRINT("%s", "\n");
 		if(running) {
 			thread.cancel();
 			thread.join();
@@ -245,43 +272,50 @@ namespace Protocol {
 	}
 
 	void Server::Connection::handler() {
-		pthread::setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS);
+		//pthread::setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS);
 
-		string prevline;
+		try {
+			string prevline;
 
-		while(running) {
-			string line;
-			if(!socket->readline(line))
-				break;
+			while(running) {
+				string line;
+				if(!socket->readline(line))
+					break;
 
-			if(line == ",")
-				line = prevline;
-			else
-				prevline = line;
+				if(line == ",")
+					line = prevline;
+				else
+					prevline = line;
 
-			string name = popword(line);
+				string name = popword(line);
 
-			{
-				pthread::mutexholder h(&port->mutex);
-				map<string, Server *>::iterator i = port->users.find(name);
-				if(i == port->users.end()) {
-					line.insert(0, name + ' ');
-					i = port->users.find("");
+				{
+					pthread::mutexholder h(&port->mutex);
+					map<string, Server *>::iterator i = port->users.find(name);
+					if(i == port->users.end()) {
+						line.insert(0, name + ' ');
+						i = port->users.find("");
+					}
+					if(i == port->users.end())
+						continue;
+					server = i->second;
 				}
-				if(i == port->users.end())
-					continue;
-				server = i->second;
+
+				server->slot_message(this, line);
+				server = 0;
 			}
 
-			server->slot_message(this, line);
-			server = 0;
+			running = false;
+			delete this;
 		}
-
-		running = false;
-		delete this;
+		catch (...) {
+			DEBUGPRINT("%s\n", "caught exception in handler()!");
+			throw;
+		}		
 	}
 
 	Server::Server(const std::string &port, const std::string &name): port(port), name(name) {
+		DEBUGPRINT("%s", "\n");
 		if(!name.empty())
 			prefix = name + ' ';
 	}
@@ -291,6 +325,7 @@ namespace Protocol {
 	}
 
 	Server::~Server() {
+		DEBUGPRINT("%s", "\n");
 		Port::release(this);
 	}
 

@@ -49,6 +49,7 @@ protocol_thread_test_SOURCES = protocol-thread-test.cc
 protocol_thread_test_CPPFLAGS = $(SIGC_CFLAGS) $(AM_CPPFLAGS)
 protocol_thread_test_LDADD = ${top_srcdir}/src/libprotocol.a \
 		${top_srcdir}/src/libsocket.a \
+		${top_srcdir}/src/libsighandle.a \
 		$(SIGC_LIBS)
 
 pthread_test_SOURCES = pthread-test.cc

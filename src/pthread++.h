@@ -83,7 +83,7 @@ namespace pthread {
 		thread(void *(*start_routine)(void *), void *arg = NULL) { create(start_routine, arg); }
 		thread(attr *attr, sigc::slot<void> slot) { create(attr, slot); }
 		thread(sigc::slot<void> slot) { create(slot); }
-		//~thread() { join(); }
+		~thread() { join(); }
 
 		int create(attr *attr, void *(*start_routine)(void *), void *arg = NULL) { return pthread_create(&pthread, &attr->pthread_attr, start_routine, arg); }
 		int create(void *(*start_routine)(void *), void *arg = NULL) { return create(NULL, start_routine, arg); }

@@ -17,6 +17,12 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "autoconfig.h"
+
+#define DEBUGPRINT(fmt, ...) \
+do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
+__LINE__, __func__, __VA_ARGS__); } while (0)
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -50,6 +56,7 @@ Socket::Socket(const string &host, const string &port): fd(-1), inlen(0) {
 }
 
 Socket::~Socket() {
+	DEBUGPRINT("%s", "\n");
 	close();
 }
 
@@ -206,23 +213,32 @@ bool Socket::gets(char *buf, const size_t len) {
 	if(fd < 0)
 		return false;
 
-	if(!newline) while(inlen < sizeof inbuf) {
-		struct pollfd pfd = {fd, POLLIN};
-		poll(&pfd, 1, -1);
-		ssize_t result = ::read(fd, inbuf + inlen, sizeof inbuf - inlen);
+	try {
+		if(!newline) while(inlen < sizeof inbuf) {
+			struct pollfd pfd = {fd, POLLIN};
+			poll(&pfd, 1, -1);
+			ssize_t result=0;
+			if (pfd.revents & POLLIN)
+				result = ::read(fd, inbuf + inlen, sizeof inbuf - inlen);
+			else
+				return false;
+			
+			if(result <= 0) {
+				if(errno == EINTR || errno == EAGAIN)
+					continue;
 		
-		if(result <= 0) {
-			if(errno == EINTR || errno == EAGAIN)
-				continue;
-	
-			return false;
-		}
+				return false;
+			}
 
-		inlen += result;
+			inlen += result;
 
-		if((newline = (char *)memchr(inbuf, '\n', inlen)))
-			break;
-	};
+			if((newline = (char *)memchr(inbuf, '\n', inlen)))
+				break;
+		};
+	} catch (...) {
+		DEBUGPRINT("%s", "exception!\n");
+		throw;
+	}
 
 	size_t linelen = newline + 1 - inbuf;
 
