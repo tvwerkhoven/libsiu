@@ -37,6 +37,7 @@ using namespace std;
 namespace Protocol {
 	void Client::handler() {
 		//pthread::setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS);
+		pthread::setcancelstate(PTHREAD_CANCEL_DISABLE);
 
 		try {
 			while(running) {
@@ -68,6 +69,8 @@ namespace Protocol {
 			DEBUGPRINT("%s\n", "caught exception in handler()!");
 			throw;
 		}
+		pthread::setcancelstate(PTHREAD_CANCEL_ENABLE);
+
 	}
 
 	Client::Client() {
