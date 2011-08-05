@@ -21,7 +21,13 @@
 #ifndef HAVE_SIGHANDLE_H
 #define HAVE_SIGHANDLE_H
 
+#ifndef _GNU_SOURCE
+// For strsignal(3) on Linux
+#define _GNU_SOURCE
+#endif
 #include <sigc++/signal.h>
+#include <string>
+#include <string.h>
 
 #include "pthread++.h"
 
@@ -52,7 +58,7 @@ public:
 	bool is_quitting() { return (quit_count > 0); }
 	
 	int get_sig() { pthread::mutexholder h(&sig_mutex); return handled_signal; }
-	string get_sig_info() { pthread::mutexholder h(&sig_mutex); return strsignal(handled_signal); }
+	std::string get_sig_info() { pthread::mutexholder h(&sig_mutex); return strsignal(handled_signal); }
 	
   SigHandle(bool blockall=true);
 	~SigHandle();
