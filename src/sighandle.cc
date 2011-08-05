@@ -32,7 +32,7 @@ __LINE__, __func__, __VA_ARGS__); } while (0)
 #include <sigc++/signal.h>
 
 SigHandle::SigHandle(bool blockall):
-handled_signal(-1), ign_count(0), quit_count(0) {
+handled_signal(-1), ign_count(0), quit_count(0), max_quit_count(1) {
 	DEBUGPRINT("%s", "init\n");
 	sigset_t signal_set;
 	
@@ -91,7 +91,7 @@ void SigHandle::handler() {
 					quit_func();
 					
 					// If quit signal is received twice or more, brutally exit
-					if (quit_count > 1)
+					if (quit_count > max_quit_count)
 						exit(-1);
 					break;
 			}

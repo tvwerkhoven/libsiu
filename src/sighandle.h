@@ -44,6 +44,8 @@ class SigHandle {
 	size_t ign_count;					//!< Amount of ignore signals received
 	size_t quit_count;				//!< Amount of quit signals received (used to check if quit is in progress)
 	
+	const size_t max_quit_count; //!< After this many quit signals, force a quit with exit(-1)
+	
 	pthread::mutex sig_mutex; //!< Mutex for handled_signal
 	
 	void handler();						//!< Signal handler routine, uses sigwait() to parse system signals
