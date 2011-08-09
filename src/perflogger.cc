@@ -41,11 +41,7 @@ __LINE__, __func__, __VA_ARGS__); } while (0)
 using namespace std;
 
 PerfLog::PerfLog(const double i, const size_t nh):
-<<<<<<< HEAD
-nhist(nh), interval(i), totaliter(0), nstages(0), init(false), do_print(false), do_callback(true)
-=======
 nhist(nh), interval(i), totaliter(0), nstages(0), init(false), do_print(false), do_callback(true), do_alwaysupdate(false)
->>>>>>> e22879d6f60b95be3eb23350c73197b2f9cb253e
 {
 	// Pre-allocate memory in vectors (10 stages should be enough for most purposes, will be dynamically added if necessary)
 	allocate(10);
