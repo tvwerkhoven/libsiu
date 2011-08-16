@@ -64,37 +64,44 @@ class Simple: public Gtk::Window {
 	
 	bool on_image_motion_event(GdkEventMotion *event);
 	bool on_image_button_event(GdkEventButton *event);
+	void realloc_data();
+	template <class T> void fill_data(T *tmpdata);
+	double getdata(size_t idx);
+
 public:
 	void on_render();
 	void add_random();
 	void update();
 	bool on_timeout();
 	
-	int w, h, d;
-	uint8_t *data;
+	int iter;
+	
+	size_t width, height, depth;
+	void *data;
 	Simple();
 	~Simple();
 };
 
 
 Simple::Simple():
-render("Re-render")
+render("Re-render"), iter(0), width(100), height(480), depth(8), data(NULL)
 {
 	fprintf(stderr, "Simple::Simple()\n");
-	w = 100; h = 480; d = 8;
-	data = (uint8_t *) malloc(w*h*d/8);
+	realloc_data();
 	
 	on_render();
   glarea.set_size_request(512, 512);
 	
-	// Add line for demonstration
+	// Add box in lower right corner
 	glarea.addbox(fvector_t(0, 0, 64, 64));
 	
+	// Add 10 random boxes
 	for (int i=0; i<10; i++) {
 		double x = drand48()*68, y=drand48()*448;
 		glarea.addbox(fvector_t(x, y, x+32, y+32));
 	}
 	
+	// Add line for demonstration
 	glarea.addline(fvector_t(0, 128, 64, 256));	
 
 	set_title("OpenGL Window");
@@ -118,14 +125,79 @@ Simple::~Simple() {
 	free(data);
 }
 
+void Simple::realloc_data() {
+	fprintf(stderr, "Simple::realloc_data() w=%zu, h=%zu, d=%zu\n", width, height, depth);
+	free(data);
+	data = malloc(width * height * depth/8);
+}
+
+double Simple::getdata(size_t idx) {
+
+	if (depth == 8)
+		return ((uint8_t *) data)[idx];
+	else if (depth == 16)
+		return ((uint16_t *) data)[idx];
+	else
+		return 0;
+}
+
+template <class T> void Simple::fill_data(T *tmpdata) {
+	int fac = 8;
+	if (iter % 2)
+		fac = 4;
+
+	int i=10, j=10;
+	fprintf(stderr, "Simple::fill_data() pix[10,10] = %zu * %d * (%g / %g)\n", 
+					(((size_t) 1) << (sizeof *tmpdata * 8)), fac, sqrt(pow(i,2.0) + pow(j,2.0)), sqrt(pow(width,2.0) + pow(height,2.0)));
+
+	for (size_t i=0; i<height; i++)
+		for (size_t j=0; j<width; j++)
+			tmpdata[i*width + j] = (((size_t) 1) << (sizeof *tmpdata * 8)) * fac * sqrt(pow(i,2.0) + pow(j,2.0)) / sqrt(pow(width,2.0) + pow(height,2.0));
+
+	fprintf(stderr, "Simple::fill_data() pix[10,10] = %g or %d\n", 
+					(((size_t) 1) << (sizeof *tmpdata * 8)) * fac * sqrt(pow(i,2.0) + pow(j,2.0)) / sqrt(pow(width,2.0) + pow(height,2.0)),
+					tmpdata[i*width + j]);
+
+}
+
 void Simple::on_render() {
-	fprintf(stderr, "Simple::on_render()\n");
-	// fill data
-	for (int i=0; i<h; i++)
-		for (int j=0; j<w; j++)
-			data[i*w + j] = 255 * 8 * sqrt(pow(i,2.0) + pow(j,2.0)) / sqrt(pow(w,2.0) + pow(h,2.0));
+	// Change display settings every iteration to test various settings
+	iter++;
+	fprintf(stderr, "Simple::on_render() iter=%d\n", iter);
 	
-	glarea.link_data((void *) data, d, w, h);
+	
+	if (iter % 3 == 0) {
+		glarea.setunderover(true);
+//		glarea.setminmax(0, 1 << (depth-1));
+	} else {
+		glarea.setunderover(false);
+//		glarea.setminmax(0, 1 << (depth));		
+	}
+	
+	if (iter % 4 == 0) {
+		if (depth == 8) {
+			depth = 16;
+			width = 110;
+			height = 320;
+			glarea.setminmax(0, 1 << 16);
+		} else if (depth == 16) {
+			depth = 8;
+			width = 320;
+			height = 160;
+			glarea.setminmax(0, 1 << 8);
+		}
+		realloc_data();
+	}
+	
+	// fill data
+	if (depth == 8)
+		fill_data((uint8_t *) data);
+	else if (depth == 16)
+		fill_data((uint16_t *) data);
+	else
+		fprintf(stderr, "Simple::on_render() ERROR data depth\n");
+	
+	glarea.link_data((void *) data, depth, width, height);
 }
 
 void Simple::add_random() {
@@ -171,7 +243,7 @@ bool Simple::on_image_motion_event(GdkEventMotion *event) {
 	double pix;
 
 	if (!glarea.map_coord(event->x, event->y, &datax, &datay, OpenGLImageViewer::GTKTODATA))
-		pix = (double) data[w*(int) datay + (int) datax];
+		pix = (double) getdata(width*(int) datay + (int) datax);
 	else
 		pix = datax = datay = -1.0;
 	
