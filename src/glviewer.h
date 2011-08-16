@@ -86,10 +86,11 @@ const double SCALEMAX = 8.0;
  - Boxes and/or lines with addbox(), addline() for overlays (in DATA coordinates)
 
  Other features:
- - Flip horizontal or vertical
- - Zoom in/out/fit to window (with scrolling)
+ - Flip horizontal or vertical (with flipv and fliph)
+ - Zoom in/out/fit to window (with scrolling) (using scale, scalemin, scalemax)
+ - Under- and over-exposure indicator (through setunderover())
+ - Data display clipping (with setminmax())
  - Connect to view_update which is signalled when view settings change (zoom, pan)
- -
  
  */
 class OpenGLImageViewer: public Gtk::EventBox {
