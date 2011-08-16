@@ -21,6 +21,13 @@
 #ifndef HAVE_GLVIEWER_H
 #define HAVE_GLVIEWER_H
 
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+
+#define GL_GLEXT_PROTOTYPES
+#define GL_ARB_IMAGING
+
 #include <stdint.h>
 
 #include <gtkmm.h>
@@ -50,6 +57,9 @@
 
 #include "pthread++.h"
 #include "types.h"
+
+static GLuint program1 = 0;
+static GLuint program2 = 0;
 
 // Default scaling steps and range
 const double SCALESTEP = 1.0/3.0;
@@ -83,6 +93,24 @@ const double SCALEMAX = 8.0;
  
  */
 class OpenGLImageViewer: public Gtk::EventBox {
+public:
+	typedef struct {
+		GLfloat x;
+		GLfloat y;
+		GLfloat z;
+	} GLvec3f;
+	
+	typedef struct {
+		GLfloat u;
+		GLfloat v;
+		GLfloat nx;
+		GLfloat ny;
+		GLfloat nz;
+		GLfloat x;
+		GLfloat y;
+		GLfloat z;
+	} GLt2n3v3f;
+
 private:
 	Glib::RefPtr<Gdk::GL::Config> glconfig;	//!< OpenGL configuration
 	Glib::RefPtr<Gdk::GL::Window> glwindow;	//!< OpenGL window
@@ -95,6 +123,15 @@ private:
 	double scale;						//!< Tracks image scaling (zooming)
 	double scalemin;				//!< Scale range min
 	double scalemax;				//!< Scale range max
+	
+	double minval;					//!< Minimum intensity to display (for clipping)
+	double maxval;					//!< Maximum intensity to display (for clipping)
+	
+	double rscale;					//!< Red value scaling
+	double gscale;					//!< Green value scaling
+	double bscale;					//!< Blue value scaling
+	
+	bool underover;					//!< Apply under- and over-exposure masking
 	
 	coord_t ngrid;					//!< Grid overlay (number of cells)
 	bool grid;							//!< Overlay grid toggle
@@ -189,6 +226,12 @@ public:
 	void setscalerange(const double min, const double max) { scalemin = min; scalemax = max; }
 	void setscalerange(const double minmax) { scalemax = scalemin = minmax; }
 	
+	void setminmax(const double min, const double max) { minval = min; maxval = max; }
+	void setminmax() { minval = 0; maxval = ((size_t) 1) << gl_img.d; }
+
+	void setunderover(const bool f=true) { underover = f; }
+	bool getunderover() const { return underover; }
+
 	void setshift(const double, const double);
 	void setshift(const double s) { setshift(s, s); }
 	void getshift(double * const x, double * const y) { *x = sx; *y = sy; }

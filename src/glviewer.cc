@@ -45,6 +45,30 @@
 #include "GLUT/glut.h"
 #endif
 
+const char *vertexprogram =
+"void main() {"
+"	gl_FrontColor = gl_Color;"
+"	gl_TexCoord[0] = gl_MultiTexCoord0;"
+"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
+"}";
+
+const char *fragmentprogram1 = 
+"uniform sampler2D tex;"
+"uniform vec4 scale;"
+"uniform float bias;"
+"uniform float underover;"
+"void main() {"
+"       vec4 color = texture2D(tex, vec2(gl_TexCoord[0]));"
+"	color.gb -= underover * step(0.98, color.r);"
+"	color.g += underover * step(color.r, 0.02);"
+"	gl_FragColor = (color * scale) + bias;"
+"}";
+
+const char *fragmentprogram2 = 
+"void main() {"
+"	gl_FragColor = gl_Color;"
+"}";
+
 
 #include "glviewer.h"
 #include "pthread++.h"
@@ -56,7 +80,8 @@ using namespace std;
 using namespace Gtk;
 
 OpenGLImageViewer::OpenGLImageViewer():
-scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX),
+scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX), minval(0), maxval(-1),
+rscale(1), gscale(1), bscale(1),
 ngrid(8, 8), grid(false), 
 flipv(false), fliph(false), zoomfit(false), crosshair(false),
 gl_img()
@@ -126,6 +151,7 @@ void OpenGLImageViewer::on_image_realize() {
 	
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_LINE_SMOOTH);
+	glEnableClientState(GL_VERTEX_ARRAY);
 	
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -134,6 +160,65 @@ void OpenGLImageViewer::on_image_realize() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	
+	// Enable shaders?
+	glEnable(GL_FRAGMENT_SHADER);
+	glEnable(GL_FRAGMENT_PROGRAM_ARB);
+	glEnable(GL_FRAGMENT_SHADER_ARB);
+	
+	glEnable(GL_VERTEX_SHADER);
+	glEnable(GL_VERTEX_PROGRAM_ARB);
+	glEnable(GL_VERTEX_SHADER_ARB);
+	
+	static GLuint vertexshader = 0;
+	static GLuint fragmentshader1 = 0;
+	static GLuint fragmentshader2 = 0;
+	
+	// Compile & link shader programs?
+	DEBUGPRINT("compiling:\n%s\n", vertexprogram);
+	vertexshader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexshader, 1, (const GLchar **)&vertexprogram, 0);
+	glCompileShader(vertexshader);
+	GLint compiled = 0;
+	glGetShaderiv(vertexshader, GL_COMPILE_STATUS, &compiled);
+	if(!compiled)
+		throw runtime_error("Could not compile vertex shader!");
+	
+	DEBUGPRINT("compiling:\n%s\n", fragmentprogram1);
+	fragmentshader1 = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentshader1, 1, (const GLchar **)&fragmentprogram1, 0);
+	glCompileShader(fragmentshader1);
+	glGetShaderiv(fragmentshader1, GL_COMPILE_STATUS, &compiled);
+	if(!compiled)
+		throw runtime_error("Could not compile fragment shader!");
+	
+	DEBUGPRINT("compiling:\n%s\n", fragmentprogram2);
+	fragmentshader2 = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentshader2, 1, (const GLchar **)&fragmentprogram2, 0);
+	glCompileShader(fragmentshader2);
+	glGetShaderiv(fragmentshader2, GL_COMPILE_STATUS, &compiled);
+	if(!compiled)
+		throw runtime_error("Could not compile fragment shader!");
+	
+	DEBUGPRINT("%s", "linking...\n");
+	program1 = glCreateProgram();
+	glAttachShader(program1, vertexshader);
+	glAttachShader(program1, fragmentshader1);
+	glLinkProgram(program1);
+	GLint linked = 0;
+	glGetProgramiv(program1, GL_LINK_STATUS, &linked);
+	if(!linked)
+		throw runtime_error("Could not link shader!");
+	
+	DEBUGPRINT("%s", "linking...\n");
+	program2 = glCreateProgram();
+	glAttachShader(program2, vertexshader);
+	glAttachShader(program2, fragmentshader2);
+	glLinkProgram(program2);
+	linked = 0;
+	glGetProgramiv(program2, GL_LINK_STATUS, &linked);
+	if(!linked)
+		throw runtime_error("Could not link shader!");
+
 	glwindow->gl_end();
 	
 	do_full_update();
@@ -146,16 +231,25 @@ void OpenGLImageViewer::link_data(const void *const data, const int depth, const
 	gl_img.w = w;
 	gl_img.h = h;
 	gl_img.data = data;
+	
+	// First time: set maxval to the maximum data value
+	if (maxval == -1) maxval = (1 << depth) - 1;
+	
 	// Update frame
 	do_full_update();
 }
 
 void OpenGLImageViewer::do_full_update() {
-	DEBUGPRINT("%s", "+\n");
 	const int depth = gl_img.d;
+	DEBUGPRINT("d=%d, min=%g, max=%g\n", depth, minval, maxval);
 	
 	if(!glwindow || !glwindow->gl_begin(gtkimage.get_gl_context()))
 		return;
+	
+	GLfloat scale = 1 << ((depth <= 8 ? 8 : 16) - depth);
+	glPixelTransferf(GL_RED_SCALE, scale);
+	glPixelTransferf(GL_GREEN_SCALE, scale);
+	glPixelTransferf(GL_BLUE_SCALE, scale);
 	
 	glTexImage2D(GL_TEXTURE_2D, 0, depth <= 8 ? GL_LUMINANCE8 : GL_LUMINANCE16, gl_img.w, gl_img.h, 0, GL_LUMINANCE, depth <= 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT, (GLubyte *) gl_img.data);
 	
@@ -206,6 +300,35 @@ void OpenGLImageViewer::do_update() {
 		glScalef(1, -1, 1);
 	
 	// Render image
+	glUseProgram(program1);
+	GLint scale = glGetUniformLocation(program1, "scale");
+	GLint bias = glGetUniformLocation(program1, "bias");
+	GLint uo = glGetUniformLocation(program1, "underover");
+//	float min = minval.get_value();
+//	float max = maxval.get_value();
+	float sc = (1 << gl_img.d) / (maxval - minval);
+	glUniform4f(scale, sc * rscale, sc * gscale, sc * bscale, 1.0);
+	glUniform1f(bias, -minval / (maxval - minval));
+	glUniform1f(uo, 10 * underover);
+	glEnable(GL_TEXTURE_2D);
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (s == 1 || s >= 2) ? GL_NEAREST : GL_LINEAR);
+	
+	static const GLt2n3v3f rect[4] = {
+		{0, 1, 0, 0, 1, -1, -1, 0},
+		{1, 1, 0, 0, 1, +1, -1, 0},
+		{0, 0, 0, 0, 1, -1, +1, 0},
+		{1, 0, 0, 0, 1, +1, +1, 0},
+	};
+	glInterleavedArrays(GL_T2F_N3F_V3F, 0, rect);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	
+	glPopMatrix();
+	
+	glUseProgram(program2);
+	glDisable(GL_TEXTURE_2D);
+
+#if 0
 	glEnable(GL_TEXTURE_2D);
 	// Black in case Texture is not loaded yet.
 	glColor3f(0, 0, 0);
@@ -224,6 +347,7 @@ void OpenGLImageViewer::do_update() {
 	glTexCoord2f(0, 1); glVertex2f(-1, +1);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
+#endif
 	
 	// Render crosshair
 	if (crosshair) {
