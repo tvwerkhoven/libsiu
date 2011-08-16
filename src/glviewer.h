@@ -21,39 +21,36 @@
 #ifndef HAVE_GLVIEWER_H
 #define HAVE_GLVIEWER_H
 
-#ifndef __STDC_FORMAT_MACROS
-#define __STDC_FORMAT_MACROS
-#endif
+#include "autoconfig.h"
 
-#define GL_GLEXT_PROTOTYPES
-#define GL_ARB_IMAGING
+//#define GL_GLEXT_PROTOTYPES
+////#define GL_ARB_IMAGING
+//#define GL_ARB_imaging
+//
+//#ifdef HAVE_GL_GL_H
+//#include "GL/gl.h"
+//#elif HAVE_OPENGL_GL_H
+//#include "OpenGL/gl.h"
+//#endif
+//
+//#include <GL/glext.h>
+//
+//#ifdef HAVE_GL_GLU_H
+//#include "GL/glu.h"
+//#elif HAVE_OPENGL_GLU_H 
+//#include "OpenGL/glu.h"
+//#endif
+//
+//#ifdef HAVE_GL_GLUT_H
+//#include "GL/glut.h"
+//#elif HAVE_GLUT_GLUT_H 
+//#include "GLUT/glut.h"
+//#endif
 
 #include <stdint.h>
-
 #include <gtkmm.h>
 #include <gtkglmm.h>
 #include <gdkmm/pixbuf.h>
-#include <GL/glext.h>
-
-#include "autoconfig.h"
-
-#ifdef HAVE_GL_GL_H
-#include "GL/gl.h"
-#elif HAVE_OPENGL_GL_H
-#include "OpenGL/gl.h"
-#endif
-
-#ifdef HAVE_GL_GLU_H
-#include "GL/glu.h"
-#elif HAVE_OPENGL_GLU_H 
-#include "OpenGL/glu.h"
-#endif
-
-#ifdef HAVE_GL_GLUT_H
-#include "GL/glut.h"
-#elif HAVE_GLUT_GLUT_H 
-#include "GLUT/glut.h"
-#endif
 
 #include "pthread++.h"
 #include "types.h"
@@ -94,13 +91,7 @@ const double SCALEMAX = 8.0;
  
  */
 class OpenGLImageViewer: public Gtk::EventBox {
-public:
-	typedef struct {
-		GLfloat x;
-		GLfloat y;
-		GLfloat z;
-	} GLvec3f;
-	
+private:
 	typedef struct {
 		GLfloat u;
 		GLfloat v;
@@ -112,7 +103,6 @@ public:
 		GLfloat z;
 	} GLt2n3v3f;
 
-private:
 	Glib::RefPtr<Gdk::GL::Config> glconfig;	//!< OpenGL configuration
 	Glib::RefPtr<Gdk::GL::Window> glwindow;	//!< OpenGL window
 	Gtk::GL::DrawingArea gtkimage;			//!< GTK drawingarea

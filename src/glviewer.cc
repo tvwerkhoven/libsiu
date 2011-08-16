@@ -18,10 +18,15 @@
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <iostream>
-#include <cstdlib>
-
 #include "autoconfig.h"
+
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+
+#define GL_GLEXT_PROTOTYPES
+//#define GL_ARB_IMAGING
+#define GL_ARB_imaging
 
 #define DEBUGPRINT(fmt, ...) \
 	do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
@@ -32,6 +37,8 @@
 #elif HAVE_OPENGL_GL_H
 #include "OpenGL/gl.h"
 #endif
+
+#include <GL/glext.h>
 
 #ifdef HAVE_GL_GLU_H
 #include "GL/glu.h"
@@ -44,6 +51,14 @@
 #elif HAVE_GLUT_GLUT_H 
 #include "GLUT/glut.h"
 #endif
+
+#include <iostream>
+#include <cstdlib>
+
+#include "glviewer.h"
+#include "pthread++.h"
+#include "utils.h"
+
 
 const char *vertexprogram =
 "void main() {"
@@ -68,11 +83,6 @@ const char *fragmentprogram2 =
 "void main() {"
 "	gl_FragColor = gl_Color;"
 "}";
-
-
-#include "glviewer.h"
-#include "pthread++.h"
-#include "utils.h"
 
 //! @todo Figure out realization / configure / on_update / do_update -> http://www.yorba.org/blog/jim/2010/10/those-realize-map-widget-signals.html
 
