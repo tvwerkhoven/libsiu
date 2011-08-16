@@ -273,7 +273,6 @@ void OpenGLImageViewer::do_update() {
 	// Image scaling and centering
 	double cw = gl_img.w;
 	double ch = gl_img.h;
-	//double mwh = min(ww, wh);
 	
 	double s;
 	
@@ -304,8 +303,6 @@ void OpenGLImageViewer::do_update() {
 	GLint scale = glGetUniformLocation(program1, "scale");
 	GLint bias = glGetUniformLocation(program1, "bias");
 	GLint uo = glGetUniformLocation(program1, "underover");
-//	float min = minval.get_value();
-//	float max = maxval.get_value();
 	float sc = (1 << gl_img.d) / (maxval - minval);
 	glUniform4f(scale, sc * rscale, sc * gscale, sc * bscale, 1.0);
 	glUniform1f(bias, -minval / (maxval - minval));
@@ -327,27 +324,6 @@ void OpenGLImageViewer::do_update() {
 	
 	glUseProgram(program2);
 	glDisable(GL_TEXTURE_2D);
-
-#if 0
-	glEnable(GL_TEXTURE_2D);
-	// Black in case Texture is not loaded yet.
-	glColor3f(0, 0, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (s == 1 || s >= 2) ? GL_NEAREST : GL_LINEAR);
-	glBegin(GL_POLYGON);
-	// Old: flip texture coordinates with respect to OpenGL coordinats.
-	//	glTexCoord2f(0, 1); glVertex2f(-1, -1);
-	//	glTexCoord2f(1, 1); glVertex2f(+1, -1);
-	//	glTexCoord2f(1, 0); glVertex2f(+1, +1);
-	//	glTexCoord2f(0, 0); glVertex2f(-1, +1);
-	
-	// New: Data in same direction as OpenGL (axes increase towards top-right)
-	glTexCoord2f(0, 0); glVertex2f(-1, -1);
-	glTexCoord2f(1, 0); glVertex2f(+1, -1);
-	glTexCoord2f(1, 1); glVertex2f(+1, +1);
-	glTexCoord2f(0, 1); glVertex2f(-1, +1);
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
-#endif
 	
 	// Render crosshair
 	if (crosshair) {
