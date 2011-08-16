@@ -58,6 +58,7 @@
 #include "glviewer.h"
 #include "pthread++.h"
 #include "utils.h"
+#include "format.h"
 
 
 const char *vertexprogram =
@@ -190,8 +191,13 @@ void OpenGLImageViewer::on_image_realize() {
 	glCompileShader(vertexshader);
 	GLint compiled = 0;
 	glGetShaderiv(vertexshader, GL_COMPILE_STATUS, &compiled);
-	if(!compiled)
-		throw runtime_error("Could not compile vertex shader!");
+	if(!compiled) {
+		GLsizei outlen=0;
+		GLchar infolog[1024];
+		glGetShaderInfoLog(vertexshader, 1023, &outlen, infolog);
+		if (outlen > 1) fprintf(stderr, "Error compiling vertex shader: %s", infolog);
+		throw runtime_error(format("Could not compile vertex shader: error=%d", compiled));
+	}
 	
 	DEBUGPRINT("compiling:\n%s\n", fragmentprogram1);
 	fragmentshader1 = glCreateShader(GL_FRAGMENT_SHADER);
@@ -199,7 +205,7 @@ void OpenGLImageViewer::on_image_realize() {
 	glCompileShader(fragmentshader1);
 	glGetShaderiv(fragmentshader1, GL_COMPILE_STATUS, &compiled);
 	if(!compiled)
-		throw runtime_error("Could not compile fragment shader!");
+		throw runtime_error(format("Could not compile fragment shader: error=%d!", compiled));
 	
 	DEBUGPRINT("compiling:\n%s\n", fragmentprogram2);
 	fragmentshader2 = glCreateShader(GL_FRAGMENT_SHADER);
@@ -207,7 +213,7 @@ void OpenGLImageViewer::on_image_realize() {
 	glCompileShader(fragmentshader2);
 	glGetShaderiv(fragmentshader2, GL_COMPILE_STATUS, &compiled);
 	if(!compiled)
-		throw runtime_error("Could not compile fragment shader!");
+		throw runtime_error(format("Could not compile fragment shader: error=%d!", compiled));
 	
 	DEBUGPRINT("%s", "linking...\n");
 	program1 = glCreateProgram();
@@ -217,7 +223,7 @@ void OpenGLImageViewer::on_image_realize() {
 	GLint linked = 0;
 	glGetProgramiv(program1, GL_LINK_STATUS, &linked);
 	if(!linked)
-		throw runtime_error("Could not link shader!");
+		throw runtime_error(format("Could not link shader: error=%d!", linked));
 	
 	DEBUGPRINT("%s", "linking...\n");
 	program2 = glCreateProgram();
@@ -227,7 +233,7 @@ void OpenGLImageViewer::on_image_realize() {
 	linked = 0;
 	glGetProgramiv(program2, GL_LINK_STATUS, &linked);
 	if(!linked)
-		throw runtime_error("Could not link shader!");
+		throw runtime_error(format("Could not link shader: error=%d!", linked));
 
 	glwindow->gl_end();
 	
