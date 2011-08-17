@@ -93,6 +93,10 @@ bool Csv::read(string file) {
 	csvdata.clear();
 	
 	while (getline (dataio, buf, linesep)) {
+		// Empty line, skip
+		if (buf.size() <= 0)
+			continue;
+		
 		DEBUGPRINT("line = %s, comp = %d\n", buf.c_str(), buf[0] == commpref);
 		// Line starts with 'commpref', skip it
 		if (buf[0] == commpref)
@@ -121,7 +125,7 @@ bool Csv::read(string file) {
 		dataline.clear();
 	}
 	
-	DEBUGPRINT("read %d lines, each %d elems", (int) csvdata.size(), (int) csvdata[0].size());
+	DEBUGPRINT("read %d lines, each %d elems\n", (int) csvdata.size(), (int) csvdata[0].size());
 	return true;
 }
 
@@ -163,7 +167,7 @@ bool Csv::write(string file, const string &comment, const bool app, const bool d
 	
   filestr.close();
 	
-	DEBUGPRINT("wrote %d lines, each %d elems", (int) csvdata.size(), (int) csvdata[0].size());
+	DEBUGPRINT("wrote %d lines, each %d elems\n", (int) csvdata.size(), (int) csvdata[0].size());
 	return true;
 }
 

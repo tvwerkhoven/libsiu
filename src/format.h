@@ -18,6 +18,10 @@ static std::string popword(std::string &line, const char *separator = " \t\n") {
 	if(b != std::string::npos)
 		line.erase(0, b);
 	
+	// If we don't have data left, stop.
+	if(line.size() <= 0)
+		return "";
+	
 	// If it starts with :, use the rest of the line
 	if(line[0] == ':') {
 		std::string result = line;
