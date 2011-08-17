@@ -156,7 +156,7 @@ namespace Protocol {
 		//thread.join();
 	}
 
-	Server::Port::Port *Server::Port::get(Server *server) {
+	Server::Port *Server::Port::get(Server *server) {
 		pthread::mutexholder g(&globalmutex);
 		Port *port = ports[server->port];
 		if(!port)

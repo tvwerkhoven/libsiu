@@ -1,8 +1,10 @@
 if TESTING
 
+AM_CPPFLAGS = -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_FULLY_DYNAMIC_STRING -DGLIBCXX_FORCE_NEW
+
 AM_CXXFLAGS = -pipe -Wall -Wextra \
 		-Wfatal-errors -Wno-unused-variable \
-		-ggdb
+		-ggdb -fno-inline
 
 AM_CXXFLAGS += -I${top_srcdir}/src/ -L${top_srcdir}/src/
 
@@ -11,22 +13,27 @@ noinst_PROGRAMS = imgdata-test io-test io-test2 config-test csv-test path-test p
 imgdata_test_SOURCES = imgdata-test.cc
 imgdata_test_LDADD = ${top_srcdir}/src/libimgdata.a \
 		${top_srcdir}/src/libio.a \
+		${top_srcdir}/src/libpath.a \
 		$(GSL_LIBS)
 imgdata_test_CPPFLAGS = $(GSL_CFLAGS) $(AM_CPPFLAGS)
 
 io_test_SOURCES = io-test.cc
-io_test_LDADD = ${top_srcdir}/src/libio.a
+io_test_LDADD = ${top_srcdir}/src/libio.a \
+		${top_srcdir}/src/libpath.a
 
 io_test2_SOURCES = io-test2.cc
-io_test2_LDADD = ${top_srcdir}/src/libio.a
+io_test2_LDADD = ${top_srcdir}/src/libio.a \
+		${top_srcdir}/src/libpath.a
 
 config_test_SOURCES = config-test.cc
-config_test_LDADD = ${top_srcdir}/src/libconfig.a
+config_test_LDADD = ${top_srcdir}/src/libconfig.a \
+		${top_srcdir}/src/libpath.a
+
 
 csv_test_SOURCES = csv-test.cc
-csv_test_LDADD = ${top_srcdir}/src/libcsv.a \
-		$(GSL_LIBS)
-csv_test_CPPFLAGS = $(GSL_CFLAGS) $(AM_CPPFLAGS)
+csv_test_LDADD = ${top_srcdir}/src/libcsv.a
+#		$(GSL_LIBS)
+#csv_test_CPPFLAGS = $(GSL_CFLAGS) $(AM_CPPFLAGS)
 
 path_test_SOURCES = path-test.cc
 path_test_LDADD = ${top_srcdir}/src/libpath.a
@@ -66,7 +73,7 @@ noinst_PROGRAMS += opengl-test
 
 opengl_test_SOURCES = opengl-test.cc
 opengl_test_CPPFLAGS = $(OPENGL_CFLAGS) $(AM_CPPFLAGS)
-opengl_test_CFLAGS = $(OPENGL_CFLAGS) 
+opengl_test_CFLAGS = $(OPENGL_CFLAGS) $(AM_CFLAGS)
 opengl_test_LDADD = $(OPENGL_LIBS) ${top_srcdir}/src/libglviewer.a
 endif
 
