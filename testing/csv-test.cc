@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <vector>
 
-#ifdef HAVE_GSL
+#if HAVE_GSL
 #include <gsl/gsl_vector.h>
 #endif
 
@@ -55,7 +55,7 @@ int main(int /* argc */, char *argv[]) {
 	if (!reempty.write("csv-test-reempty.csv", "testing Csv 2."))
 		DEBUGPRINT("error writing %s\n", "csv-test-reempty.csv");
 
-#ifdef HAVE_GSL
+#if HAVE_GSL
 	DEBUGPRINT("testing GSL constructor%s\n", "");
 	gsl_vector_float *data;
 	data = gsl_vector_float_calloc(20);
