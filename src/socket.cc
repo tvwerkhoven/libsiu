@@ -182,7 +182,7 @@ string Socket::getsockname() const {
 	return resolve((struct sockaddr *)&name, namelen);
 }
 
-Socket::Socket *Socket::accept() const {
+Socket *Socket::accept() const {
 	int newfd = ::accept(fd, 0, 0);
 
 	if(fd < 0)
@@ -355,17 +355,17 @@ bool Socket::printf(const char *format, ...) {
 	return result;
 }
 
-Socket::Socket &Socket::operator<<(const string line) {
+Socket &Socket::operator<<(const string line) {
 	write(line);
 	return *this;
 }
 
-Socket::Socket &Socket::operator<<(const char *line) {
+Socket &Socket::operator<<(const char *line) {
 	write(line, strlen(line));
 	return *this;
 }
 	
-Socket::Socket Socket::operator>>(string &line) {
+Socket Socket::operator>>(string &line) {
 	line = readline();
 	return *this;
 }
