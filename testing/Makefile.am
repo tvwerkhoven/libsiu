@@ -31,9 +31,9 @@ config_test_LDADD = ${top_srcdir}/src/libconfig.a \
 
 
 csv_test_SOURCES = csv-test.cc
-csv_test_LDADD = ${top_srcdir}/src/libcsv.a
-#		$(GSL_LIBS)
-#csv_test_CPPFLAGS = $(GSL_CFLAGS) $(AM_CPPFLAGS)
+csv_test_LDADD = ${top_srcdir}/src/libcsv.a \
+		$(GSL_LIBS)
+csv_test_CPPFLAGS = $(GSL_CFLAGS) $(AM_CPPFLAGS)
 
 path_test_SOURCES = path-test.cc
 path_test_LDADD = ${top_srcdir}/src/libpath.a
