@@ -45,8 +45,7 @@ using namespace std;
 // Constructors / destructors
 Csv::Csv(const string newfile, const char cpref, const char wsep, const char lsep):
 commpref(cpref), wordsep(wsep), linesep(lsep), 
-file(newfile),
-csvdata(NULL) {
+file(newfile) {
 	DEBUGPRINT("FILE:%s, '%c', '%c', '%c')\n", newfile.c_str(), commpref, wordsep, linesep);
 	read(file);
 	
@@ -71,8 +70,7 @@ commpref(cpref), wordsep(wsep), linesep(lsep) {
 #endif
 
 Csv::Csv(const char cpref, const char wsep, const char lsep):
-commpref(cpref), wordsep(wsep), linesep(lsep),
-csvdata(NULL) {
+commpref(cpref), wordsep(wsep), linesep(lsep) {
 	DEBUGPRINT("VANILLA: '%c', '%c', '%c')\n", commpref, wordsep, linesep);
 }
 
