@@ -30,9 +30,10 @@ AM_CONDITIONAL([TESTING], [test "$withtests" = true])
 
 AC_ARG_ENABLE([debug],
 		AC_HELP_STRING([--enable-debug], [enable debug output]),
-		AC_DEFINE([LIBSIU_DEBUG], [1], [Enable debugging.]),
-		AC_DEFINE([LIBSIU_DEBUG], [0], [Enable debugging.]))
+		[have_debug=true; AC_DEFINE([LIBSIU_DEBUG], [1], [Enable debugging.])],
+		[have_debug=false; AC_DEFINE([LIBSIU_DEBUG], [0], [Enable debugging.])])
 
+AM_CONDITIONAL([HAVE_DEBUG], [test "$have_debug" = true])
 
 # These libraries are crucial for all targets
 AC_SEARCH_LIBS([sin],

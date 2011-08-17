@@ -72,19 +72,12 @@ void SigHandle::handler() {
 			fprintf(stderr, "SigHandle::handler() got signal: %s\n", strsignal(sig));
 			// Decide what to do with the signal
 			switch (sig) {
-					// These signals are not fatal, ignore them
-				case SIGPIPE:
-				case SIGFPE:
-				case SIGHUP:
-					ign_count++;
-					fprintf(stderr, "SigHandle::handler() ignoring sig %d (#%zu)\n", 
-									sig, ign_count);
-					ign_func();
-					break;
 					// These signals are dangerous, stop the program
 				case SIGQUIT:
+				case SIGTERM:
+				case SIGABRT:
 				case SIGINT:
-				default:
+				case SIGSEGV:
 					quit_count++;
 					fprintf(stderr, "SigHandle::handler() quitting sig %d (#%zu)\n", 
 									sig, quit_count);
@@ -94,6 +87,17 @@ void SigHandle::handler() {
 					if (quit_count > max_quit_count)
 						exit(-1);
 					break;
+					// These signals are not fatal, ignore them
+				case SIGPIPE:
+				case SIGFPE:
+				case SIGHUP:
+				default:
+					ign_count++;
+					fprintf(stderr, "SigHandle::handler() ignoring sig %d (#%zu)\n", 
+									sig, ign_count);
+					ign_func();
+					break;
+
 			}
 		}
 	}

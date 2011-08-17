@@ -2,8 +2,7 @@ if TESTING
 
 AM_CXXFLAGS = -pipe -Wall -Wextra \
 		-Wfatal-errors -Wno-unused-variable \
-		-O3 -ftree-vectorize \
-		-g
+		-ggdb
 
 AM_CXXFLAGS += -I${top_srcdir}/src/ -L${top_srcdir}/src/
 

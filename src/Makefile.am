@@ -1,6 +1,10 @@
 AM_CXXFLAGS = -pthread -g -Wall
 AM_CPPFLAGS = $(SIGC_CFLAGS) -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
 
+if HAVE_DEBUG
+AM_CPPFLAGS += -ggdb
+endif HAVE_DEBUG
+
 noinst_LIBRARIES = libconfig.a libcsv.a libmessages.a libperflogger.a libpidfile.a libserial.a libsighandle.a libsocket.a libprotocol.a libio.a libimgdata.a libpath.a libtime.a
 
 if HAVE_OPENGL

@@ -115,6 +115,7 @@ public:
 
 	bool exists(const std::string &var) { return variables.find(pvar(var)) != variables.end(); }
 	std::map<std::string, std::string> getall() const { return variables; }
+	size_t get_numentries() const { return variables.size(); }
 	
 	bool getbool(const std::string &var, bool def) { if(!exists(var)) return def; else return variables[pvar(var)] == "yes" || variables[pvar(var)] == "true"; }
 	int getchoice(const std::string &var, const std::map<std::string, int> &choices, int def);
