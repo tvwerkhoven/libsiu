@@ -177,12 +177,16 @@ namespace Protocol {
 		Port *port = ports[server->port];
 		if(!port)
 			throw exception("Releasing user from unknown port");
-
-		pthread::mutexholder h(&port->mutex);
-		Server *user = port->users[server->name];
-		port->users.erase(server->name);
-		if(!user)
-			throw exception("Releasing unknown user from port");
+		
+		//! @bug mutexholder h is attached to port->mutex, but port is deleted 
+		// before h goes out of scope. Try to fix here
+		{
+			pthread::mutexholder h(&port->mutex);
+			Server *user = port->users[server->name];
+			port->users.erase(server->name);
+			if(!user)
+				throw exception("Releasing unknown user from port");
+		}
 
 		if(port->users.empty()) {
 			ports.erase(server->port);
