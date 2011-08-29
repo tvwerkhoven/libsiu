@@ -68,7 +68,7 @@ namespace serial {
 	};
 
 	class node {
-		serial::port *port;
+		serial::port *thisport;
 
 		public:
 		const int nr;
@@ -78,18 +78,18 @@ namespace serial {
 		class mutexholder {
 			serial::port::mutexholder h;
 			public:
-			mutexholder(node *n): h(n->port) {}
+			mutexholder(node *n): h(n->thisport) {}
 		};
 		
-		bool write(const std::string str) { return port->write(str); }
-		bool write(const char *buf, int len = -1) { return port->write(buf, len); }
-		bool vprintf(const char *format, va_list va) { return port->vprintf(format, va); }
+		bool write(const std::string str) { return thisport->write(str); }
+		bool write(const char *buf, int len = -1) { return thisport->write(buf, len); }
+		bool vprintf(const char *format, va_list va) { return thisport->vprintf(format, va); }
 		bool printf(const char *format, ...);
-		bool gets(char *buf, int len, int timeout = -1) { return port->gets(buf, len, timeout); }
-		std::string readline(int timeout = -1) { return port->readline(timeout); }
-		node &operator<<(const std::string line) { *port << line; return *this; }
-		node &operator<<(const char *line) { *port << line; return *this; }
-		node operator>>(std::string &line) { *port >> line; return *this; }
+		bool gets(char *buf, int len, int timeout = -1) { return thisport->gets(buf, len, timeout); }
+		std::string readline(int timeout = -1) { return thisport->readline(timeout); }
+		node &operator<<(const std::string line) { *thisport << line; return *this; }
+		node &operator<<(const char *line) { *thisport << line; return *this; }
+		node operator>>(std::string &line) { *thisport >> line; return *this; }
 	};
 }
 

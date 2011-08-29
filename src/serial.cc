@@ -169,29 +169,29 @@ namespace serial {
 	node::node(const string device, int nr, speed_t speed, int parity): nr(nr) {
 		pthread::mutexholder h(&portmutex);
 
-		port = ports[device];
+		thisport = ports[device];
 
-		if(!port)
-			port = new port::port(device, speed, parity);
+		if(!thisport)
+			thisport = new port(device, speed, parity);
 
-		if(port->nodes.find(nr) != port->nodes.end())
+		if(thisport->nodes.find(nr) != thisport->nodes.end())
 			throw exception(device + format(":%d: Node already allocated", nr));
 
-		if(port->speed != speed)
+		if(thisport->speed != speed)
 			throw exception(device + format(":%d: Port already uses a different speed than requested", nr));
-		if(port->parity != parity)
+		if(thisport->parity != parity)
 			throw exception(device + format(":%d: Port already uses a parity than requested", nr));
 
-		port->nodes.insert(nr);
+		thisport->nodes.insert(nr);
 	}
 
 	node::~node() {
 		pthread::mutexholder h(&portmutex);
 
-		port->nodes.erase(nr);
+		thisport->nodes.erase(nr);
 
-		if(port->nodes.empty())
-			delete port;
+		if(thisport->nodes.empty())
+			delete thisport;
 	}
 
 	bool node::printf(const char *format, ...) {
@@ -199,7 +199,7 @@ namespace serial {
 		va_list va;
 
 		va_start(va, format);
-		result = port->vprintf(format, va);
+		result = thisport->vprintf(format, va);
 		va_end(va);
 
 		return result;
