@@ -1,4 +1,4 @@
-AM_CXXFLAGS = -pthread -Wall
+AM_CXXFLAGS = -pipe -Wall -Wextra -Wfatal-errors -Wno-unused-variable
 AM_CPPFLAGS = $(SIGC_CFLAGS) -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
 
 if HAVE_DEBUG

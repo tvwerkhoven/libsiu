@@ -1,10 +1,14 @@
 if TESTING
 
-AM_CPPFLAGS = -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_FULLY_DYNAMIC_STRING -DGLIBCXX_FORCE_NEW
+AM_CXXFLAGS = -pipe -Wall -Wextra -Wfatal-errors -Wno-unused-variable
+AM_CPPFLAGS = $(SIGC_CFLAGS) -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
 
-AM_CXXFLAGS = -pipe -Wall -Wextra \
-		-Wfatal-errors -Wno-unused-variable \
-		-ggdb -fno-inline
+if HAVE_DEBUG
+AM_CPPFLAGS += -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_FULLY_DYNAMIC_STRING -DGLIBCXX_FORCE_NEW
+AM_CXXFLAGS += -ggdb -g3 -O0 -fno-inline
+else 
+AM_CXXFLAGS += -O3
+endif
 
 AM_CXXFLAGS += -I${top_srcdir}/src/ -L${top_srcdir}/src/
 
