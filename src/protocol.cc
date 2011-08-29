@@ -153,7 +153,7 @@ namespace Protocol {
 	Server::Port::~Port() {
 		thread.cancel();
 		//For some reason this doesn't work
-		//thread.join();
+		thread.join();
 	}
 
 	Server::Port *Server::Port::get(Server *server) {
@@ -173,24 +173,24 @@ namespace Protocol {
 	}
 
 	void Server::Port::release(Server *server) {
+		Port *thisport;
 		pthread::mutexholder g(&globalmutex);
-		Port *port = ports[server->port];
-		if(!port)
+		thisport = ports[server->port];
+		if(!thisport)
 			throw exception("Releasing user from unknown port");
-		
-		//! @bug mutexholder h is attached to port->mutex, but port is deleted 
+	
+		//! @bug mutexholder h is attached to thisport->mutex, but port is deleted 
 		// before h goes out of scope. Try to fix here
 		{
-			pthread::mutexholder h(&port->mutex);
-			Server *user = port->users[server->name];
-			port->users.erase(server->name);
+			pthread::mutexholder h(&thisport->mutex);
+			Server *user = thisport->users[server->name];
+			thisport->users.erase(server->name);
 			if(!user)
 				throw exception("Releasing unknown user from port");
 		}
-
-		if(port->users.empty()) {
+		if(thisport->users.empty()) {
 			ports.erase(server->port);
-			delete port;
+			delete thisport;
 		}
 	}
 
