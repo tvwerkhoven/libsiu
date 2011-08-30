@@ -27,8 +27,8 @@ libimgdata_a_CPPFLAGS = $(IMGDATA_CFLAGS) $(AM_CPPFLAGS)
 
 if HAVE_OPENGL
 libglviewer_a_SOURCES = glviewer.cc
-libglviewer_a_CPPFLAGS = $(OPENGL_CFLAGS) $(AM_CPPFLAGS)
-libglviewer_a_CFLAGS = $(OPENGL_CFLAGS) $(AM_CFLAGS)
+libglviewer_a_CPPFLAGS = $(GUI_CFLAGS) $(AM_CPPFLAGS)
+libglviewer_a_CFLAGS = $(GUI_CFLAGS) $(AM_CFLAGS)
 endif
 
 noinst_HEADERS = config.h csv.h format.h messages.h pidfile.h protocol.h pthread++.h serial.h sighandle.h socket.h io.h glviewer.h imgdata.h path++.h perflogger.h time++.h types.h utils.h 

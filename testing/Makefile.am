@@ -68,9 +68,9 @@ if HAVE_OPENGL
 noinst_PROGRAMS += opengl-test
 
 opengl_test_SOURCES = opengl-test.cc
-opengl_test_CPPFLAGS = $(OPENGL_CFLAGS) $(AM_CPPFLAGS)
-opengl_test_CFLAGS = $(OPENGL_CFLAGS) $(AM_CFLAGS)
-opengl_test_LDADD = $(OPENGL_LIBS) ${top_srcdir}/src/libglviewer.a
+opengl_test_CPPFLAGS = $(GUI_CFLAGS) $(AM_CPPFLAGS)
+opengl_test_CXXFLAGS = $(GUI_CFLAGS) $(AM_CXXFLAGS)
+opengl_test_LDADD = $(GUI_LIBS) ${top_srcdir}/src/libglviewer.a
 endif
 
 TESTS = $(noinst_PROGRAMS)

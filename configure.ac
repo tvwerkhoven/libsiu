@@ -21,7 +21,7 @@ AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
-# Check command line options
+### Check command line options ###############################################
 
 AC_ARG_WITH([tests],
 		AC_HELP_STRING([--without-tests], [do not build test programs]),
@@ -54,7 +54,8 @@ AC_ARG_ENABLE([profiling],
 		[have_profiling=no])
 AM_CONDITIONAL([HAVE_PROFILING], [test "x$have_profiling" != "xno"])
 
-# These libraries are crucial for all targets
+### Check mandatory libraries  ###############################################
+
 AC_SEARCH_LIBS([sin],
 		[m],
 		[],
@@ -71,78 +72,70 @@ PKG_CHECK_MODULES(SIGC, [sigc++-2.0 >= 2.0], [],
 AC_SUBST(SIGC_CFLAGS)
 AC_SUBST(SIGC_LIBS)
 
-# ImgData wants FITS, ICS and GSL please
+### Check optional libraries #################################################
+
+AC_MSG_NOTICE([*** Checking for libraries for ImgData.]);
 
 PKG_CHECK_MODULES(GSL, [gsl], 
-	[have_gsl=true; imgdata_types+="gsl "; AC_DEFINE([HAVE_GSL], [1], [ImgData supports GSL data.])],
-	[have_gsl=false; AC_DEFINE([HAVE_GSL], [0], [ImgData does not supports GSL data.])])
+		[have_gsl=true; imgdata_types+="gsl "; AC_DEFINE([HAVE_GSL], [1], [ImgData supports GSL data.])],
+		[have_gsl=false; AC_DEFINE([HAVE_GSL], [0], [ImgData does not supports GSL data.])])
 
 AC_SEARCH_LIBS([ffopen], [cfitsio], 
-	[have_cfitsio=true; imgdata_types+="fits "; AC_DEFINE([HAVE_CFITSIO], [1], [ImgData supports FITS data.])],
-	[have_cfitsio=false; AC_DEFINE([HAVE_CFITSIO], [0], [ImgData does not supports FITS data.])])
+		[have_cfitsio=true; imgdata_types+="fits "; AC_DEFINE([HAVE_CFITSIO], [1], [ImgData supports FITS data.])],
+		[have_cfitsio=false; AC_DEFINE([HAVE_CFITSIO], [0], [ImgData does not supports FITS data.])])
 
 AC_SEARCH_LIBS([deflate], [z],
-		[have_z=true],
-		[have_z=false])
+		[have_z=true], [have_z=false])
 
 AC_SEARCH_LIBS([IcsOpen], [ics],
-		[have_ics=true],
-		[have_ics=false])
+		[have_libics=true], [have_libics=false])
 
-if test "$have_z" = true -a "$have_ics" = true; then
-	have_ics=true
-	imgdata_types+="ics "
-	AC_DEFINE([HAVE_ICS], [1], [ImgData supports ICS data.])
-else
-	have_ics=false
-	AC_DEFINE([HAVE_ICS], [0], [ImgData does not support ICS data.])
-fi
+AS_IF([test "x$have_z" = "xtrue" -a "x$have_libics" = "xtrue"],
+		[
+		imgdata_types+="ics "
+		AC_DEFINE([HAVE_ICS], [1], [ImgData supports ICS data.])
+		],
+		[
+		AC_DEFINE([HAVE_ICS], [0], [ImgData does not support ICS data.])
+		])
 
-IMGDATA_CFLAGS="$GSL_CFLAGS"
-IMGDATA_LIBS="$GSL_LIBS"
-AC_SUBST(IMGDATA_CFLAGS)
-AC_SUBST(IMGDATA_LIBS)
+AC_SUBST(IMGDATA_CFLAGS, ["$GSL_CFLAGS"])
+AC_SUBST(IMGDATA_LIBS, ["$GSL_LIBS $LIBS"])
 
-# Begin OpenGL checking
+### Check OpenGL libraries ###################################################
+
+AC_MSG_NOTICE([*** Checking for GUI libs (gtk, opengl etc.)]);
+
+have_opengl=yes
 AX_CHECK_GL
+AS_IF([test "x$no_gl" = "xyes"], [have_opengl=no;glmissing+=" gl"])
 AX_CHECK_GLU
+AS_IF([test "x$no_glu" = "xyes"], [have_opengl=no;glmissing+=" glu"])
 AX_CHECK_GLUT
+AS_IF([test "x$no_glut" = "xyes"], [have_opengl=no;glmissing+=" glut"])
 
-if test "$no_gl" = yes; then openglmissing+=" gl"; fi
-if test "$no_glu" = yes; then openglmissing+=" glu"; fi
-if test "$no_glut" = yes; then openglmissing+=" glut"; fi
-
-if test "$no_gl" = yes || test  "$no_glu" = yes || test "$no_glut" = yes ; then
-	opengl=false;
-	AC_MSG_WARN([*** OpenGL not found, not compiling UI libraries.]);
-else
-	opengl=true;
-fi
+AM_CONDITIONAL([HAVE_OPENGL], [test "x$have_opengl" != "xno"])
 
 PKG_CHECK_MODULES(GLEXTMM, gtkglextmm-1.2, [],
-	[AC_MSG_WARN([*** gtkglextmm-1.2 not found, not compiling UI libraries.]);opengl=false;openglmissing+=' gtkglextmm-1.2'])
+		[have_gui=no;guimissing+=' gtkglextmm-1.2'])
 
 PKG_CHECK_MODULES(GTKMM, gtkmm-2.4, [],
-	[AC_MSG_WARN([*** gtkmm-2.4 not found, not compiling UI libraries.]);opengl=false;openglmissing+=' gtkmm-2.4'])		
+		[have_gui=no;guimissing+=' gtkmm-2.4'])		
 
 PKG_CHECK_MODULES(GLIBMM, glibmm-2.4, [],
-	[AC_MSG_WARN([*** glibmm-2.4 not found, not compiling UI libraries.]);opengl=false;openglmissing+=' glibmm-2.4'])		
+		[have_gui=no;guimissing+=' glibmm-2.4'])		
 
-if test "$opengl" = true ; then
-	AC_MSG_NOTICE([*** OpenGL found, UI libraries enabled.]);
-	OPENGL_CFLAGS+="$GL_CFLAGS $GLU_CFLAGS $GLUT_CFLAGS $GLEXTMM_CFLAGS $GTKMM_CFLAGS $GLIBMM_LIBS"
-	OPENGL_LIBS+="$GL_LIBS $GLU_LIBS $GLUT_LIBS $GLEXTMM_LIBS $GTKMM_LIBS $GLIBMM_LIBS"
-	AC_SUBST(OPENGL_LIBS)
-	AC_SUBST(OPENGL_CFLAGS)
-else
-	AC_MSG_NOTICE([*** OpenGL not found, UI libraries enabled.]);
-	AC_MSG_NOTICE([*** OpenGL missing: $openglmissing]);
-fi
+AS_IF([test "x$have_gui" != "xno" -a "x$have_opengl" != "xno"],
+		[
+		AC_SUBST(GUI_CFLAGS, ["$GL_CFLAGS $GLU_CFLAGS $GLUT_CFLAGS $GLEXTMM_CFLAGS $GTKMM_CFLAGS $GLIBMM_LIBS"])
+		AC_SUBST(GUI_LIBS, ["$GL_LIBS $GLU_LIBS $GLUT_LIBS $GLEXTMM_LIBS $GTKMM_LIBS $GLIBMM_LIBS"])
+		])
+
 # end OpenGL configuration
 
-AM_CONDITIONAL([HAVE_OPENGL], [test "$opengl" = true])
-
-AC_MSG_NOTICE([*** ImgData will support: $imgdata_types.]);
+AC_MSG_NOTICE([*** ImgData support ............... $imgdata_types]);
+AC_MSG_NOTICE([*** GUI libs ...................... $have_gui $guimissing.]);
+AC_MSG_NOTICE([*** OpenGL libs ................... $have_opengl $glmissing.]);
 
 AC_MSG_NOTICE([*** libsiu configuration options:])
 AC_MSG_NOTICE([*** test programs: ................ $with_tests])
