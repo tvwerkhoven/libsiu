@@ -22,18 +22,37 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 
 # Check command line options
-withtests=true
+
 AC_ARG_WITH([tests],
 		AC_HELP_STRING([--without-tests], [do not build test programs]),
-		[test "$withval" = yes && withtests=false])
-AM_CONDITIONAL([TESTING], [test "$withtests" = true])
+		[with_tests=$withval],
+		[with_tests=yes])
+AM_CONDITIONAL([WITH_TESTING], [test "x$with_tests" != "xno"])
 
 AC_ARG_ENABLE([debug],
 		AC_HELP_STRING([--enable-debug], [enable debug output]),
-		[have_debug=true; AC_DEFINE([LIBSIU_DEBUG], [1], [Enable debugging.])],
-		[have_debug=false; AC_DEFINE([LIBSIU_DEBUG], [0], [Enable debugging.])])
+		[have_debug=$enableval],
+		[have_debug=no])
+AC_ARG_ENABLE([strict-debug],
+		AC_HELP_STRING([--enable-strict-debug], [enable strict (agressive) debug output]),
+		[have_str_debug=$enableval],
+		[have_str_debug=no])
+AM_CONDITIONAL([HAVE_STR_DEBUG], [test "x$have_str_debug" != "xno"])
+AS_IF([test "x$have_str_debug" != "xno"],
+		[
+		AC_MSG_WARN([*** Enabling strict debugging. Continue at your own risk! (but in any case make sure to use strict debugging consistently)])
+		have_debug=yes
+		])
+AM_CONDITIONAL([HAVE_DEBUG], [test "x$have_debug" != "xno"])
+AS_IF([test "x$have_debug" != "xno"],
+		[AC_DEFINE([LIBSIU_DEBUG], [1], [Toggle debugging.])],
+		[AC_DEFINE([LIBSIU_DEBUG], [0], [Toggle debugging.])])
 
-AM_CONDITIONAL([HAVE_DEBUG], [test "$have_debug" = true])
+AC_ARG_ENABLE([profiling],
+		AC_HELP_STRING([--enable-profiling], [enable profiling support]),
+		[have_profiling=$enableval],
+		[have_profiling=no])
+AM_CONDITIONAL([HAVE_PROFILING], [test "x$have_profiling" != "xno"])
 
 # These libraries are crucial for all targets
 AC_SEARCH_LIBS([sin],
@@ -124,5 +143,12 @@ fi
 AM_CONDITIONAL([HAVE_OPENGL], [test "$opengl" = true])
 
 AC_MSG_NOTICE([*** ImgData will support: $imgdata_types.]);
+
+AC_MSG_NOTICE([*** libsiu configuration options:])
+AC_MSG_NOTICE([*** test programs: ................ $with_tests])
+AC_MSG_NOTICE([*** debug: ........................ $have_debug])
+AC_MSG_NOTICE([*** strict debug: ................. $have_str_debug])
+AC_MSG_NOTICE([*** profiling: .................... $have_profiling])
+
 
 AC_OUTPUT

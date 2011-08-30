@@ -1,12 +1,4 @@
-AM_CXXFLAGS = -pipe -Wall -Wextra -Wfatal-errors -Wno-unused-variable
-AM_CPPFLAGS = $(SIGC_CFLAGS) -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
-
-if HAVE_DEBUG
-AM_CPPFLAGS += -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_FULLY_DYNAMIC_STRING -DGLIBCXX_FORCE_NEW
-AM_CXXFLAGS += -ggdb -g3 -O0 -fno-inline
-else 
-AM_CXXFLAGS += -O3
-endif
+include $(top_srcdir)/common.mk
 
 noinst_LIBRARIES = libconfig.a libcsv.a libmessages.a libperflogger.a libpidfile.a libserial.a libsighandle.a libsocket.a libprotocol.a libio.a libimgdata.a libpath.a libtime.a
 

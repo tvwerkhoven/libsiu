@@ -1,14 +1,6 @@
-if TESTING
+if WITH_TESTING
 
-AM_CXXFLAGS = -pipe -Wall -Wextra -Wfatal-errors -Wno-unused-variable
-AM_CPPFLAGS = $(SIGC_CFLAGS) -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
-
-if HAVE_DEBUG
-AM_CPPFLAGS += -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_FULLY_DYNAMIC_STRING -DGLIBCXX_FORCE_NEW
-AM_CXXFLAGS += -ggdb -g3 -O0 -fno-inline
-else 
-AM_CXXFLAGS += -O3
-endif
+include $(top_srcdir)/common.mk
 
 AM_CXXFLAGS += -I${top_srcdir}/src/ -L${top_srcdir}/src/
 
@@ -83,4 +75,4 @@ endif
 
 TESTS = $(noinst_PROGRAMS)
 
-endif TESTING
+endif WITH_TESTING
