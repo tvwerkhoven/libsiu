@@ -1,14 +1,6 @@
-if TESTING
+if WITH_TESTING
 
-AM_CXXFLAGS = -pipe -Wall -Wextra -Wfatal-errors -Wno-unused-variable
-AM_CPPFLAGS = $(SIGC_CFLAGS) -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
-
-if HAVE_DEBUG
-AM_CPPFLAGS += -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_GLIBCXX_FULLY_DYNAMIC_STRING -DGLIBCXX_FORCE_NEW
-AM_CXXFLAGS += -ggdb -g3 -O0 -fno-inline
-else 
-AM_CXXFLAGS += -O3
-endif
+include $(top_srcdir)/common.mk
 
 AM_CXXFLAGS += -I${top_srcdir}/src/ -L${top_srcdir}/src/
 
@@ -76,11 +68,11 @@ if HAVE_OPENGL
 noinst_PROGRAMS += opengl-test
 
 opengl_test_SOURCES = opengl-test.cc
-opengl_test_CPPFLAGS = $(OPENGL_CFLAGS) $(AM_CPPFLAGS)
-opengl_test_CFLAGS = $(OPENGL_CFLAGS) $(AM_CFLAGS)
-opengl_test_LDADD = $(OPENGL_LIBS) ${top_srcdir}/src/libglviewer.a
+opengl_test_CPPFLAGS = $(GUI_CFLAGS) $(AM_CPPFLAGS)
+opengl_test_CXXFLAGS = $(GUI_CFLAGS) $(AM_CXXFLAGS)
+opengl_test_LDADD = $(GUI_LIBS) ${top_srcdir}/src/libglviewer.a
 endif
 
 TESTS = $(noinst_PROGRAMS)
 
-endif TESTING
+endif WITH_TESTING
