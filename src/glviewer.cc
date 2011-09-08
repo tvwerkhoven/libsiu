@@ -93,6 +93,7 @@ using namespace Gtk;
 OpenGLImageViewer::OpenGLImageViewer():
 scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX), minval(0), maxval(-1),
 rscale(1), gscale(1), bscale(1),
+underover(false),
 ngrid(8, 8), grid(false), 
 flipv(false), fliph(false), zoomfit(false), crosshair(false),
 gl_img()
@@ -359,11 +360,26 @@ void OpenGLImageViewer::do_update() {
 		// Render boxes (in DATA coordinates, convert to GL!)
 		glColor3f(0, 1, 0);
 		for (size_t i=0; i<boxes.size(); i++) { 
+			// Square box
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(boxes[i].lx*2.0/cw-1.0, boxes[i].ly*2.0/ch-1.0, 0.0f);
 			glVertex3f(boxes[i].tx*2.0/cw-1.0, boxes[i].ly*2.0/ch-1.0, 0.0f);
 			glVertex3f(boxes[i].tx*2.0/cw-1.0, boxes[i].ty*2.0/ch-1.0, 0.0f);
 			glVertex3f(boxes[i].lx*2.0/cw-1.0, boxes[i].ty*2.0/ch-1.0, 0.0f);
+			glEnd();
+
+			// Add crosshair in center
+			float bwidth = boxes[i].tx - boxes[i].lx;
+			float bheight = boxes[i].ty - boxes[i].ly;
+			glBegin(GL_LINES);
+			glVertex3f((boxes[i].lx + 0.25 * bheight)*2.0/cw-1.0, 
+								 (boxes[i].ly + 0.50 * bwidth)*2.0/ch-1.0, 0.0f);
+			glVertex3f((boxes[i].lx + 0.75 * bheight)*2.0/cw-1.0, 
+								 (boxes[i].ly + 0.50 * bwidth)*2.0/ch-1.0, 0.0f);
+			glVertex3f((boxes[i].lx + 0.50 * bheight)*2.0/cw-1.0, 
+								 (boxes[i].ly + 0.25 * bwidth)*2.0/ch-1.0, 0.0f);
+			glVertex3f((boxes[i].lx + 0.50 * bheight)*2.0/cw-1.0, 
+								 (boxes[i].ly + 0.75 * bwidth)*2.0/ch-1.0, 0.0f);
 			glEnd();
 		}
 		
@@ -388,8 +404,8 @@ void OpenGLImageViewer::do_update() {
 		glBegin(GL_LINES);
 		// Render lines (in DATA coordinates, convert to GL!)
 		for (size_t i=0; i<lines.size(); i++) { 
-			glVertex3f(lines[i].lx*2.0/cw-1.0, lines[i].ly*2.0/ch-1.0, 0.0f);
-			glVertex3f(lines[i].tx*2.0/cw-1.0, lines[i].ty*2.0/ch-1.0, 0.0f);
+			glVertex3f((lines[i].lx+0.5)*2.0/cw-1.0, (lines[i].ly+0.5)*2.0/ch-1.0, 0.0f);
+			glVertex3f((lines[i].tx+0.5)*2.0/cw-1.0, (lines[i].ty+0.5)*2.0/ch-1.0, 0.0f);
 		}
 		glEnd();
 		
