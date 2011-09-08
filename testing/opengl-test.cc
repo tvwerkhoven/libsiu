@@ -153,6 +153,16 @@ template <class T> void Simple::fill_data(T *tmpdata) {
 	for (size_t i=0; i<height; i++)
 		for (size_t j=0; j<width; j++)
 			tmpdata[i*width + j] = (((size_t) 1) << (sizeof *tmpdata * 8)) * fac * sqrt(pow(i,2.0) + pow(j,2.0)) / sqrt(pow(width,2.0) + pow(height,2.0));
+	size_t maxval = (((size_t) 1) << (sizeof *tmpdata * 8)) -1;
+	tmpdata[0] = maxval;
+	tmpdata[1*width +1] = 0;
+	tmpdata[2*width +2] = maxval;
+	tmpdata[3*width +3] = 0;
+	tmpdata[4*width +4] = maxval;
+	tmpdata[3*width +4] = 0;
+	tmpdata[2*width +4] = maxval;
+	tmpdata[1*width +4] = 0;
+	tmpdata[0*width +4] = maxval;
 
 	fprintf(stderr, "Simple::fill_data() pix[10,10] = %g or %d\n", 
 					(((size_t) 1) << (sizeof *tmpdata * 8)) * fac * sqrt(pow(i,2.0) + pow(j,2.0)) / sqrt(pow(width,2.0) + pow(height,2.0)),
