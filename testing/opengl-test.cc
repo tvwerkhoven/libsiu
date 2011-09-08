@@ -93,7 +93,9 @@ render("Re-render"), iter(0), width(100), height(480), depth(8), data(NULL)
   glarea.set_size_request(512, 512);
 	
 	// Add box in lower right corner
-	glarea.addbox(fvector_t(0, 0, 64, 64));
+	glarea.addbox(fvector_t(0, 0, 3, 3));
+	// Add line in this box
+	glarea.addline(fvector_t(0, 0, 2, 2));	
 	
 	// Add 10 random boxes
 	for (int i=0; i<10; i++) {
