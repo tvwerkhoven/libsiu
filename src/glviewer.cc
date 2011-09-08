@@ -359,11 +359,26 @@ void OpenGLImageViewer::do_update() {
 		// Render boxes (in DATA coordinates, convert to GL!)
 		glColor3f(0, 1, 0);
 		for (size_t i=0; i<boxes.size(); i++) { 
+			// Square box
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(boxes[i].lx*2.0/cw-1.0, boxes[i].ly*2.0/ch-1.0, 0.0f);
 			glVertex3f(boxes[i].tx*2.0/cw-1.0, boxes[i].ly*2.0/ch-1.0, 0.0f);
 			glVertex3f(boxes[i].tx*2.0/cw-1.0, boxes[i].ty*2.0/ch-1.0, 0.0f);
 			glVertex3f(boxes[i].lx*2.0/cw-1.0, boxes[i].ty*2.0/ch-1.0, 0.0f);
+			glEnd();
+
+			// Add crosshair in center
+			float bwidth = boxes[i].tx - boxes[i].lx;
+			float bheight = boxes[i].ty - boxes[i].ly;
+			glBegin(GL_LINES);
+			glVertex3f((boxes[i].lx + 0.25 * bheight)*2.0/cw-1.0, 
+								 (boxes[i].ly + 0.50 * bwidth)*2.0/ch-1.0, 0.0f);
+			glVertex3f((boxes[i].lx + 0.75 * bheight)*2.0/cw-1.0, 
+								 (boxes[i].ly + 0.50 * bwidth)*2.0/ch-1.0, 0.0f);
+			glVertex3f((boxes[i].lx + 0.50 * bheight)*2.0/cw-1.0, 
+								 (boxes[i].ly + 0.25 * bwidth)*2.0/ch-1.0, 0.0f);
+			glVertex3f((boxes[i].lx + 0.50 * bheight)*2.0/cw-1.0, 
+								 (boxes[i].ly + 0.75 * bwidth)*2.0/ch-1.0, 0.0f);
 			glEnd();
 		}
 		
