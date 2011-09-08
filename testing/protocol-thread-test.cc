@@ -69,7 +69,7 @@ int main() {
 	srv_rcvd[0] = 0;
 	srv_rcvd[1] = 0;
 	
-	usleep(1 * 1E6);
+	usleep(10 * 1E6);
 
 	// Start worker threads
 	fprintf(stdout, "%s: creating clients\n", __FUNCTION__);
