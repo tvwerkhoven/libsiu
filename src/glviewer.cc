@@ -328,10 +328,10 @@ void OpenGLImageViewer::do_update() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (s == 1 || s >= 2) ? GL_NEAREST : GL_LINEAR);
 	
 	static const GLt2n3v3f rect[4] = {
-		{0, 1, 0, 0, 1, -1, -1, 0},
-		{1, 1, 0, 0, 1, +1, -1, 0},
-		{0, 0, 0, 0, 1, -1, +1, 0},
-		{1, 0, 0, 0, 1, +1, +1, 0},
+		{0, 1, 0, 0, 1, -1, +1, 0},
+		{1, 1, 0, 0, 1, +1, +1, 0},
+		{0, 0, 0, 0, 1, -1, -1, 0},
+		{1, 0, 0, 0, 1, +1, -1, 0},
 	};
 	glInterleavedArrays(GL_T2F_N3F_V3F, 0, rect);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
