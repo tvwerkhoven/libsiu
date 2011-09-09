@@ -100,7 +100,9 @@ render("Re-render"), iter(0), width(100), height(480), depth(8), data(NULL)
 	// Add 10 random boxes
 	for (int i=0; i<10; i++) {
 		double x = drand48()*68, y=drand48()*448;
-		glarea.addbox(fvector_t(x, y, x+32, y+32));
+		double width = 16.+drand48()*32;
+		double height = 16.+drand48()*32;
+		glarea.addbox(fvector_t(x, y, x+width, y+height));
 	}
 	
 	// Add line for demonstration

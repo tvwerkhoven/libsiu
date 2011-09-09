@@ -131,6 +131,8 @@ private:
 	bool fliph;							//!< Horizontal flip toggle
 	bool zoomfit;						//!< Fit image to parent window
 	bool crosshair;					//!< Crosshair toggle
+	
+	bool boxcross;					//!< Crosshair in boxes
 		
 	std::vector<fvector_t> boxes;				//!< Draw these extra boxes
 	std::vector<fvector_t> lines;				//!< Draw these extra lines
@@ -200,6 +202,9 @@ public:
 	int inbox(const double x, const double y) const;
 	//!< Return box with index idx
 	fvector_t getbox(const size_t idx) const { return boxes[idx]; }
+	
+	void set_boxcross(const bool v) { boxcross = v; }
+	bool get_boxcros() const { return boxcross; }
 	
 	//!< Add an overlay line, should be in DATA coordinates
 	void addline(const fvector_t line) { pthread::mutexholder h(&gui_mutex); lines.push_back(line); }
