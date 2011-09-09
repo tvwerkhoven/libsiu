@@ -73,7 +73,7 @@ typedef struct vec {
  @brief We use this to store gain information for WFC's
  */
 typedef struct gain_t {
-	gain_t(float _p=1, float _i=0, float _d=0) : p(_p), i(_i), d(_d) { }
+	gain_t(float _p=1.0, float _i=0.0, float _d=0.0) : p(_p), i(_i), d(_d) { }
 	float p;                //!< proportional gain
 	float i;                //!< integral gain
 	float d;                //!< differential gain
