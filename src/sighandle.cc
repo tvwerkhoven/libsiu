@@ -26,6 +26,7 @@ __LINE__, __func__, __VA_ARGS__); } while (0)
 
 #include "pthread++.h"
 #include "sighandle.h"
+#include "format.h"
 
 #include <stdlib.h>
 #include <signal.h>
@@ -73,11 +74,10 @@ void SigHandle::handler() {
 			// Decide what to do with the signal
 			switch (sig) {
 					// These signals are dangerous, stop the program
-				case SIGQUIT:
-				case SIGTERM:
-				case SIGABRT:
-				case SIGINT:
-				case SIGSEGV:
+				case SIGINT:					// ctrl-c
+				case SIGTERM:					// normal shutdown
+				case SIGABRT:					// from abort()
+				case SIGSEGV:					// improper memory handling, segfault 
 					quit_count++;
 					fprintf(stderr, "SigHandle::handler() quitting sig %d (#%zu)\n", 
 									sig, quit_count);
@@ -85,19 +85,19 @@ void SigHandle::handler() {
 					
 					// If quit signal is received twice or more, brutally exit
 					if (quit_count > max_quit_count)
-						exit(-1);
+						throw format("Quitting hard on signal %s (%d)!", strsignal(sig), sig);
 					break;
 					// These signals are not fatal, ignore them
-				case SIGPIPE:
-				case SIGFPE:
-				case SIGHUP:
-				default:
+				case SIGPIPE:					// broken pipe (write to closed socket etc.)
+				case SIGFPE:					// floating point exception
+				case SIGHUP:					// hangup (remote socket closes etc.)
 					ign_count++;
 					fprintf(stderr, "SigHandle::handler() ignoring sig %d (#%zu)\n", 
 									sig, ign_count);
 					ign_func();
 					break;
-
+				default:
+					throw format("Encountered unhandled signal %s (%d)!", strsignal(sig), sig);
 			}
 		}
 	}
