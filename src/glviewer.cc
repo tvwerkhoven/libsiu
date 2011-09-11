@@ -429,8 +429,8 @@ void OpenGLImageViewer::do_update() {
 		glBegin(GL_LINES);
 		// Render lines (in DATA coordinates, convert to GL!)
 		for (size_t i=0; i<lines.size(); i++) { 
-			glVertex3f((lines[i].lx+0.5)*2.0/cw-1.0, (lines[i].ly+0.5)*2.0/ch-1.0, 0.0f);
-			glVertex3f((lines[i].tx+0.5)*2.0/cw-1.0, (lines[i].ty+0.5)*2.0/ch-1.0, 0.0f);
+			glVertex3f((lines[i].lx)*2.0/cw-1.0, (lines[i].ly)*2.0/ch-1.0, 0.0f);
+			glVertex3f((lines[i].tx)*2.0/cw-1.0, (lines[i].ty)*2.0/ch-1.0, 0.0f);
 		}
 		glEnd();
 		
