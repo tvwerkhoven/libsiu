@@ -94,7 +94,8 @@ void SigHandle::handler() {
 					// These signals are probably not fatal, ignore them
 				case SIGPIPE:					// broken pipe (write to closed socket etc.)
 				case SIGHUP:					// hangup (remote socket closes etc.)
-				case SIGALRM:					// alarm
+				case SIGALRM:					// Alarm clock (POSIX)
+				case SIGPROF:					// Profiling alarm clock (4.2 BSD)
 				default:
 					ign_count++;
 					fprintf(stderr, "SigHandle::handler() ignoring sig %d (#%zu)\n", 
