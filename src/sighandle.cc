@@ -74,10 +74,14 @@ void SigHandle::handler() {
 			// Decide what to do with the signal
 			switch (sig) {
 					// These signals are dangerous, stop the program
+				case SIGILL:					// malformed, unknown, or privileged instruction
+				case SIGABRT:					// from abort()
+				case SIGFPE:					// floating point exception
+				case SIGSEGV:					// improper memory handling, segfault 
+				case SIGBUS:					// bus error, for improper memory handling
+					abort();
 				case SIGINT:					// ctrl-c
 				case SIGTERM:					// normal shutdown
-				case SIGABRT:					// from abort()
-				case SIGSEGV:					// improper memory handling, segfault 
 					quit_count++;
 					fprintf(stderr, "SigHandle::handler() quitting sig %d (#%zu)\n", 
 									sig, quit_count);
@@ -85,19 +89,20 @@ void SigHandle::handler() {
 					
 					// If quit signal is received twice or more, brutally exit
 					if (quit_count > max_quit_count)
-						throw format("Quitting hard on signal %s (%d)!", strsignal(sig), sig);
+						exit(sig);
 					break;
-					// These signals are not fatal, ignore them
+					// These signals are probably not fatal, ignore them
 				case SIGPIPE:					// broken pipe (write to closed socket etc.)
-				case SIGFPE:					// floating point exception
 				case SIGHUP:					// hangup (remote socket closes etc.)
+				case SIGALRM:					// alarm
+				default:
 					ign_count++;
 					fprintf(stderr, "SigHandle::handler() ignoring sig %d (#%zu)\n", 
 									sig, ign_count);
 					ign_func();
 					break;
-				default:
-					throw format("Encountered unhandled signal %s (%d)!", strsignal(sig), sig);
+				case SIGQUIT:
+					throw format("Received SIGQUIT, throwing!");
 			}
 		}
 	}
