@@ -50,6 +50,8 @@ private:
 	size_t nstages;							//!< Number of stages to log for (does not have to be equal to last.size()!)
 	bool init;									//!< Have we initialized in this interval?
 	
+	bool do_log;								//!< Logging in process
+	
 	vector< size_t > avgcount;		//!< Counter for the number of measurements we have
 	vector< struct timeval > last;	//!< Last measured timestamp (previous iteration)
 	vector< struct timeval > minlat; //!< Min latency for each stage in the last interval

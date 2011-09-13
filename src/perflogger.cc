@@ -41,7 +41,7 @@ __LINE__, __func__, __VA_ARGS__); } while (0)
 using namespace std;
 
 PerfLog::PerfLog(const double i, const size_t nh):
-nhist(nh), interval(i), totaliter(0), nstages(0), init(false), do_print(false), do_callback(true), do_alwaysupdate(false)
+nhist(nh), interval(i), totaliter(0), nstages(0), init(false), do_log(true), do_print(false), do_callback(true), do_alwaysupdate(false)
 {
 	// Pre-allocate memory in vectors (10 stages should be enough for most purposes, will be dynamically added if necessary)
 	allocate(10);
@@ -58,7 +58,10 @@ nhist(nh), interval(i), totaliter(0), nstages(0), init(false), do_print(false), 
 }
 
 PerfLog::~PerfLog() {
+	DEBUGPRINT("%s", "\n");
 	// Stop logger thread
+	do_log = false;
+	//! @bug This does not work properly, thread carries on and locks program on exit
 	logthr.cancel();
 	logthr.join();
 }
@@ -164,7 +167,7 @@ void PerfLog::logger() {
 	struct timeval now, next, diff;
 	size_t lastiter=0;
 
-	while (1) {
+	while (do_log) {
 		gettimeofday(&lastlog, 0);
 		{
 			// Get mutex to work with data
@@ -195,4 +198,5 @@ void PerfLog::logger() {
 				usleep(diff.tv_sec * 1.0e6 + diff.tv_usec);
 		}
 	}
+	DEBUGPRINT("%s\n", "ending");
 }
