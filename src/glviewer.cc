@@ -281,9 +281,6 @@ void OpenGLImageViewer::do_update() {
 	if(!glwindow || !glwindow->gl_begin(gtkimage.get_gl_context()))
 		return;
 	
-	if (!gtkimage)
-		return;
-	
 	// Set up GL viewport exactly the size of the GTK area
 	int ww = gtkimage.get_width();
 	int wh = gtkimage.get_height();
