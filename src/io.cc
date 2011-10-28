@@ -27,7 +27,7 @@
 
 #include <cstdio>
 #include <string>
-
+#include <sigc++/signal.h>
 #include "pthread++.h"
 #include "path++.h"
 #include "format.h"
@@ -35,15 +35,62 @@
 
 const std::string PREFIX[] = {"",  "err ", "warn", "info", "xnfo", "dbg1", "dbg2"};
 
-void Io::init(const int l) {
-	setVerb(l);
-	logfd = NULL;
-	termfd = stdout;
+Io::Io(const int l): verb(l), termfd(stdout), logfd(NULL), defmask(0), do_log(true), lockfail(0) { 
+	verb = max(1, min(l, IO_MAXLEVEL)); 
+
+	// Start handler thread
+	fprintf(stderr, "Io() 1\n");
+	//! @bug race condition here?
+	{
+		pthread::mutexholder h(&handler_mutex);
+		handler_thr.create(sigc::mem_fun(*this, &Io::handler));
+		handler_cond.wait(handler_mutex);
+	}
+		
 }
 
 Io::~Io(void) {
+	handler_cond.signal();
+	do_log = false;
 	if (logfd && logfd != stdout && logfd != stderr)
 		fclose(logfd);
+	
+	fprintf(stderr, "~Io 1\n");
+	handler_thr.cancel();
+	fprintf(stderr, "~Io 2\n");
+	handler_thr.join();
+}
+
+void Io::handler() {
+	pthread::setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS);
+	bool init=false;
+	
+	while (do_log) {
+		// Signal main thread once that we started, we don't wait Io to finish before we even got to the main loop.
+		if (!init) {
+			//! @todo this synchronisation is a bit complicated
+			pthread::mutexholder h(&handler_mutex);
+			handler_cond.signal();
+			init = true;
+			fprintf(stderr, "handler() 1\n");
+		}
+		// Wait until there is a new message
+		handler_cond.timedwait(handler_mutex, 0.1 * 1e6);
+
+		while (!msgbuf.empty()) {
+			// Get mutex to work with data
+			fprintf(stderr, "get mutex\n");
+			pthread::mutexholder h(&log_mutex);
+			
+			// Print & store messages
+			IoMessage *thismsg = msgbuf.front();
+			parse_msg(thismsg->type, thismsg->msg);
+			//fprintf(stderr, "Io::lockfail: %zu, got msg: %s\n", lockfail, thismsg->msg.c_str());
+			msgbuf.pop();
+		}
+		
+	}
+	fprintf(stderr, "~handler()\n");
 }
 
 int Io::setLogfile(const Path &file) {
@@ -54,29 +101,31 @@ int Io::setLogfile(const Path &file) {
 	return 0;
 }
 
-int Io::msg(const int type, const std::string message) const {
+int Io::parse_msg(const int type, const std::string &message) {
 	// Apply default mask
 	int mytype = (type | defmask);
 	
 	// Separate level from type mask	
 	int level = mytype & IO_LEVEL_MASK;
-
+	
 	if (level <= verb) {
 		std::string tmpmsg;
-
+		
 		// Build prefix unless IO_NOID is set
 		if (!(mytype & IO_NOID))
 			tmpmsg += "[" + PREFIX[level] + "] ";
-
+		
 		// Add thread ID if IO_THR is set
 		if (mytype & IO_THR) {
-			// From: http://stackoverflow.com/questions/1759794/how-to-print-pthread-t
-			pthread_t pt = pthread_self();
-			unsigned char *ptc = (unsigned char*)(void*)(&pt);
-			tmpmsg += "(0x";
-			for (size_t i=0; i<sizeof(pt); i++)
-				tmpmsg += format("%02x", (unsigned)(ptc[i]));
-			tmpmsg += ")";
+			//! @todo Thread ID not supported anymore because of Io:: handling
+//			// From: http://stackoverflow.com/questions/1759794/how-to-print-pthread-t
+//			pthread_t pt = pthread_self();
+//			unsigned char *ptc = (unsigned char*)(void*)(&pt);
+//			tmpmsg += "(0x";
+//			for (size_t i=0; i<sizeof(pt); i++)
+//				tmpmsg += format("%02x", (unsigned)(ptc[i]));
+//			tmpmsg += ")";
+			tmpmsg += "(??) ";
 		}
 		
 		// Add message to prefix
@@ -97,16 +146,37 @@ int Io::msg(const int type, const std::string message) const {
 		}
 	}
 	
-	if (mytype & (IO_FATAL)) exit(-1);
-	if (mytype & (IO_ERR)) return -1;
-	
 	return 0;
 }
 
-int Io::msg(const int type, const char *fmtstr, ...) const {
+int Io::msg(const int type, const std::string message) {
+	// Low priority messages get queued...
+	if (type > IO_WARN) {
+		pthread::mutexholdertry h(&log_mutex);
+		if (h.havelock()) {
+			msgbuf.push(new IoMessage(type, message));
+			handler_cond.signal();
+		}
+		else {
+			lockfail++;
+			fprintf(stderr, "lockfail!\n");
+		}
+	}
+	// High priority messages are printed immediately.
+	else {
+		parse_msg(type, message);
+	}
+	
+	if (type & (IO_FATAL)) exit(-1);
+	if (type & (IO_ERR)) return -1;
+	return 0;
+}
+
+int Io::msg(const int type, const char *fmtstr, ...) {
 	// Separate level from type mask
 	int level = type & IO_LEVEL_MASK;
 	
+	//! @todo Always log to file?
 	if (level <= verb) {
 		va_list va;
 		va_start(va, fmtstr);

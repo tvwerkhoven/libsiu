@@ -25,8 +25,12 @@
 #include <cstdio>
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/time.h>
+#include <deque>
+#include <queue>
 
 #include "path++.h"
+#include "pthread++.h"
 
 // Logging flags
 #define IO_NOID         0x00000100      //!< Do not add loglevel string
@@ -47,6 +51,16 @@
 
 using namespace std;
 
+class IoMessage {
+public:
+	IoMessage(const int t, const string &m): type(t), msg(m) { gettimeofday(&tv, NULL); }
+	~IoMessage();
+	
+	const int type;										//!< Type of message
+	struct timeval tv;								//!< Time at which message is logged
+	const string msg;									//!< Message for log entry
+};
+
 class Io {
 	int verb, level_mask;								//!< Verbosity that we display
 	FILE *termfd;
@@ -54,15 +68,34 @@ class Io {
 	Path logfile;												//!< File to log to
 	uint32_t defmask;										//!< Default type mask
 	
-public:
-	Io(): defmask(0) { Io::init(IO_MAXLEVEL); }
-	Io(const int l): defmask(0) { Io::init(l); }
-	~Io();
+//	typedef struct logmsg {
+//		logmsg(string m, int t) msg(m), type(t) { gettimeofday(&tv); }
+//		int type;													//!< Type of message
+//		struct timeval tv;								//!< Time at which message is logged
+//		string msg;												//!< Message for log entry
+//	} logmsg_t;													//!< Datatype used to store log messages
+//	
+//	std::vector<logmsg_t> msgbuf;				//!< Message buffer
+	queue< IoMessage *> msgbuf; 				//!< Message buffer
+	pthread::mutex log_mutex;						//!< msgbuf access mutex
 	
-	void init(const int);
+	pthread::thread handler_thr;				//!< Thread that handles messages
+	pthread::cond handler_cond;
+	pthread::mutex handler_mutex;
+	
+	void handler();											//!< Handler function, prints & saves log messages
+	bool do_log;												//!< Flag controlling handler() shutdown
+	
+	size_t lockfail;										//!< Lost messages due to lock fails
+	
+	int parse_msg(const int type, const string &message);
+	
+public:
+	Io(const int l=IO_MAXLEVEL);
+	~Io();
 
-	int msg(const int, const char*, ...) const;
-	int msg(const int, const std::string) const;
+	int msg(const int, const char*, ...);
+	int msg(const int, const std::string);
 	
 	int setLogfile(const Path&);
 	Path getLogfile() const { return logfile; }
