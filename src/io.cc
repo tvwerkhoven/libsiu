@@ -44,14 +44,21 @@ Io::Io(const int l): verb(l), termfd(stdout), logfd(NULL), defmask(0), do_log(tr
 	{
 		pthread::mutexholder h(&handler_mutex);
 		handler_thr.create(sigc::mem_fun(*this, &Io::handler));
+		fprintf(stderr, "Io() 1b\n");
 		handler_cond.wait(handler_mutex);
 	}
-		
+	fprintf(stderr, "Io() 1c\n");
+
 }
 
 Io::~Io(void) {
-	handler_cond.signal();
+	{
+		pthread::mutexholder h(&handler_mutex);
+		handler_cond.signal();
+	}
+
 	do_log = false;
+
 	if (logfd && logfd != stdout && logfd != stderr)
 		fclose(logfd);
 	
@@ -72,10 +79,14 @@ void Io::handler() {
 			pthread::mutexholder h(&handler_mutex);
 			handler_cond.signal();
 			init = true;
-			fprintf(stderr, "handler() 1\n");
+			fprintf(stderr, "handler() 1a\n");
 		}
 		// Wait until there is a new message
-		handler_cond.timedwait(handler_mutex, 0.1 * 1e6);
+		fprintf(stderr, "handler() 1b\n");
+		{
+			pthread::mutexholder h(&handler_mutex);
+			handler_cond.timedwait(handler_mutex, 0.1 * 1e6);
+		}
 
 		while (!msgbuf.empty()) {
 			// Get mutex to work with data
@@ -86,10 +97,25 @@ void Io::handler() {
 			IoMessage *thismsg = msgbuf.front();
 			parse_msg(thismsg->type, thismsg->msg);
 			//fprintf(stderr, "Io::lockfail: %zu, got msg: %s\n", lockfail, thismsg->msg.c_str());
+			delete thismsg;
 			msgbuf.pop();
 		}
-		
 	}
+	
+	// Flush one last time
+	while (!msgbuf.empty()) {
+		// Get mutex to work with data
+		fprintf(stderr, "get mutex\n");
+		pthread::mutexholder h(&log_mutex);
+		
+		// Print & store messages
+		IoMessage *thismsg = msgbuf.front();
+		parse_msg(thismsg->type, thismsg->msg);
+		//fprintf(stderr, "Io::lockfail: %zu, got msg: %s\n", lockfail, thismsg->msg.c_str());
+		delete thismsg;
+		msgbuf.pop();
+	}
+
 	fprintf(stderr, "~handler()\n");
 }
 
@@ -155,7 +181,9 @@ int Io::msg(const int type, const std::string message) {
 		pthread::mutexholdertry h(&log_mutex);
 		if (h.havelock()) {
 			msgbuf.push(new IoMessage(type, message));
-			handler_cond.signal();
+			pthread::mutexholdertry h2(&handler_mutex);
+			if (h2.havelock())
+				handler_cond.signal();
 		}
 		else {
 			lockfail++;

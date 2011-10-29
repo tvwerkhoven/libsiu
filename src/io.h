@@ -54,7 +54,7 @@ using namespace std;
 class IoMessage {
 public:
 	IoMessage(const int t, const string &m): type(t), msg(m) { gettimeofday(&tv, NULL); }
-	~IoMessage();
+	~IoMessage() { fprintf(stderr, "~IoMessage()\n"); }
 	
 	const int type;										//!< Type of message
 	struct timeval tv;								//!< Time at which message is logged
