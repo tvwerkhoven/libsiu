@@ -47,7 +47,7 @@ Io::Io(const int l): verb(l), termfd(stdout), logfd(NULL), defmask(0), do_log(tr
 }
 
 Io::~Io(void) {
-	parse_msg(IO_INFO, format("Stopping Io, total messages: %zu, lockfail lost: %zu, buffer lost: %zu\n", totmsg, lockfail, buffull));
+	parse_msg(IO_INFO, format("Stopping Io, total messages: %zu, lockfail lost: %zu, buffer lost: %zu", totmsg, lockfail, buffull));
 	// Stop handler() thread
 	do_log = false;
 
