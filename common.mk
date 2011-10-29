@@ -16,6 +16,9 @@ endif
 
 if HAVE_DEBUG
 AM_CXXFLAGS += -ggdb -g3 -O0 -fno-inline
+# For mudflap, see http://www.stlinux.com/devel/debug/mudflap
+#AM_CXXFLAGS += -fmudflap -fmudflapth -funwind-tables
+#AM_LDFLAGS = -lmudflapth -rdynamic 
 else
 AM_CXXFLAGS += -O3 -ftree-vectorize
 endif
