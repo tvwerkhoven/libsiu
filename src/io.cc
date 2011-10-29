@@ -39,38 +39,30 @@ Io::Io(const int l): verb(l), termfd(stdout), logfd(NULL), defmask(0), do_log(tr
 	verb = max(1, min(l, IO_MAXLEVEL)); 
 
 	// Start handler thread
-	fprintf(stderr, "Io() 1\n");
-	//! @bug race condition here?
 	{
 		pthread::mutexholder h(&handler_mutex);
 		handler_thr.create(sigc::mem_fun(*this, &Io::handler));
-		fprintf(stderr, "Io() 1b\n");
 		handler_cond.wait(handler_mutex);
 	}
-	fprintf(stderr, "Io() 1c\n");
-
 }
 
 Io::~Io(void) {
-	{
-		pthread::mutexholder h(&handler_mutex);
-		handler_cond.signal();
-	}
-
+	// Stop handler() thread
 	do_log = false;
 
 	if (logfd && logfd != stdout && logfd != stderr)
 		fclose(logfd);
 	
-	fprintf(stderr, "~Io 1\n");
+	pthread::mutexholder h(&handler_runmutex);
 	handler_thr.cancel();
-	fprintf(stderr, "~Io 2\n");
 	handler_thr.join();
 }
 
 void Io::handler() {
 	pthread::setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS);
 	bool init=false;
+	
+	pthread::mutexholder h(&handler_runmutex);
 	
 	while (do_log) {
 		// Signal main thread once that we started, we don't wait Io to finish before we even got to the main loop.
@@ -79,18 +71,12 @@ void Io::handler() {
 			pthread::mutexholder h(&handler_mutex);
 			handler_cond.signal();
 			init = true;
-			fprintf(stderr, "handler() 1a\n");
 		}
 		// Wait until there is a new message
-		fprintf(stderr, "handler() 1b\n");
-		{
-			pthread::mutexholder h(&handler_mutex);
-			handler_cond.timedwait(handler_mutex, 0.1 * 1e6);
-		}
-
+		usleep(0.01 * 1e6);
+		
 		while (!msgbuf.empty()) {
 			// Get mutex to work with data
-			fprintf(stderr, "get mutex\n");
 			pthread::mutexholder h(&log_mutex);
 			
 			// Print & store messages
@@ -104,19 +90,13 @@ void Io::handler() {
 	
 	// Flush one last time
 	while (!msgbuf.empty()) {
-		// Get mutex to work with data
-		fprintf(stderr, "get mutex\n");
 		pthread::mutexholder h(&log_mutex);
 		
-		// Print & store messages
 		IoMessage *thismsg = msgbuf.front();
 		parse_msg(thismsg->type, thismsg->msg);
-		//fprintf(stderr, "Io::lockfail: %zu, got msg: %s\n", lockfail, thismsg->msg.c_str());
 		delete thismsg;
 		msgbuf.pop();
 	}
-
-	fprintf(stderr, "~handler()\n");
 }
 
 int Io::setLogfile(const Path &file) {
@@ -177,17 +157,13 @@ int Io::parse_msg(const int type, const std::string &message) {
 
 int Io::msg(const int type, const std::string message) {
 	// Low priority messages get queued...
-	if (type > IO_WARN) {
+	if ((type & IO_LEVEL_MASK) > IO_WARN) {
 		pthread::mutexholdertry h(&log_mutex);
 		if (h.havelock()) {
 			msgbuf.push(new IoMessage(type, message));
-			pthread::mutexholdertry h2(&handler_mutex);
-			if (h2.havelock())
-				handler_cond.signal();
 		}
 		else {
 			lockfail++;
-			fprintf(stderr, "lockfail!\n");
 		}
 	}
 	// High priority messages are printed immediately.

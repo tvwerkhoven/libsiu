@@ -54,7 +54,7 @@ using namespace std;
 class IoMessage {
 public:
 	IoMessage(const int t, const string &m): type(t), msg(m) { gettimeofday(&tv, NULL); }
-	~IoMessage() { fprintf(stderr, "~IoMessage()\n"); }
+	~IoMessage() { ; }
 	
 	const int type;										//!< Type of message
 	struct timeval tv;								//!< Time at which message is logged
@@ -68,20 +68,13 @@ class Io {
 	Path logfile;												//!< File to log to
 	uint32_t defmask;										//!< Default type mask
 	
-//	typedef struct logmsg {
-//		logmsg(string m, int t) msg(m), type(t) { gettimeofday(&tv); }
-//		int type;													//!< Type of message
-//		struct timeval tv;								//!< Time at which message is logged
-//		string msg;												//!< Message for log entry
-//	} logmsg_t;													//!< Datatype used to store log messages
-//	
-//	std::vector<logmsg_t> msgbuf;				//!< Message buffer
 	queue< IoMessage *> msgbuf; 				//!< Message buffer
 	pthread::mutex log_mutex;						//!< msgbuf access mutex
 	
 	pthread::thread handler_thr;				//!< Thread that handles messages
 	pthread::cond handler_cond;
 	pthread::mutex handler_mutex;
+	pthread::mutex handler_runmutex;		//!< Handler is running mutex
 	
 	void handler();											//!< Handler function, prints & saves log messages
 	bool do_log;												//!< Flag controlling handler() shutdown
