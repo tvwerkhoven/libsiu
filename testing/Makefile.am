@@ -5,7 +5,7 @@ include $(top_srcdir)/common.mk
 AM_CXXFLAGS += -I${top_srcdir}/src/ -L${top_srcdir}/src/
 LDADD = $(SIGC_LIBS) 
 
-noinst_PROGRAMS = imgdata-test io-test io-test2 config-test csv-test path-test parse-test perflogger-test protocol-test protocol-thread-test pthread-test sighandle-test time-test
+noinst_PROGRAMS = imgdata-test io-test io-test2 io-test3 config-test csv-test path-test parse-test perflogger-test protocol-test protocol-thread-test pthread-test sighandle-test time-test
 
 imgdata_test_SOURCES = imgdata-test.cc
 imgdata_test_LDADD = ${top_srcdir}/src/libimgdata.a \
@@ -20,6 +20,10 @@ io_test_LDADD = ${top_srcdir}/src/libio.a \
 
 io_test2_SOURCES = io-test2.cc
 io_test2_LDADD = ${top_srcdir}/src/libio.a \
+		${top_srcdir}/src/libpath.a $(LDADD)
+
+io_test3_SOURCES = io-test3.cc
+io_test3_LDADD = ${top_srcdir}/src/libio.a \
 		${top_srcdir}/src/libpath.a $(LDADD)
 
 config_test_SOURCES = config-test.cc
