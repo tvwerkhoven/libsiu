@@ -67,23 +67,21 @@ void Io::handler() {
 	while (do_log) {
 		// Signal main thread once that we started, we don't wait Io to finish before we even got to the main loop.
 		if (!init) {
-			//! @todo this synchronisation is a bit complicated
 			pthread::mutexholder h(&handler_mutex);
 			handler_cond.signal();
 			init = true;
 		}
 		// Wait until there is a new message
-		usleep(0.01 * 1e6);
+		usleep(0.05 * 1e6);
 		
 		while (!msgbuf.empty()) {
+			// Get mutex to delete with data
+			pthread::mutexholder h(&log_mutex);
 			
 			// Print & store messages
 			IoMessage *thismsg = msgbuf.front();
 			parse_msg(thismsg->type, thismsg->msg);
 			
-			// Get mutex to delete with data
-//			pthread::mutexholder h(&log_mutex);
-
 			//fprintf(stderr, "Io::lockfail: %zu, got msg: %s\n", lockfail, thismsg->msg.c_str());
 			delete thismsg;
 			msgbuf.pop();
@@ -92,10 +90,10 @@ void Io::handler() {
 	
 	// Flush one last time
 	while (!msgbuf.empty()) {
+		pthread::mutexholder h(&log_mutex);
 		
 		IoMessage *thismsg = msgbuf.front();
 		parse_msg(thismsg->type, thismsg->msg);
-//		pthread::mutexholder h(&log_mutex);
 		delete thismsg;
 		msgbuf.pop();
 	}
@@ -160,13 +158,17 @@ int Io::parse_msg(const int type, const std::string &message) {
 int Io::msg(const int type, const std::string message) {
 	// Low priority messages get queued...
 	if ((type & IO_LEVEL_MASK) > IO_WARN) {
-//		pthread::mutexholdertry h(&log_mutex);
-//		if (h.havelock()) {
+		// Buffer full, discard this message
+		if (msgbuf.size() > 100000)
+			return 0;
+
+		pthread::mutexholdertry h(&log_mutex);
+		if (h.havelock()) {
 			msgbuf.push(new IoMessage(type, message));
-//		}
-//		else {
-//			lockfail++;
-//		}
+		}
+		else {
+			lockfail++;
+		}
 	}
 	// High priority messages are printed immediately.
 	else {
