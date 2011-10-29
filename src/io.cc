@@ -76,12 +76,14 @@ void Io::handler() {
 		usleep(0.01 * 1e6);
 		
 		while (!msgbuf.empty()) {
-			// Get mutex to work with data
-			pthread::mutexholder h(&log_mutex);
 			
 			// Print & store messages
 			IoMessage *thismsg = msgbuf.front();
 			parse_msg(thismsg->type, thismsg->msg);
+			
+			// Get mutex to delete with data
+//			pthread::mutexholder h(&log_mutex);
+
 			//fprintf(stderr, "Io::lockfail: %zu, got msg: %s\n", lockfail, thismsg->msg.c_str());
 			delete thismsg;
 			msgbuf.pop();
@@ -90,10 +92,10 @@ void Io::handler() {
 	
 	// Flush one last time
 	while (!msgbuf.empty()) {
-		pthread::mutexholder h(&log_mutex);
 		
 		IoMessage *thismsg = msgbuf.front();
 		parse_msg(thismsg->type, thismsg->msg);
+//		pthread::mutexholder h(&log_mutex);
 		delete thismsg;
 		msgbuf.pop();
 	}
@@ -158,13 +160,13 @@ int Io::parse_msg(const int type, const std::string &message) {
 int Io::msg(const int type, const std::string message) {
 	// Low priority messages get queued...
 	if ((type & IO_LEVEL_MASK) > IO_WARN) {
-		pthread::mutexholdertry h(&log_mutex);
-		if (h.havelock()) {
+//		pthread::mutexholdertry h(&log_mutex);
+//		if (h.havelock()) {
 			msgbuf.push(new IoMessage(type, message));
-		}
-		else {
-			lockfail++;
-		}
+//		}
+//		else {
+//			lockfail++;
+//		}
 	}
 	// High priority messages are printed immediately.
 	else {
