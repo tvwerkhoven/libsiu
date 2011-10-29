@@ -79,7 +79,9 @@ class Io {
 	void handler();											//!< Handler function, prints & saves log messages
 	bool do_log;												//!< Flag controlling handler() shutdown
 	
+	size_t totmsg;											//!< Total number of messages parsed
 	size_t lockfail;										//!< Lost messages due to lock fails
+	size_t buffull;											//!< Lost messages due to overfull backlog
 	
 	int parse_msg(const int type, const string &message);
 	

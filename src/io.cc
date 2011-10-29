@@ -35,7 +35,7 @@
 
 const std::string PREFIX[] = {"",  "err ", "warn", "info", "xnfo", "dbg1", "dbg2"};
 
-Io::Io(const int l): verb(l), termfd(stdout), logfd(NULL), defmask(0), do_log(true), lockfail(0) { 
+Io::Io(const int l): verb(l), termfd(stdout), logfd(NULL), defmask(0), do_log(true), totmsg(0), lockfail(0), buffull(0) { 
 	verb = max(1, min(l, IO_MAXLEVEL)); 
 
 	// Start handler thread
@@ -47,6 +47,7 @@ Io::Io(const int l): verb(l), termfd(stdout), logfd(NULL), defmask(0), do_log(tr
 }
 
 Io::~Io(void) {
+	parse_msg(IO_INFO, format("Stopping Io, total messages: %zu, lockfail lost: %zu, buffer lost: %zu\n", totmsg, lockfail, buffull));
 	// Stop handler() thread
 	do_log = false;
 
@@ -156,11 +157,15 @@ int Io::parse_msg(const int type, const std::string &message) {
 }
 
 int Io::msg(const int type, const std::string message) {
+	totmsg++;
+	
 	// Low priority messages get queued...
 	if ((type & IO_LEVEL_MASK) > IO_WARN) {
 		// Buffer full, discard this message
-		if (msgbuf.size() > 100000)
+		if (msgbuf.size() > 100000) {
+			buffull++;
 			return 0;
+		}
 
 		pthread::mutexholdertry h(&log_mutex);
 		if (h.havelock()) {
