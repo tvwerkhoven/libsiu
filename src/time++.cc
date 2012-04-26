@@ -19,10 +19,6 @@
 
 #include "autoconfig.h"
 
-#define DEBUGPRINT(fmt, ...) \
-	do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
-	__LINE__, __func__, __VA_ARGS__); } while (0)
-
 #include <time.h>
 #include <sys/time.h>
 #ifndef __STDC_FORMAT_MACROS
@@ -34,6 +30,7 @@
 
 #include "format.h"
 #include "time++.h"
+#include "utils.h"
 
 using namespace std;
 

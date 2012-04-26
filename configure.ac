@@ -29,8 +29,16 @@ AC_ARG_WITH([tests],
 		[with_tests=yes])
 AM_CONDITIONAL([WITH_TESTING], [test "x$with_tests" != "xno"])
 
+AC_ARG_ENABLE([verbose],
+		AC_HELP_STRING([--enable-verbose], [enable verbose debug output]),
+		[have_verbose=$enableval],
+		[have_verbose=no])
+AS_IF([test "x$have_verbose" != "xno"],
+		[AC_DEFINE([LIBSIU_VERBOSE], [1], [Toggle debugging.])],
+		[AC_DEFINE([LIBSIU_VERBOSE], [0], [Toggle debugging.])])
+
 AC_ARG_ENABLE([debug],
-		AC_HELP_STRING([--enable-debug], [enable debug output]),
+		AC_HELP_STRING([--enable-debug], [enable debug compilation]),
 		[have_debug=$enableval],
 		[have_debug=no])
 AC_ARG_ENABLE([strict-debug],
@@ -44,9 +52,6 @@ AS_IF([test "x$have_str_debug" != "xno"],
 		have_debug=yes
 		])
 AM_CONDITIONAL([HAVE_DEBUG], [test "x$have_debug" != "xno"])
-AS_IF([test "x$have_debug" != "xno"],
-		[AC_DEFINE([LIBSIU_DEBUG], [1], [Toggle debugging.])],
-		[AC_DEFINE([LIBSIU_DEBUG], [0], [Toggle debugging.])])
 
 AC_ARG_ENABLE([profiling],
 		AC_HELP_STRING([--enable-profiling], [enable profiling support]),
@@ -139,6 +144,7 @@ AC_MSG_NOTICE([*** OpenGL libs ................... $have_opengl $glmissing.]);
 
 AC_MSG_NOTICE([*** libsiu configuration options:])
 AC_MSG_NOTICE([*** test programs: ................ $with_tests])
+AC_MSG_NOTICE([*** verbose: ...................... $have_verbose])
 AC_MSG_NOTICE([*** debug: ........................ $have_debug])
 AC_MSG_NOTICE([*** strict debug: ................. $have_str_debug])
 AC_MSG_NOTICE([*** profiling: .................... $have_profiling])

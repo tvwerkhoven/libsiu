@@ -22,11 +22,6 @@
 
 #include "autoconfig.h"
 
-#define DEBUGPRINT(fmt, ...) \
-do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
-__LINE__, __func__, __VA_ARGS__); } while (0)
-
-
 #include <time.h>
 #include <sys/time.h>
 #include <stdio.h>
@@ -37,6 +32,7 @@ __LINE__, __func__, __VA_ARGS__); } while (0)
 #include <pthread++.h>
 
 #include "perflogger.h"
+#include "utils.h"
 
 using namespace std;
 

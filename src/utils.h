@@ -29,4 +29,11 @@ static inline double simple_rand() {
 	return rand_r(&seed)*1.0/RAND_MAX;
 }
 
+#include "autoconfig.h"
+
+#define DEBUGPRINT(fmt, ...) \
+ do { if (LIBSIU_VERBOSE) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
+ __LINE__, __func__, __VA_ARGS__); } while (0)
+
+
 #endif // HAVE_UTILS_H

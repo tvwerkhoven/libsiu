@@ -32,10 +32,7 @@
 
 #include <time.h>
 
-#define DEBUGPRINT(fmt, ...) \
-	do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
-	__LINE__, __func__, __VA_ARGS__); } while (0)
-
+#include "utils.h"
 #include "format.h"
 #include "path++.h"
 #include "csv.h"

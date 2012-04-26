@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include "pthread++.h"
+#include "utils.h"
 
 /*! Signal handling class 
  

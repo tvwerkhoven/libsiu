@@ -20,8 +20,6 @@
 #ifndef HAVE_LIBSIU_TESTING_H
 #define HAVE_LIBSIU_TESTING_H
 
-#define DEBUGPRINT(fmt, ...) \
-do { if (1) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
-__LINE__, __func__, __VA_ARGS__); } while (0)
+#include "utils.h"
 
 #endif // HAVE_LIBSIU_TESTING_H

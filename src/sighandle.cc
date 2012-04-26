@@ -20,13 +20,10 @@
 
 #include "autoconfig.h"
 
-#define DEBUGPRINT(fmt, ...) \
-do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
-__LINE__, __func__, __VA_ARGS__); } while (0)
-
 #include "pthread++.h"
 #include "sighandle.h"
 #include "format.h"
+#include "utils.h"
 
 #include <stdlib.h>
 #include <signal.h>
@@ -70,7 +67,7 @@ void SigHandle::handler() {
 				pthread::mutexholder h(&sig_mutex);
 				handled_signal = sig;
 			}
-			fprintf(stderr, "SigHandle::handler() got signal: %s\n", strsignal(sig));
+			DEBUGPRINT("SigHandle::handler() got signal: %s\n", strsignal(sig));
 			// Decide what to do with the signal
 			switch (sig) {
 					// These signals are dangerous, stop the program
@@ -83,7 +80,7 @@ void SigHandle::handler() {
 				case SIGINT:					// ctrl-c
 				case SIGTERM:					// normal shutdown
 					quit_count++;
-					fprintf(stderr, "SigHandle::handler() quitting sig %d (#%zu)\n", 
+					DEBUGPRINT("SigHandle::handler() quitting sig %d (#%zu)\n", 
 									sig, quit_count);
 					quit_func();
 					
@@ -98,7 +95,7 @@ void SigHandle::handler() {
 				case SIGPROF:					// Profiling alarm clock (4.2 BSD)
 				default:
 					ign_count++;
-					fprintf(stderr, "SigHandle::handler() ignoring sig %d (#%zu)\n", 
+					DEBUGPRINT("SigHandle::handler() ignoring sig %d (#%zu)\n", 
 									sig, ign_count);
 					ign_func();
 					break;

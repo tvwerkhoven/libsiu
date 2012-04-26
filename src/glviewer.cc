@@ -28,10 +28,6 @@
 //#define GL_ARB_IMAGING
 #define GL_ARB_imaging
 
-#define DEBUGPRINT(fmt, ...) \
-	do { if (LIBSIU_DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
-	__LINE__, __func__, __VA_ARGS__); } while (0)
-
 #ifdef HAVE_GL_GL_H
 #include "GL/gl.h"
 #elif HAVE_OPENGL_GL_H
