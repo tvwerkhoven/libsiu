@@ -34,6 +34,9 @@ int main(int /* argc */, char *argv[]) {
 	Time t1(123);
 	DEBUGPRINT("t1: %s\n", t1.c_str());
 
+	DEBUGPRINT("t1/1: %g\n", (t1/1.0));
+	DEBUGPRINT("t1/20: %g\n", (t1/20.0));
+
 	Time t2(123456789, 0.12345678);
 	DEBUGPRINT("t2: %s\n", t2.c_str());
 	Time t3(123456789+3600, 0.12345678);

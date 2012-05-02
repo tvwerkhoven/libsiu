@@ -73,6 +73,8 @@ public:
 	Time operator-() { t_epoch.i *= -1; t_epoch.f *= -1; sync(); return *this; }
 	Time operator+() { return *this; }
 
+  double operator/(const double& rhs) { return (t_epoch.i/rhs) + (t_epoch.f/rhs); }
+
 	Time operator--() { t_epoch.i -= 1; sync(); return *this; }
 	Time operator++() { t_epoch.i += 1; sync(); return *this; }
 
