@@ -13,8 +13,8 @@ testing/Makefile
 AC_CONFIG_HEADERS(autoconfig.h)
 AC_CONFIG_SRCDIR(src/io.cc)
 
-# @TODO 
-#AM_INIT_AUTOMAKE([-Wall foreign])
+# @TODO Don't use -Werror because this conflicts over AM_PROG_AR in 1.11/1.12
+AM_INIT_AUTOMAKE([foreign -Wall])
 
 AC_PROG_CXX
 AC_PROG_CXXCPP
