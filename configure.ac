@@ -13,14 +13,15 @@ testing/Makefile
 AC_CONFIG_HEADERS(autoconfig.h)
 AC_CONFIG_SRCDIR(src/io.cc)
 
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+# @TODO 
+#AM_INIT_AUTOMAKE([-Wall foreign])
 
 AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 AC_PROG_RANLIB
-AM_PROG_AR
+#AM_PROG_AR
 
 ### Check command line options ###############################################
 
