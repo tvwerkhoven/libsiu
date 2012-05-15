@@ -20,6 +20,7 @@ AC_PROG_CXXCPP
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 AC_PROG_RANLIB
+AM_PROG_AR
 
 ### Check command line options ###############################################
 
