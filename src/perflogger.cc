@@ -91,9 +91,9 @@ bool PerfLog::addlog(const size_t stage) {
 		return false;
 	}
 	
-	// Check if we've monitored this stage before
-	if (stage > nstages)
-		nstages = stage;
+	// Check if we've monitored this stage before (stage starts at 0)
+	if (stage+1 > nstages)
+		nstages = stage+1;
 	// Check if memory is sufficient
 	if (nstages > sumlat.size())
 		allocate(nstages+5);
