@@ -35,9 +35,47 @@
 
 using namespace std;
 
+/*! @brief Log performance of anything in multiple stages.
+ 
+ Provides means to log average, minimum and maximum latency of certain 
+ looping computational steps. In each iteration of the loop to monitor, 
+ addlog(<stage>) can be placed at various stages of the loop to log the time 
+ it took since the previous addlog(<stage>) entry. If stage=0, it will be 
+ compared with the last time addlog(0) was called, i.e. the previous loop.
+ 
+ Reports can be printed live at regular intervals (through the logger() 
+ thread), or can be manually printed with print_report().
+ 
+ As an example, consider this loop:
+ 
+ while (true) {
+	out1 = func1(...)
+  out2 = func2(out1)
+  func3(out3)
+ }
+ 
+ To monitor the performance of this loop, simply place addlog() entries at 
+ desired locations.
+
+ while (true) {
+   addlog(0)
+   out1 = func1(...)
+   addlog(1)
+   out2 = func2(out1)
+   addlog(2)
+   func3(out3)
+   addlog(3)
+ }
+ 
+ When calling print_report(), the minimum, maximum and average latency will be 
+ printed for the code between addlog(i) and addlog(i+1), and between 
+ consecutive calls of addlog(0).
+ 
+ Note that this code might have some overhead.
+ */
 class PerfLog {
 private:
-	const size_t nhist;					//!< Length of history to remember (default 100)
+//	const size_t nhist;					//!< Length of history to remember (default 100)
 	
 	struct timeval lastlog;			//!< Last log entry (to measure interval in logthr)
 	double interval;						//!< Performance averaging interval
@@ -48,9 +86,9 @@ private:
 	pthread::mutex mutex;				//!< Data access mutex
 	
 	size_t nstages;							//!< Number of stages to log for (does not have to be equal to last.size()!)
-	bool init;									//!< Have we initialized in this interval?
+	bool init;									//!< Is this the first call? Then only note the time and return.
 	
-	bool do_log;								//!< Logging in process
+	bool do_live;								//!< Print performance live in logger()
 	
 	vector< size_t > avgcount;		//!< Counter for the number of measurements we have
 	vector< struct timeval > last;	//!< Last measured timestamp (previous iteration)
@@ -63,7 +101,7 @@ private:
 	void allocate(size_t size);	//!< (re-)allocate memory for logging
 	
 public:
-  PerfLog(double i=1.0, size_t nh=100);
+	PerfLog(const double i=1.0, const bool live=false, const bool print=false);
 	~PerfLog();
 	
 	bool do_print;							//!< Whether or not to print performance every interval seconds [false]
@@ -73,7 +111,7 @@ public:
 	bool addlog(size_t stage);		//!< Add log entry for specific stage
 	bool setinterval(double i=1.0); //!< Set new update interval (in seconds)
 	
-	void print_report(FILE *stream=stdout); //!< Print last report to terminal
+	void print_report(FILE *stream=stdout); //!< Print last report to some stream
 	
 	sigc::slot<void, double, size_t, vector< struct timeval >, vector< struct timeval >, vector< struct timeval >, vector< size_t > > slot_report; //!< Slot for performance reporting, will be called as slot_report(interval, last, minlat, maxlat, sumlat, avgcount);
 };

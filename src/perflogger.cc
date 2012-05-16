@@ -36,8 +36,8 @@
 
 using namespace std;
 
-PerfLog::PerfLog(const double i, const size_t nh):
-nhist(nh), interval(i), totaliter(0), nstages(0), init(false), do_log(true), do_print(false), do_callback(true), do_alwaysupdate(false)
+PerfLog::PerfLog(const double i, const bool live, const bool print):
+interval(i), totaliter(0), nstages(0), init(false), do_live(live), do_print(print), do_callback(true), do_alwaysupdate(false)
 {
 	// Pre-allocate memory in vectors (10 stages should be enough for most purposes, will be dynamically added if necessary)
 	allocate(10);
@@ -56,7 +56,7 @@ nhist(nh), interval(i), totaliter(0), nstages(0), init(false), do_log(true), do_
 PerfLog::~PerfLog() {
 	DEBUGPRINT("%s", "\n");
 	// Stop logger thread
-	do_log = false;
+	do_live = false;
 	//! @bug This does not work properly, thread carries on and locks program on exit
 	logthr.cancel();
 	logthr.join();
@@ -84,7 +84,7 @@ bool PerfLog::addlog(const size_t stage) {
 	if (stage == 0)
 		totaliter++;
 	
-	// Try to get mutex, otherwise abort
+	// Try to get mutex, otherwise abort (logger() needs mutex for reporting)
 	pthread::mutexholdertry htry(&mutex);
 	if (!htry.havelock()) {
 		DEBUGPRINT("stage=%zu lockfail\n", stage);
@@ -98,7 +98,7 @@ bool PerfLog::addlog(const size_t stage) {
 	if (nstages > sumlat.size())
 		allocate(nstages+5);
 	
-	// Initialize here, but only in stage 0 (otherwise wait)
+	// Initialize here, but only in stage 0 (otherwise do later)
 	if (!init) {
 		if (stage == 0) {
 			gettimeofday(&(last[0]), 0);
@@ -117,12 +117,12 @@ bool PerfLog::addlog(const size_t stage) {
 	size_t cmpstage = stage-1;
 	if (stage == 0) cmpstage = 0;
 	
-	// Get 'now', compare with previous, store as previous
+	// Get current time, calculate difference with previous, then store as previous
 	gettimeofday(&now, 0);
 	timersub(&now, &(last.at(cmpstage)), &diff);
 	last.at(stage) = now;
 
-	// Add current latency to sum of latencies
+	// Add current latency (diff) to sum of latencies, and count the number we've monitored this stage
 	timeradd(&(sumlat.at(stage)), &diff, &tmp);
 	sumlat.at(stage) = tmp;
 	(avgcount.at(stage))++;
@@ -142,7 +142,7 @@ bool PerfLog::addlog(const size_t stage) {
 }
 
 void PerfLog::print_report(FILE *stream) {
-	fprintf(stream, "PerfLog: In the last %g seconds, we got these latencies:\n", interval);
+	fprintf(stream, "PerfLog: In the last measurement, we got these latencies:\n");
 	
 	for (size_t i=0; i < nstages; i++) {
 		string rep = "";
@@ -163,7 +163,7 @@ void PerfLog::logger() {
 	struct timeval now, next, diff;
 	size_t lastiter=0;
 
-	while (do_log) {
+	while (do_live) {
 		gettimeofday(&lastlog, 0);
 		{
 			// Get mutex to work with data
