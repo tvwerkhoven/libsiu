@@ -211,11 +211,20 @@ bool Socket::gets(char *buf, const size_t len) {
 		poll(&pfd, 1, -1);
 		ssize_t result = ::read(fd, inbuf + inlen, sizeof inbuf - inlen);
 		
-		if(result <= 0) {
+		if (result < 0) {
 			if(errno == EINTR || errno == EAGAIN)
 				continue;
 	
 			return false;
+		} else if (result == 0) {
+			if (inlen == 0) // EOF and no data, return false
+				return false;
+			else {					// EOF with data left, return data, close FD
+				memcpy(buf, inbuf, inlen);
+				buf[inlen] = 0;
+				close();
+				return true;
+			}
 		}
 
 		inlen += result;
@@ -287,11 +296,17 @@ bool Socket::read(void *buf, const size_t len) {
 		poll(&pfd, 1, -1);
 		result = ::read(fd, p, left);
 
-		if(result <= 0) {
+		if(result < 0) {
 			if(errno == EINTR || errno == EAGAIN)
 				continue;
 
 			return false;
+		} else if (result == 0) {
+			if (left != len) {
+				close();
+				return true;
+			} else
+				return false;
 		}
 
 		p += result;
