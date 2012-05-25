@@ -51,6 +51,10 @@
 
 using namespace std;
 
+/*! @brief Logmessage holder class
+ 
+ Holds message text, type and timestamp of message. Used to build buffer in Io::.
+ */
 class IoMessage {
 public:
 	IoMessage(const int t, const string &m): type(t), msg(m) { gettimeofday(&tv, NULL); }
@@ -61,12 +65,17 @@ public:
 	const string msg;									//!< Message for log entry
 };
 
+/*! @brief Messaging class
+ 
+ Simple logging to terminal, file, etc. Messages are queued first and 
+ displayed in a separate thread, making it non-blocking.
+ */
 class Io {
 	int verb, level_mask;								//!< Verbosity that we display
 	FILE *termfd;
 	FILE *logfd;
 	Path logfile;												//!< File to log to
-	uint32_t defmask;										//!< Default type mask
+	uint32_t defmask;										//!< Default type mask, applied to all message masks
 	
 	queue< IoMessage *> msgbuf; 				//!< Message buffer
 	pthread::mutex log_mutex;						//!< msgbuf access mutex
@@ -89,18 +98,18 @@ public:
 	Io(const int l=IO_MAXLEVEL);
 	~Io();
 
-	int msg(const int, const char*, ...);
-	int msg(const int, const std::string);
+	int msg(const int, const char*, ...);	//!< Log message
+	int msg(const int, const std::string);	//!< Log message
 	
-	int setLogfile(const Path&);
-	Path getLogfile() const { return logfile; }
+	int setLogfile(const Path&);				//!< Set file to log messages to
+	Path getLogfile() const { return logfile; } //!< Get previously set logfile
 	
-	int getVerb() const { return verb; }
-	int setVerb(const int l) { verb = max(1, min(l, IO_MAXLEVEL)); return verb; }
-	int setVerb(string l) { return setVerb((int) strtoll(l.c_str(), NULL, 0)); }
+	int getVerb() const { return verb; } //!< Get verbosity verb
+	int setVerb(const int l) { verb = max(1, min(l, IO_MAXLEVEL)); return verb; } //!< Set logging verbosity verb
+	int setVerb(string l) { return setVerb((int) strtoll(l.c_str(), NULL, 0)); } //!< Set logging verbosity verb
 	
-	uint32_t setdefmask(const uint32_t m) { defmask = m; return m; }
-	uint32_t getdefmask() const { return defmask; }
+	uint32_t setdefmask(const uint32_t m) { defmask = m; return m; } //!< Set default mask defmask
+	uint32_t getdefmask() const { return defmask; } //!< Get default mask defmask
 	
 		
 	int incVerb() { return setVerb(verb+1); }

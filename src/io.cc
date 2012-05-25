@@ -38,7 +38,7 @@ const std::string PREFIX[] = {"",  "err ", "warn", "info", "xnfo", "dbg1", "dbg2
 Io::Io(const int l): verb(l), termfd(stdout), logfd(NULL), defmask(0), do_log(true), totmsg(0), lockfail(0), buffull(0) { 
 	verb = max(1, min(l, IO_MAXLEVEL)); 
 
-	// Start handler thread
+	// Start handler thread, which will take care of emptying the buffer
 	{
 		pthread::mutexholder h(&handler_mutex);
 		handler_thr.create(sigc::mem_fun(*this, &Io::handler));
@@ -73,6 +73,7 @@ void Io::handler() {
 			init = true;
 		}
 		// Wait until there is a new message
+		//!< @todo Can we improve this with signals?
 		usleep(0.05 * 1e6);
 		
 		while (!msgbuf.empty()) {
