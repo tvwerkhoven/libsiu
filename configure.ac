@@ -116,8 +116,8 @@ AC_MSG_NOTICE([*** Checking for GUI libs (gtk, opengl etc.)]);
 have_opengl=yes
 AX_CHECK_GL
 AS_IF([test "x$no_gl" = "xyes"], [have_opengl=no;glmissing+=" gl"])
-AX_CHECK_GLU
-AS_IF([test "x$no_glu" = "xyes"], [have_opengl=no;glmissing+=" glu"])
+#		AX_CHECK_GLU
+#		AS_IF([test "x$no_glu" = "xyes"], [have_opengl=no;glmissing+=" glu"])
 AX_CHECK_GLUT
 AS_IF([test "x$no_glut" = "xyes"], [have_opengl=no;glmissing+=" glut"])
 
@@ -141,8 +141,8 @@ AS_IF([test "x$have_gui" != "xno" -a "x$have_opengl" != "xno"],
 # end OpenGL configuration
 
 AC_MSG_NOTICE([*** ImgData support ............... $imgdata_types]);
-AC_MSG_NOTICE([*** GUI libs ...................... $have_gui $guimissing.]);
-AC_MSG_NOTICE([*** OpenGL libs ................... $have_opengl $glmissing.]);
+AC_MSG_NOTICE([*** GUI libs ...................... $have_gui $guimissing]);
+AC_MSG_NOTICE([*** OpenGL libs ................... $have_opengl $glmissing]);
 
 AC_MSG_NOTICE([*** libsiu configuration options:])
 AC_MSG_NOTICE([*** test programs: ................ $with_tests])
