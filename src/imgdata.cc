@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <unistd.h>
 #include <errno.h>
+#include <stdexcept>
 
 #ifdef HAVE_CONFIG_H
 // Contains various library we have.
@@ -362,16 +363,19 @@ int ImgData::setdata(void *newdata, int nd, size_t dims[], dtype_t dt, int bpp) 
 
 gsl_matrix *ImgData::as_GSL(bool copy) {
 	if (data.ndims != 2)
-		return NULL;
+		throw std::runtime_error("ImgData::as_GSL() data should be two-dimensional for GSL!");
 
-	gsl_matrix *tmpmat;
+	gsl_matrix *tmpmat = NULL;
 	
 	if (copy == false) {
 		//! @todo implement no-copy
-		return NULL;
+		throw std::runtime_error("ImgData::as_GSL() nocopy not implemented.");
 	} else {
 		// Allocate (nrows, ncols) = (height, width)
 		tmpmat = gsl_matrix_alloc(data.dims[1], data.dims[0]);
+		
+		if (!tmpmat)
+			throw std::runtime_error("ImgData::as_GSL() gsl_matrix_alloc() could not allocate memory.");
 		
 		if (data.dt == UINT8)
 			for (size_t i=0; i<data.dims[1]; i++) // Height (row)
@@ -415,6 +419,9 @@ gsl_matrix *ImgData::as_GSL(bool copy) {
 					gsl_matrix_set(tmpmat, i, j, (double) ((double*) data.data)[i * data.dims[0] + j]);
 	}
 	
+	if (!tmpmat)
+		throw std::runtime_error("ImgData::as_GSL() data disappeared?");
+
 	return tmpmat;
 }
 
