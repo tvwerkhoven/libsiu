@@ -97,4 +97,10 @@ typedef enum {
 	DATA_UNDEF		//!< ID for undefined
 } dtype_t;
 
+#include <stdexcept>
+class exception: public std::runtime_error {
+	public:
+	exception(const std::string reason): runtime_error(reason) {}
+};
+
 #endif // HAVE_TYPES_H
