@@ -80,6 +80,26 @@ void PerfLog::reset_logs() {
 	}
 }
 
+#error WIP: need to finish PerfLog::addlog(const string stagename) 
+
+bool PerfLog::addlog(const string stagename) {
+	// Check if we've monitored this stage before (stage starts at 0)
+	if ! stages.haskey(stagename) {
+		nstages = stage+1;		
+	}
+
+	// Check if this is the first stage (in that case increase loopcount)
+	if (stage == 0)
+		totaliter++;
+
+	// Try to get mutex, otherwise abort (logger() needs mutex for reporting)
+	pthread::mutexholdertry htry(&mutex);
+	if (!htry.havelock()) {
+		DEBUGPRINT("stage=%s lockfail\n", stagename);
+		return false;
+	}
+}
+
 bool PerfLog::addlog(const size_t stage) {
 	if (stage == 0)
 		totaliter++;
@@ -92,8 +112,10 @@ bool PerfLog::addlog(const size_t stage) {
 	}
 	
 	// Check if we've monitored this stage before (stage starts at 0)
-	if (stage+1 > nstages)
+	if (stage+1 > nstages) {
 		nstages = stage+1;
+		
+	}
 	// Check if memory is sufficient
 	if (nstages > sumlat.size())
 		allocate(nstages+5);

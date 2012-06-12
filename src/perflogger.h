@@ -29,6 +29,7 @@
 #include <stdio.h>
 
 #include <vector>
+#include <map>
 
 #include <sigc++/signal.h>
 #include <pthread++.h>
@@ -96,6 +97,8 @@ private:
 	vector< struct timeval > maxlat; //!< Max latency for each stage in the last interval
 	vector< struct timeval > sumlat; //!< Summed latency for each stage in the last interval
 	
+	map<int, string> stagenames; //!< Map of names for each stage
+	
 	void logger();							//!< Performance logger thread
 	void reset_logs();					//!< Reset logs
 	void allocate(size_t size);	//!< (re-)allocate memory for logging
@@ -108,7 +111,7 @@ public:
 	bool do_callback;						//!< Whether or not to callback slot_report() every interval seconds [true]
 	bool do_alwaysupdate;				//!< Always update, even if no iterations were logged since last update [false]
 	
-	bool addlog(size_t stage);		//!< Add log entry for specific stage
+	bool addlog(const size_t stage, const string stname="");		//!< Add log entry for specific stage, with name for this stage
 	bool setinterval(double i=1.0); //!< Set new update interval (in seconds)
 	
 	void print_report(FILE *stream=stdout); //!< Print last report to some stream
