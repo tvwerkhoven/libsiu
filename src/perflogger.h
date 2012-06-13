@@ -86,9 +86,7 @@ private:
 	pthread::thread logthr;			//!< Logger thread
 	pthread::mutex mutex;				//!< Data access mutex
 	
-	size_t nstages;							//!< Number of stages to log for (does not have to be equal to last.size()!)
 	bool init;									//!< Is this the first call? Then only note the time and return.
-	
 	bool do_live;								//!< Print performance live in logger()
 	
 	vector< size_t > avgcount;		//!< Counter for the number of measurements we have
@@ -97,7 +95,7 @@ private:
 	vector< struct timeval > maxlat; //!< Max latency for each stage in the last interval
 	vector< struct timeval > sumlat; //!< Summed latency for each stage in the last interval
 	
-	map<int, string> stagenames; //!< Map of names for each stage
+	vector<string> stagenames;	//!< List of names for each stage
 	
 	void logger();							//!< Performance logger thread
 	void reset_logs();					//!< Reset logs
@@ -111,7 +109,10 @@ public:
 	bool do_callback;						//!< Whether or not to callback slot_report() every interval seconds [true]
 	bool do_alwaysupdate;				//!< Always update, even if no iterations were logged since last update [false]
 	
-	bool addlog(const size_t stage, const string stname="");		//!< Add log entry for specific stage, with name for this stage
+	size_t get_nstages() const { return stagenames.size(); }
+	
+	bool addlog(const size_t stage);		//!< Add log entry for specific stage, with name for this stage
+	bool addlog(const string stagename);
 	bool setinterval(double i=1.0); //!< Set new update interval (in seconds)
 	
 	void print_report(FILE *stream=stdout); //!< Print last report to some stream

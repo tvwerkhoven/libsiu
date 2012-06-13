@@ -37,7 +37,7 @@
 using namespace std;
 
 PerfLog::PerfLog(const double i, const bool live, const bool print):
-interval(i), totaliter(0), nstages(0), init(false), do_live(live), do_print(print), do_callback(true), do_alwaysupdate(false)
+interval(i), totaliter(0), init(false), do_live(live), do_print(print), do_callback(true), do_alwaysupdate(false)
 {
 	// Pre-allocate memory in vectors (10 stages should be enough for most purposes, will be dynamically added if necessary)
 	allocate(10);
@@ -80,52 +80,41 @@ void PerfLog::reset_logs() {
 	}
 }
 
-#error WIP: need to finish PerfLog::addlog(const string stagename) 
-
 bool PerfLog::addlog(const string stagename) {
+	DEBUGPRINT("PerfLog::addlog(%s)\n", stagename.c_str());
 	// Check if we've monitored this stage before (stage starts at 0)
-	if ! stages.haskey(stagename) {
-		nstages = stage+1;		
+	size_t stageidx=0;
+	for (stageidx=0; stageidx < stagenames.size() && stagenames[stageidx] != stagename; stageidx++) { ; }
+
+	DEBUGPRINT("PerfLog::addlog(%s) idx = %zu\n", stagename.c_str(), stageidx);
+
+	// If idx is the length of stagenames, 'stagename' was not stored before, add it
+	if (stageidx == stagenames.size()) {
+		DEBUGPRINT("%s", "PerfLog::addlog() adding!\n");
+		stagenames.push_back(stagename);
 	}
 
 	// Check if this is the first stage (in that case increase loopcount)
-	if (stage == 0)
+	if (stageidx == 0)
 		totaliter++;
 
-	// Try to get mutex, otherwise abort (logger() needs mutex for reporting)
-	pthread::mutexholdertry htry(&mutex);
-	if (!htry.havelock()) {
-		DEBUGPRINT("stage=%s lockfail\n", stagename);
-		return false;
-	}
-}
-
-bool PerfLog::addlog(const size_t stage) {
-	if (stage == 0)
-		totaliter++;
-	
-	// Try to get mutex, otherwise abort (logger() needs mutex for reporting)
-	pthread::mutexholdertry htry(&mutex);
-	if (!htry.havelock()) {
-		DEBUGPRINT("stage=%zu lockfail\n", stage);
-		return false;
-	}
-	
-	// Check if we've monitored this stage before (stage starts at 0)
-	if (stage+1 > nstages) {
-		nstages = stage+1;
-		
-	}
 	// Check if memory is sufficient
-	if (nstages > sumlat.size())
-		allocate(nstages+5);
+	if (stagenames.size() > sumlat.size())
+		allocate(stagenames.size()+5);
+
+	// Try to get mutex, otherwise abort (logger() needs mutex for reporting)
+	pthread::mutexholdertry htry(&mutex);
+	if (!htry.havelock()) {
+		DEBUGPRINT("stage[%zu]=%s lockfail\n", stageidx, stagename.c_str());
+		return false;
+	}
 	
 	// Initialize here, but only in stage 0 (otherwise do later)
 	if (!init) {
-		if (stage == 0) {
+		if (stageidx == 0) {
 			gettimeofday(&(last[0]), 0);
 			init = true;
-			DEBUGPRINT("stage=%zu init\n", stage);
+			DEBUGPRINT("stage[%zu]=%s init\n", stageidx, stagename.c_str());
 			return true;
 		} else {
 			return false;
@@ -136,39 +125,44 @@ bool PerfLog::addlog(const size_t stage) {
 	
 	// Stage 0 is always compared with stage 0 at the previous iteration, other 
 	// stages are compared with a stage before in the same iteration
-	size_t cmpstage = stage-1;
-	if (stage == 0) cmpstage = 0;
+	size_t cmpstage = stageidx-1;
+	if (stageidx == 0) cmpstage = 0;
 	
-	// Get current time, calculate difference with previous, then store as previous
+	// Get current time, calculate difference with previous, then store this timestamp in last
 	gettimeofday(&now, 0);
 	timersub(&now, &(last.at(cmpstage)), &diff);
-	last.at(stage) = now;
-
+	last.at(stageidx) = now;
+	
 	// Add current latency (diff) to sum of latencies, and count the number we've monitored this stage
-	timeradd(&(sumlat.at(stage)), &diff, &tmp);
-	sumlat.at(stage) = tmp;
-	(avgcount.at(stage))++;
+	timeradd(&(sumlat.at(stageidx)), &diff, &tmp);
+	sumlat.at(stageidx) = tmp;
+	(avgcount.at(stageidx))++;
 	
 	DEBUGPRINT("stage=%zu nonfirst, avgcount[stage]=%zu, diff = %ld.%06ld\n",
-						 stage, avgcount.at(stage),
+						 stageidx, avgcount.at(stageidx),
 						 (long int) diff.tv_sec, (long int) diff.tv_usec);
 	
 	// Update minimum & maximum latency if necessary
-	if (timercmp(&(minlat.at(stage)), &diff, >) || 
-			((minlat.at(stage)).tv_sec == 0 && (minlat.at(stage)).tv_usec == 0))
-		minlat.at(stage) = diff;
-	else if (timercmp(&(maxlat.at(stage)), &diff, <))
-		maxlat.at(stage) = diff;
+	if (timercmp(&(minlat.at(stageidx)), &diff, >) || 
+			((minlat.at(stageidx)).tv_sec == 0 && (minlat.at(stageidx)).tv_usec == 0))
+		minlat.at(stageidx) = diff;
+	else if (timercmp(&(maxlat.at(stageidx)), &diff, <))
+		maxlat.at(stageidx) = diff;
 	
+	return true;
+}
+
+bool PerfLog::addlog(const size_t stage) {
+	addlog(format("%04zu", stage));
 	return true;
 }
 
 void PerfLog::print_report(FILE *stream) {
 	fprintf(stream, "PerfLog: In the last measurement, we got these latencies:\n");
 	
-	for (size_t i=0; i < nstages; i++) {
+	for (size_t i=0; i < stagenames.size(); i++) {
 		string rep = "";
-		rep += format("PerfLog: Stage[%zu]: #=%zu", i, avgcount.at(i));
+		rep += format("PerfLog: Stage[%zu] %s: #=%zu", i, stagenames[i].c_str(), avgcount.at(i));
 		rep += format(", min: %ld.%06ld", 
 							 (long int) minlat.at(i).tv_sec, (long int) minlat.at(i).tv_usec);
 		rep += format(", max: %ld.%06ld", 
@@ -194,7 +188,7 @@ void PerfLog::logger() {
 				if (do_print)
 					print_report();
 				if (do_callback)
-					slot_report(interval, nstages, minlat, maxlat, sumlat, avgcount);
+					slot_report(interval, get_nstages(), minlat, maxlat, sumlat, avgcount);
 			}
 			
 			// Reset latencies

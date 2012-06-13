@@ -38,7 +38,7 @@ void log_callback(double interval,
 	
 	FILE *stream = stdout;
 	
-	fprintf(stream, "log_callback: In the last %g seconds, we got these latencies:\n", interval);
+	fprintf(stream, "log_callback: In the last %g seconds, we got these %zu latencies:\n", interval, nstages);
 	
 	for (size_t i=0; i < nstages; i++) {
 		string rep = "";
@@ -56,13 +56,15 @@ void log_callback(double interval,
 }
 
 int main(int, char **) {
-	// Start new logger updating every 1.5 seconds and 100 entries in history
-	PerfLog logger(1.5, 100);
+	// Start new logger updating every 1.5 seconds, run live mode, print stats during live mode
+	PerfLog logger(1.5, true, true);
 	logger.slot_report = sigc::ptr_fun(log_callback);
-	logger.do_print = true;
 	
 	usleep(0.5 * 1E6);
 	
+	printf("Test 1 start...\n");
+	printf("==============================================================================\n");
+
 	// Start 'work'
 	for (int i=0; i<5; i++) {
 		printf("work1\n");
@@ -89,6 +91,37 @@ int main(int, char **) {
 		logger.addlog(5);
 	}
 	
-  return 0;
+	printf("Test 2 start...\n");
+	printf("==============================================================================\n");
+	// Start new logger updating every 1.5 seconds, run live mode, print stats during live mode
+	PerfLog logger2(1.5, true, true);
+	
+	// Start 'work'
+	for (int i=0; i<5; i++) {
+		printf("work1\n");
+		logger2.addlog("work0 1.11");
+		usleep(0.3 * 1E6);
+		
+		printf("work2\n");
+		logger2.addlog("work0 0.3"); // This piece of 'work' took 0.3 seconds
+		usleep(0.1 * 1E6);
+		
+		printf("work3\n");
+		logger2.addlog("work0 0.1");
+		usleep(0.2 * 1E6);
+		
+		printf("work4\n");
+		logger2.addlog("work0 0.2");
+		usleep(0.01 * 1E6);
+		
+		printf("work5\n");
+		logger2.addlog("work0 0.01");
+		usleep(0.5 * 1E6);
+		
+		printf("work6\n");
+		logger2.addlog("work0 0.5");
+	}
+  
+	return 0;
 }
 
