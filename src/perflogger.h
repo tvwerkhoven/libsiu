@@ -59,13 +59,13 @@ using namespace std;
  desired locations.
 
  while (true) {
-   addlog(0)
+   addlog("init stage")
    out1 = func1(...)
-   addlog(1)
+   addlog("func1()")
    out2 = func2(out1)
-   addlog(2)
+   addlog("func2()")
    func3(out3)
-   addlog(3)
+	 addlog("func3()")
  }
  
  When calling print_report(), the minimum, maximum and average latency will be 
@@ -73,6 +73,10 @@ using namespace std;
  consecutive calls of addlog(0).
  
  Note that this code might have some overhead.
+ 
+ N.B. This class struct timeval to store each latency, meaning that the 
+ resolution is 1µs. If your iterations are faster than 10µs this code will 
+ give poor results.
  */
 class PerfLog {
 private:
@@ -94,6 +98,7 @@ private:
 	vector< struct timeval > minlat; //!< Min latency for each stage in the last interval
 	vector< struct timeval > maxlat; //!< Max latency for each stage in the last interval
 	vector< struct timeval > sumlat; //!< Summed latency for each stage in the last interval
+	vector< double > sumsqlat; //!< Summed squared latency (in seconds) for each stage in the last interval (to calculate standard deviation)
 	
 	vector<string> stagenames;	//!< List of names for each stage
 	

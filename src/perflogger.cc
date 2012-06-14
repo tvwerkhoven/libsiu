@@ -25,6 +25,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <vector>
 
@@ -42,7 +43,7 @@ interval(i), totaliter(0), init(false), do_live(live), do_print(print), do_callb
 	// Pre-allocate memory in vectors (10 stages should be enough for most purposes, will be dynamically added if necessary)
 	allocate(10);
 
-	DEBUGPRINT("sizes %zu, %zu, %zu and %zu\n", last.size(), minlat.size(), maxlat.size(), sumlat.size());
+	DEBUGPRINT("sizes %zu, %zu, %zu %zu and %zu\n", last.size(), minlat.size(), maxlat.size(), sumlat.size(), sumsqlat.size());
 	
 	// Clear struct timeval's
 	for (size_t i=0; i < last.size(); i++)
@@ -68,6 +69,7 @@ void PerfLog::allocate(const size_t size) {
 	minlat.resize(size);
 	maxlat.resize(size);
 	sumlat.resize(size);
+	sumsqlat.resize(size);
 	avgcount.resize(size);
 }
 
@@ -76,6 +78,7 @@ void PerfLog::reset_logs() {
 		timerclear(&(minlat.at(i)));
 		timerclear(&(maxlat.at(i)));
 		timerclear(&(sumlat.at(i)));
+		sumsqlat.at(i) = 0;
 		avgcount.at(i) = 0;
 	}
 }
@@ -133,9 +136,25 @@ bool PerfLog::addlog(const string stagename) {
 	timersub(&now, &(last.at(cmpstage)), &diff);
 	last.at(stageidx) = now;
 	
-	// Add current latency (diff) to sum of latencies, and count the number we've monitored this stage
+	// Add current latency (diff) to sum of latencies
 	timeradd(&(sumlat.at(stageidx)), &diff, &tmp);
 	sumlat.at(stageidx) = tmp;
+
+	// Calculate diff**2, then store as double (necessary for precision)
+	double sumsq = diff.tv_sec + ((double) diff.tv_usec)/1E6;
+	sumsqlat.at(stageidx) += (sumsq*sumsq);
+//	sumsq *= sumsq;
+//	diff.tv_sec = (time_t) floor(sumsq);
+//	diff.tv_usec = (sumsq*1E6 - floor(sumsq)*1E6);
+//	
+//	timeradd(&(sumsqlat.at(stageidx)), &diff, &tmp);
+//	sumsqlat.at(stageidx) = tmp;
+	
+//	printf("stage: %zu, sum: %ld.%06ld, sumsq: %ld.%06ld\n", stageidx, 
+//				 (long int) sumlat.at(stageidx).tv_sec, (long int) sumlat.at(stageidx).tv_usec,
+//				 (long int) sumsqlat.at(stageidx).tv_sec, (long int) sumsqlat.at(stageidx).tv_usec);
+
+	// count the number we've monitored this stage
 	(avgcount.at(stageidx))++;
 	
 	DEBUGPRINT("stage=%zu nonfirst, avgcount[stage]=%zu, diff = %ld.%06ld\n",
@@ -143,6 +162,7 @@ bool PerfLog::addlog(const string stagename) {
 						 (long int) diff.tv_sec, (long int) diff.tv_usec);
 	
 	// Update minimum & maximum latency if necessary
+	timersub(&now, &(last.at(cmpstage)), &diff);
 	if (timercmp(&(minlat.at(stageidx)), &diff, >) || 
 			((minlat.at(stageidx)).tv_sec == 0 && (minlat.at(stageidx)).tv_usec == 0))
 		minlat.at(stageidx) = diff;
@@ -160,18 +180,30 @@ bool PerfLog::addlog(const size_t stage) {
 void PerfLog::print_report(FILE *stream) {
 	fprintf(stream, "PerfLog: In the last measurement, we got these latencies:\n");
 	
+	double sum0 = (double) sumlat.at(0).tv_sec + ((double) sumlat.at(0).tv_usec)/1E6;
+
 	for (size_t i=0; i < stagenames.size(); i++) {
 		string rep = "";
-		rep += format("PerfLog: Stage[%zu] %s: #=%zu", i, stagenames[i].c_str(), avgcount.at(i));
-		rep += format(", min: %ld.%06ld", 
-							 (long int) minlat.at(i).tv_sec, (long int) minlat.at(i).tv_usec);
-		rep += format(", max: %ld.%06ld", 
-							 (long int) maxlat.at(i).tv_sec, (long int) maxlat.at(i).tv_usec);
-		rep += format(", sum: %ld.%06ld", 
-							 (long int) sumlat.at(i).tv_sec, (long int) sumlat.at(i).tv_usec);
-		double sum = sumlat.at(i).tv_sec*1E6 + sumlat.at(i).tv_usec;
-		rep += format(", avg: %.6f\n", sum/avgcount.at(i)/1e6);
-		fprintf(stream, "%s", rep.c_str());
+		rep += format("PerfLog: %zu/%zu %s: #=%zu", i, stagenames.size()-1, stagenames[i].c_str(), avgcount.at(i));
+
+		double sum = (double) sumlat.at(i).tv_sec + ((double) sumlat.at(i).tv_usec)/1E6;
+
+		// If this is not the first stage, also check the percentage we spend in this stage
+		if (i != 0)
+			rep += format(" (%.0f%%):", 100.0*sum/sum0);
+
+		// Get sum^2/n
+		double sumsq = sumsqlat.at(i);
+		// Calculate (sum/n)^2
+		double sqsum = (sum/avgcount.at(i)) * (sum/avgcount.at(i));
+		// Calculate stddev = sqrt( sum^2/n - (sum/n)^2 )
+		double stddev = sqrt((sumsq/avgcount.at(i)) - sqsum);
+
+		// Print average with stddev
+		rep += format(" avg: %.3g (±%.1g)", sum/avgcount.at(i), stddev);
+		rep += format(", rate: %.3g", 1.0/(sum/avgcount.at(i)));
+
+		fprintf(stream, "%s\n", rep.c_str());
 	}
 }
 
