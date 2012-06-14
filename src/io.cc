@@ -51,12 +51,15 @@ Io::~Io(void) {
 	// Stop handler() thread
 	do_log = false;
 
-	if (logfd && logfd != stdout && logfd != stderr)
-		fclose(logfd);
-	
+	// Wait until handler() stops
+	//! @bug: Illegal free() somewhere in parse_msg() during stopping.
 	pthread::mutexholder h(&handler_runmutex);
 	handler_thr.cancel();
 	handler_thr.join();
+	
+	// Close FD if necessary
+	if (logfd && logfd != stdout && logfd != stderr)
+		fclose(logfd);
 }
 
 void Io::handler() {
@@ -110,6 +113,8 @@ int Io::setLogfile(const Path &file) {
 }
 
 int Io::parse_msg(const int type, const std::string &message) {
+	std::string tmpmsg = "";
+
 	// Apply default mask
 	int mytype = (type | defmask);
 	
@@ -117,7 +122,7 @@ int Io::parse_msg(const int type, const std::string &message) {
 	int level = mytype & IO_LEVEL_MASK;
 	
 	if (level <= verb) {
-		std::string tmpmsg;
+		tmpmsg = "";
 		
 		// Build prefix unless IO_NOID is set
 		if (!(mytype & IO_NOID))
