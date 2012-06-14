@@ -97,29 +97,23 @@ int main(int, char **) {
 	PerfLog logger2(1.5, true, true);
 	
 	// Start 'work'
-	for (int i=0; i<5; i++) {
-		printf("work1\n");
-		logger2.addlog("work0 1.11");
-		usleep(0.3 * 1E6);
+	for (int i=0; i<2000; i++) {
+		logger2.addlog("work0 0.011");
+		usleep(0.003 * 1E6 * (drand48()*0.1 + 1));
 		
-		printf("work2\n");
-		logger2.addlog("work0 0.3"); // This piece of 'work' took 0.3 seconds
-		usleep(0.1 * 1E6);
+		logger2.addlog("work1 0.003"); // This piece of 'work' took 0.3 seconds
+		usleep(0.001 * 1E6 * (drand48()*0.1 + 1));
 		
-		printf("work3\n");
-		logger2.addlog("work0 0.1");
-		usleep(0.2 * 1E6);
+		logger2.addlog("work2 0.001");
+		usleep(0.002 * 1E6 * (drand48()*0.1 + 1));
 		
-		printf("work4\n");
-		logger2.addlog("work0 0.2");
-		usleep(0.01 * 1E6);
+		logger2.addlog("work3 0.002");
+		usleep(0.0001 * 1E6 * (drand48()*0.1 + 1));		
 		
-		printf("work5\n");
-		logger2.addlog("work0 0.01");
-		usleep(0.5 * 1E6);
+		logger2.addlog("work4 0.0001");
+		usleep(0.005 * 1E6 * (drand48()*0.1 + 1));		
 		
-		printf("work6\n");
-		logger2.addlog("work0 0.5");
+		logger2.addlog("work5 0.005");
 	}
   
 	return 0;
