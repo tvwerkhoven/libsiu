@@ -25,6 +25,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <vector>
 
@@ -37,12 +38,12 @@
 using namespace std;
 
 PerfLog::PerfLog(const double i, const bool live, const bool print):
-interval(i), totaliter(0), nstages(0), init(false), do_live(live), do_print(print), do_callback(true), do_alwaysupdate(false)
+interval(i), totaliter(0), init(false), do_live(live), do_print(print), do_callback(true), do_alwaysupdate(false)
 {
 	// Pre-allocate memory in vectors (10 stages should be enough for most purposes, will be dynamically added if necessary)
 	allocate(10);
 
-	DEBUGPRINT("sizes %zu, %zu, %zu and %zu\n", last.size(), minlat.size(), maxlat.size(), sumlat.size());
+	DEBUGPRINT("sizes %zu, %zu, %zu %zu and %zu\n", last.size(), minlat.size(), maxlat.size(), sumlat.size(), sumsqlat.size());
 	
 	// Clear struct timeval's
 	for (size_t i=0; i < last.size(); i++)
@@ -68,6 +69,7 @@ void PerfLog::allocate(const size_t size) {
 	minlat.resize(size);
 	maxlat.resize(size);
 	sumlat.resize(size);
+	sumsqlat.resize(size);
 	avgcount.resize(size);
 }
 
@@ -76,34 +78,46 @@ void PerfLog::reset_logs() {
 		timerclear(&(minlat.at(i)));
 		timerclear(&(maxlat.at(i)));
 		timerclear(&(sumlat.at(i)));
+		sumsqlat.at(i) = 0;
 		avgcount.at(i) = 0;
 	}
 }
 
-bool PerfLog::addlog(const size_t stage) {
-	if (stage == 0)
+bool PerfLog::addlog(const string stagename) {
+	DEBUGPRINT("PerfLog::addlog(%s)\n", stagename.c_str());
+	// Check if we've monitored this stage before (stage starts at 0)
+	size_t stageidx=0;
+	for (stageidx=0; stageidx < stagenames.size() && stagenames[stageidx] != stagename; stageidx++) { ; }
+
+	DEBUGPRINT("PerfLog::addlog(%s) idx = %zu\n", stagename.c_str(), stageidx);
+
+	// If idx is the length of stagenames, 'stagename' was not stored before, add it
+	if (stageidx == stagenames.size()) {
+		DEBUGPRINT("%s", "PerfLog::addlog() adding!\n");
+		stagenames.push_back(stagename);
+	}
+
+	// Check if this is the first stage (in that case increase loopcount)
+	if (stageidx == 0)
 		totaliter++;
-	
+
+	// Check if memory is sufficient
+	if (stagenames.size() > sumlat.size())
+		allocate(stagenames.size()+5);
+
 	// Try to get mutex, otherwise abort (logger() needs mutex for reporting)
 	pthread::mutexholdertry htry(&mutex);
 	if (!htry.havelock()) {
-		DEBUGPRINT("stage=%zu lockfail\n", stage);
+		DEBUGPRINT("stage[%zu]=%s lockfail\n", stageidx, stagename.c_str());
 		return false;
 	}
 	
-	// Check if we've monitored this stage before (stage starts at 0)
-	if (stage+1 > nstages)
-		nstages = stage+1;
-	// Check if memory is sufficient
-	if (nstages > sumlat.size())
-		allocate(nstages+5);
-	
 	// Initialize here, but only in stage 0 (otherwise do later)
 	if (!init) {
-		if (stage == 0) {
+		if (stageidx == 0) {
 			gettimeofday(&(last[0]), 0);
 			init = true;
-			DEBUGPRINT("stage=%zu init\n", stage);
+			DEBUGPRINT("stage[%zu]=%s init\n", stageidx, stagename.c_str());
 			return true;
 		} else {
 			return false;
@@ -114,48 +128,82 @@ bool PerfLog::addlog(const size_t stage) {
 	
 	// Stage 0 is always compared with stage 0 at the previous iteration, other 
 	// stages are compared with a stage before in the same iteration
-	size_t cmpstage = stage-1;
-	if (stage == 0) cmpstage = 0;
+	size_t cmpstage = stageidx-1;
+	if (stageidx == 0) cmpstage = 0;
 	
-	// Get current time, calculate difference with previous, then store as previous
+	// Get current time, calculate difference with previous, then store this timestamp in last
 	gettimeofday(&now, 0);
 	timersub(&now, &(last.at(cmpstage)), &diff);
-	last.at(stage) = now;
+	last.at(stageidx) = now;
+	
+	// Add current latency (diff) to sum of latencies
+	timeradd(&(sumlat.at(stageidx)), &diff, &tmp);
+	sumlat.at(stageidx) = tmp;
 
-	// Add current latency (diff) to sum of latencies, and count the number we've monitored this stage
-	timeradd(&(sumlat.at(stage)), &diff, &tmp);
-	sumlat.at(stage) = tmp;
-	(avgcount.at(stage))++;
+	// Calculate diff**2, then store as double (necessary for precision)
+	double sumsq = diff.tv_sec + ((double) diff.tv_usec)/1E6;
+	sumsqlat.at(stageidx) += (sumsq*sumsq);
+//	sumsq *= sumsq;
+//	diff.tv_sec = (time_t) floor(sumsq);
+//	diff.tv_usec = (sumsq*1E6 - floor(sumsq)*1E6);
+//	
+//	timeradd(&(sumsqlat.at(stageidx)), &diff, &tmp);
+//	sumsqlat.at(stageidx) = tmp;
+	
+//	printf("stage: %zu, sum: %ld.%06ld, sumsq: %ld.%06ld\n", stageidx, 
+//				 (long int) sumlat.at(stageidx).tv_sec, (long int) sumlat.at(stageidx).tv_usec,
+//				 (long int) sumsqlat.at(stageidx).tv_sec, (long int) sumsqlat.at(stageidx).tv_usec);
+
+	// count the number we've monitored this stage
+	(avgcount.at(stageidx))++;
 	
 	DEBUGPRINT("stage=%zu nonfirst, avgcount[stage]=%zu, diff = %ld.%06ld\n",
-						 stage, avgcount.at(stage),
+						 stageidx, avgcount.at(stageidx),
 						 (long int) diff.tv_sec, (long int) diff.tv_usec);
 	
 	// Update minimum & maximum latency if necessary
-	if (timercmp(&(minlat.at(stage)), &diff, >) || 
-			((minlat.at(stage)).tv_sec == 0 && (minlat.at(stage)).tv_usec == 0))
-		minlat.at(stage) = diff;
-	else if (timercmp(&(maxlat.at(stage)), &diff, <))
-		maxlat.at(stage) = diff;
+	timersub(&now, &(last.at(cmpstage)), &diff);
+	if (timercmp(&(minlat.at(stageidx)), &diff, >) || 
+			((minlat.at(stageidx)).tv_sec == 0 && (minlat.at(stageidx)).tv_usec == 0))
+		minlat.at(stageidx) = diff;
+	else if (timercmp(&(maxlat.at(stageidx)), &diff, <))
+		maxlat.at(stageidx) = diff;
 	
+	return true;
+}
+
+bool PerfLog::addlog(const size_t stage) {
+	addlog(format("%04zu", stage));
 	return true;
 }
 
 void PerfLog::print_report(FILE *stream) {
 	fprintf(stream, "PerfLog: In the last measurement, we got these latencies:\n");
 	
-	for (size_t i=0; i < nstages; i++) {
+	double sum0 = (double) sumlat.at(0).tv_sec + ((double) sumlat.at(0).tv_usec)/1E6;
+
+	for (size_t i=0; i < stagenames.size(); i++) {
 		string rep = "";
-		rep += format("PerfLog: Stage[%zu]: #=%zu", i, avgcount.at(i));
-		rep += format(", min: %ld.%06ld", 
-							 (long int) minlat.at(i).tv_sec, (long int) minlat.at(i).tv_usec);
-		rep += format(", max: %ld.%06ld", 
-							 (long int) maxlat.at(i).tv_sec, (long int) maxlat.at(i).tv_usec);
-		rep += format(", sum: %ld.%06ld", 
-							 (long int) sumlat.at(i).tv_sec, (long int) sumlat.at(i).tv_usec);
-		double sum = sumlat.at(i).tv_sec*1E6 + sumlat.at(i).tv_usec;
-		rep += format(", avg: %.6f\n", sum/avgcount.at(i)/1e6);
-		fprintf(stream, "%s", rep.c_str());
+		rep += format("PerfLog: %zu/%zu %s: #=%zu", i, stagenames.size()-1, stagenames[i].c_str(), avgcount.at(i));
+
+		double sum = (double) sumlat.at(i).tv_sec + ((double) sumlat.at(i).tv_usec)/1E6;
+
+		// If this is not the first stage, also check the percentage we spend in this stage
+		if (i != 0)
+			rep += format(" (%.0f%%):", 100.0*sum/sum0);
+
+		// Get sum^2/n
+		double sumsq = sumsqlat.at(i);
+		// Calculate (sum/n)^2
+		double sqsum = (sum/avgcount.at(i)) * (sum/avgcount.at(i));
+		// Calculate stddev = sqrt( sum^2/n - (sum/n)^2 )
+		double stddev = sqrt((sumsq/avgcount.at(i)) - sqsum);
+
+		// Print average with stddev
+		rep += format(" avg: %.3g (±%.1g)", sum/avgcount.at(i), stddev);
+		rep += format(", rate: %.3g", 1.0/(sum/avgcount.at(i)));
+
+		fprintf(stream, "%s\n", rep.c_str());
 	}
 }
 
@@ -172,7 +220,7 @@ void PerfLog::logger() {
 				if (do_print)
 					print_report();
 				if (do_callback)
-					slot_report(interval, nstages, minlat, maxlat, sumlat, avgcount);
+					slot_report(interval, get_nstages(), minlat, maxlat, sumlat, avgcount);
 			}
 			
 			// Reset latencies

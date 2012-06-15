@@ -244,6 +244,7 @@ namespace Protocol {
 			thread.detach();
 		}
 		socket->close();
+		//! @bug This blocks for some reason when tearing down a Server instance with multiple connected Connections
 		pthread::mutexholder h(&port->mutex);
 		port->connections.erase(this);
 	}
