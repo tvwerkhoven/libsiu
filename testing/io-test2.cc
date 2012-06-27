@@ -1,6 +1,6 @@
 /*
  io-test2.cc -- Test console I/O
- Copyright (C) 2010 Tim van Werkhoven <t.i.m.vanwerkhoven@xs4all.nl>
+ Copyright (C) 2010 Tim van Werkhoven <werkhoven@strw.leidenuniv.nl>
  
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

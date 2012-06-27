@@ -2,7 +2,7 @@
  opengl-test.cc -- test OpenGL with GTK. Based on:
  simple.cc: Simple gtkglextmm example, written by Naofumi Yasufuku  <naofumi@users.sourceforge.net>
  
- Copyright (C) 2010 Tim van Werkhoven <t.i.m.vanwerkhoven@xs4all.nl>
+ Copyright (C) 2010 Tim van Werkhoven <werkhoven@strw.leidenuniv.nl>
  
  This file is part of FOAM.
  

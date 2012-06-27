@@ -2,7 +2,7 @@
  monotime.cc -- measure monotonic time duration
  g++ -I/Users/tim/workdocs/dev/libsiu/src/ `pkg-config sigc++-2.0 --cflags --libs` monotime.cc -o monotime
  
- Copyright (C) 2011 Tim van Werkhoven <t.i.m.vanwerkhoven@xs4all.nl>
+ Copyright (C) 2011 Tim van Werkhoven <werkhoven@strw.leidenuniv.nl>
  
  This file is part of FOAM.
  

@@ -1,8 +1,8 @@
 ## @file configure.ac
-## @author Tim van Werkhoven (t.i.m.vanwerkhoven@xs4all.nl)
+## @author Tim van Werkhoven <werkhoven@strw.leidenuniv.nl>
 
 AC_PREREQ(2.59)
-AC_INIT([LIBSIU], [0.1], [t.i.m.vanwerkhoven@xs4all.nl])
+AC_INIT([LIBSIU], [0.1], [werkhoven@strw.leidenuniv.nl])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_FILES([
@@ -15,6 +15,8 @@ AC_CONFIG_SRCDIR(src/io.cc)
 
 # @TODO Don't use -Werror because this conflicts over AM_PROG_AR in 1.11/1.12
 AM_INIT_AUTOMAKE([foreign -Wall])
+
+AC_COPYRIGHT([Copyright (C) 2007-2012 Guus Sliepen Guus Sliepen <guus@sliepen.eu.org> and Tim van Werkhoven <werkhoven@strw.leidenuniv.nl>])
 
 AC_PROG_CXX
 AC_PROG_CXXCPP

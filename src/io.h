@@ -1,6 +1,6 @@
 /*
  io.h -- input/output routines
- Copyright (C) 2008--2010 Tim van Werkhoven <t.i.m.vanwerkhoven@xs4all.nl>
+ Copyright (C) 2008--2010 Tim van Werkhoven <werkhoven@strw.leidenuniv.nl>
  Copyright (C) 2009 Michiel van Noort
  
  This program is free software; you can redistribute it and/or modify
