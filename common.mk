@@ -3,7 +3,7 @@
 ## Common makefile directives for all subdirs.
 
 ### Common flags
-AM_CXXFLAGS = -Wall -Wextra -Wfatal-errors
+AM_CXXFLAGS = -Wall -Wextra -Wfatal-errors -g
 AM_CPPFLAGS = $(SIGC_CFLAGS) -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
 
 ### Debug options (first check strict debug, then regular. Add flags accordingly)
