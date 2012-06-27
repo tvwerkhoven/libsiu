@@ -25,9 +25,11 @@ int main() {
 	Io *io;
 	io = new Io(10);
 
-	while (true) {
+	for (int i=0; i<1000000; i++) {
 		io->msg(IO_DEB2, "Debug2 message goes here");
 	}
+	
+	delete io;
 		
 	printf("io-test2.cc::Succes!\n");
 	return 0;
