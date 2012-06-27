@@ -18,21 +18,53 @@
  */
 
 #include <sigc++/signal.h>
+#include <unistd.h>
 #include "sighandle.h"
 
 void quit_func() {
-	printf("quit_func()\n");
+	fprintf(stdout, "%s:%s\n", __FILE__, __FUNCTION__);
 }
 
 void ign_func() {
-	printf("ign_func()\n");
+	fprintf(stdout, "%s:%s\n", __FILE__, __FUNCTION__);
 }
 
 int main() {
+	fprintf(stdout, "%s: start\n", __FILE__);
 	SigHandle sig;
 	sig.quit_func = sigc::ptr_fun(&quit_func);
 	sig.ign_func = sigc::ptr_fun(&ign_func);
+	sig.max_quit_count = 10;
 	
-	while (1)
-		sleep(1);
+	pid_t thispid = getpid();
+
+	usleep(0.5 * 1E6);
+	// These signals should be caught by ign_func():
+	fprintf(stdout, "%s: sending SIGPIPE=%d, SIGHUP=%d\n", __FILE__, SIGPIPE, SIGHUP);
+	kill(thispid, SIGPIPE);
+	usleep(0.1 * 1E6);
+	kill(thispid, SIGHUP);
+	
+	usleep(0.5 * 1E6);
+	// These signals should be caught by quit_func():
+	fprintf(stdout, "%s: sending SIGINT=%d, SIGTERM=%d\n", __FILE__, SIGINT, SIGTERM);
+	kill(thispid, SIGINT);
+	usleep(0.1 * 1E6);
+	kill(thispid, SIGTERM);
+	
+	usleep(0.5 * 1E6);
+	int nquit = sig.get_quit_count();
+	int nign = sig.get_ign_count();
+	int ndef = sig.get_def_count();
+	fprintf(stdout, "%s: got nquit: %d, nign: %d, ndef: %d\n", __FILE__, nquit, nign, ndef);
+
+	
+	// Check if we caught exceptions
+	if (nquit == 2 && nign == 2) {
+		fprintf(stdout, "%s: SUCCESS!\n", __FILE__);
+		exit(0);
+	} else {
+		fprintf(stdout, "%s: FAIL!\n", __FILE__);		
+		exit(-1);
+	}
 }
