@@ -59,17 +59,16 @@ void SigHandle::handler() {
 	while (1) {
 		// Wait for any signal
 		DEBUGPRINT("%s", "waiting for any signal...\n");
+		sig=0;
 		sigfillset(&signal_set);
 		sigwait(&signal_set, &sig);
 		
 		{
-			{ 
-				pthread::mutexholder h(&sig_mutex);
-				handled_signal = sig;
-			}
-			DEBUGPRINT("SigHandle::handler() got signal: %s\n", strsignal(sig));
+			pthread::mutexholder h(&sig_mutex);
+			handled_signal = sig;
+			DEBUGPRINT("SigHandle::handler() got signal: %d = %s\n", sig, strsignal(handled_signal));
 			// Decide what to do with the signal
-			switch (sig) {
+			switch (handled_signal) {
 					// These signals are dangerous, stop the program
 				case SIGILL:					// malformed, unknown, or privileged instruction
 				case SIGABRT:					// from abort()
@@ -81,22 +80,23 @@ void SigHandle::handler() {
 				case SIGTERM:					// normal shutdown
 					quit_count++;
 					DEBUGPRINT("SigHandle::handler() quitting sig %d (#%zu)\n", 
-									sig, quit_count);
+									handled_signal, quit_count);
 					quit_func();
 					
 					// If quit signal is received twice or more, brutally exit
 					if (quit_count > max_quit_count)
-						exit(sig);
+						exit(handled_signal);
 					break;
 					// These signals are probably not fatal, ignore them
+				default:
+					def_count++;
 				case SIGPIPE:					// broken pipe (write to closed socket etc.)
 				case SIGHUP:					// hangup (remote socket closes etc.)
 				case SIGALRM:					// Alarm clock (POSIX)
 				case SIGPROF:					// Profiling alarm clock (4.2 BSD)
-				default:
 					ign_count++;
 					DEBUGPRINT("SigHandle::handler() ignoring sig %d (#%zu)\n", 
-									sig, ign_count);
+									handled_signal, ign_count);
 					ign_func();
 					break;
 				case SIGQUIT:
