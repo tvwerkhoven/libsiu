@@ -38,14 +38,17 @@
  inherited in child threads. Then start a new signal handling thread in the 
  background which listens with sigwait() for any signal. Depending on the 
  signal received, call slot function ign_func() or quit_func(). 
+ 
+ @section sigg_bugs Known bugs
+ 
+ - Behaviour of this class is undefined when there are multiple signals waiting.
  */
 class SigHandle {
   int handled_signal;				//!< Holds the last handled signal
 	
 	size_t ign_count;					//!< Amount of ignore signals received
 	size_t quit_count;				//!< Amount of quit signals received (used to check if quit is in progress)
-	
-	const size_t max_quit_count; //!< After this many quit signals, force a quit with exit(-1)
+	size_t def_count;					//!< Amount of unknown signals received ('default' case in switch)
 	
 	pthread::mutex sig_mutex; //!< Mutex for handled_signal
 	
@@ -53,11 +56,14 @@ class SigHandle {
 	pthread::thread handler_thr; //!< Thread for handler()
 	
 public:
+	size_t max_quit_count;		//!< After this many quit signals, force a quit with exit(handled_signal)
+	
 	sigc::slot<void> ign_func;	//!< Slot to call for signals to be ignored (can be empty)
 	sigc::slot<void> quit_func; //!< Slot to call for signals to quit on (can be empty, global stop function is better)
 	
 	size_t get_ign_count() { return ign_count; }
 	size_t get_quit_count() { return quit_count; }
+	size_t get_def_count() { return def_count; }
 	bool is_quitting() { return (quit_count > 0); }
 	
 	int get_sig() { pthread::mutexholder h(&sig_mutex); return handled_signal; }
