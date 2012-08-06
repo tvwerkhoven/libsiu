@@ -66,7 +66,7 @@ noinst_PROGRAMS += opengl-test
 opengl_test_SOURCES = opengl-test.cc
 opengl_test_CPPFLAGS = $(GUI_CFLAGS) $(AM_CPPFLAGS)
 opengl_test_CXXFLAGS = $(GUI_CFLAGS) $(AM_CXXFLAGS)
-opengl_test_LDADD = $(GUI_LIBS) ${top_srcdir}/src/libglviewer.a $(LDADD)
+opengl_test_LDADD = ${top_srcdir}/src/libglviewer.a $(GUI_LIBS) $(LDADD)
 endif
 
 TESTS = $(noinst_PROGRAMS)
