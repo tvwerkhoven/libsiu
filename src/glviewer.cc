@@ -91,7 +91,7 @@ scale(0), scalemin(SCALEMIN), scalemax(SCALEMAX), minval(0), maxval(-1),
 rscale(1), gscale(1), bscale(1),
 underover(false),
 ngrid(8, 8), grid(false), 
-flipv(false), fliph(false), zoomfit(false), crosshair(false), boxcross(true),
+flipv(false), fliph(false), zoomfit(false), crosshair(false), dispboxes(true), boxcross(true),
 gl_img()
 {
 	DEBUGPRINT("%s", "+\n");
@@ -350,7 +350,7 @@ void OpenGLImageViewer::do_update() {
 		glEnd();
 	}
 	
-	{
+	if (dispboxes) {
 		pthread::mutexholder h(&gui_mutex); 
 
 		// Render boxes (in DATA coordinates, convert to GL!)

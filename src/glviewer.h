@@ -131,7 +131,8 @@ private:
 	bool fliph;							//!< Horizontal flip toggle
 	bool zoomfit;						//!< Fit image to parent window
 	bool crosshair;					//!< Crosshair toggle
-	
+
+	bool dispboxes;					//!< Show boxes toggle
 	bool boxcross;					//!< Crosshair in boxes
 		
 	std::vector<fvector_t> boxes;				//!< Draw these extra boxes
@@ -198,6 +199,8 @@ public:
 	void delbox(const size_t idx) { pthread::mutexholder h(&gui_mutex); boxes.erase (boxes.begin()+idx); }
 	//!< Clear all overlay boxes
 	void clearboxes() { pthread::mutexholder h(&gui_mutex); boxes.clear(); }
+	//!< Toggle display of boggles
+	void showboxes(const bool flag=true) { dispboxes = flag; }
 	//!< Check whether (x,y) is inside a box, return index. Must be GTK coordinates!
 	int inbox(const double x, const double y) const;
 	//!< Return box with index idx
