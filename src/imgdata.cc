@@ -361,6 +361,7 @@ int ImgData::setdata(void *newdata, int nd, size_t dims[], dtype_t dt, int bpp) 
 	return 0;
 }
 
+#if HAVE_GSL
 gsl_matrix *ImgData::as_GSL(bool copy) {
 	if (data.ndims != 2)
 		throw std::runtime_error("ImgData::as_GSL() data should be two-dimensional for GSL!");
@@ -424,6 +425,7 @@ gsl_matrix *ImgData::as_GSL(bool copy) {
 
 	return tmpmat;
 }
+#endif
 
 int ImgData::loaddata(const Path &f, imgtype_t t) {
 	if (t == ImgData::AUTO)

@@ -29,7 +29,9 @@
 #define __STDC_FORMAT_MACROS
 #endif
 #include <stdint.h>
+#if HAVE_GSL
 #include <gsl/gsl_matrix.h>
+#endif
 
 #ifdef HAVE_CONFIG_H
 // Contains various library we have.
@@ -118,9 +120,11 @@ private:
 	int writeICS(const Path&);					//!< Write ICS
 	int writeGSL(const Path&);					//!< Write GSL (warning: does not store metadata!)
 	int writePGM(const Path&);					//!< Write PGM
-	
+
+#if HAVE_GSL
 	int setGSLdata(const gsl_matrix *mat, const bool copy=false); //!< Set data from GSL matrix (double)
 	int setGSLdata(const gsl_matrix_float *mat, const bool copy=false); //!< Set data from GSL matrix (float)
+#endif
 	
 	template <class T>
 	int _setGSLdata(const T *mat, const bool copy);
@@ -181,7 +185,9 @@ public:
 	void printmeta();
 	
 	// Public handlers
+#if HAVE_GSL
 	gsl_matrix *as_GSL(bool copy=true);
+#endif
 	data_t as_datat() { data.refs++; return data; }
 	
 	// Get properties

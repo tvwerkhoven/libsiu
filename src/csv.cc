@@ -26,7 +26,7 @@
 #include <vector>
 #include <stdexcept>
 
-#ifdef HAVE_GSL
+#if HAVE_GSL
 #include <gsl/gsl_vector.h>
 #endif
 
@@ -54,7 +54,7 @@ csvdata(newdata) {
 	DEBUGPRINT("DATA:..., '%c', '%c', '%c')\n", commpref, wordsep, linesep);
 }
 
-#ifdef HAVE_GSL
+#if HAVE_GSL
 Csv::Csv(gsl_vector_float *newdata, const char cpref, const char wsep, const char lsep):
 commpref(cpref), wordsep(wsep), linesep(lsep) {
 	DEBUGPRINT("DATA:..., '%c', '%c', '%c')\n", commpref, wordsep, linesep);

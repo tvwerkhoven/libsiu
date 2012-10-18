@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#ifdef HAVE_GSL
+#if HAVE_GSL
 #include <gsl/gsl_vector.h>
 #endif
 
@@ -58,7 +58,7 @@ public:
 	 @param [in] copy Copy *newdata or not
 	 */
 	Csv(vector< vector<double> > &newdata, const char cpref='#', const char wsep=',', const char lsep='\n', bool copy=false);
-#ifdef HAVE_GSL
+#if HAVE_GSL
 	Csv(gsl_vector_float *newdata, const char cpref='#', const char wsep=',', const char lsep='\n');
 #endif
 	
