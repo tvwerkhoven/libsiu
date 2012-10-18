@@ -20,6 +20,11 @@
 #ifndef HAVE_IMGDATA_H
 #define HAVE_IMGDATA_H
 
+#ifdef HAVE_CONFIG_H
+// Contains various library we have.
+#include "autoconfig.h"
+#endif
+
 #include <string>
 #include <stdio.h>
 #ifndef __STDC_LIMIT_MACROS
@@ -33,10 +38,6 @@
 #include <gsl/gsl_matrix.h>
 #endif
 
-#ifdef HAVE_CONFIG_H
-// Contains various library we have.
-#include "autoconfig.h"
-#endif
 
 #include "types.h"
 #include "path++.h"
